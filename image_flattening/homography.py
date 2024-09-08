@@ -1,8 +1,10 @@
 import cv2
-import numpy
+import numpy as np
 
+WIDTH = 600
+HEIGHT = 600
 test_img = cv2.imread('cage_overhead.png')
-test_img = cv2.resize(test_img, (1100, 600), interpolation=cv2.INTER_AREA)
+test_img = cv2.resize(test_img, (WIDTH, HEIGHT), interpolation=cv2.INTER_AREA)
 
 # the list of the "real" corners from the raw image
 # in order:
@@ -16,7 +18,7 @@ corners = []
 def click_event(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
         # Left button clicked, store the point
-        corners.append((x, y))
+        corners.append([x, y])
         print(f"Point added: {x}, {y}")
         redraw_image()  # Redraw the points on the image
 
@@ -54,4 +56,8 @@ while True:
         break
 
 print("Final Selected Points:", corners)
+
+dest_pts = [[0,0],[WIDTH, 0], [WIDTH, HEIGHT], [0, HEIGHT]]
+matrix = cv2.findHomography(np.array(corners), np.array(dest_pts))
+print(matrix)
 cv2.destroyAllWindows()
