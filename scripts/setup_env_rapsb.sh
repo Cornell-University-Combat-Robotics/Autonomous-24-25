@@ -8,9 +8,9 @@ sudo apt-get update -y && sudo apt-get upgrade -y
 echo "Installing camera utilities..."
 sudo apt-get install -y raspicam-utils
 
-# Install sshpass for password-based SSH login
-echo "Installing sshpass for password-based SSH..."
-sudo apt-get install -y sshpass
+# # Install sshpass for password-based SSH login
+# echo "Installing sshpass for password-based SSH..."
+# sudo apt-get install -y sshpass
 
 # Install Python, pip, and virtualenv
 echo "Installing Python, pip, and virtualenv..."
