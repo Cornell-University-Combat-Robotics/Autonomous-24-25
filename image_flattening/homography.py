@@ -3,7 +3,7 @@ import numpy as np
 
 WIDTH = 600
 HEIGHT = 600
-test_img = cv2.imread('cage_overhead.png')
+test_img = cv2.imread('cage_overhead_1.png')
 test_img = cv2.resize(test_img, (WIDTH, HEIGHT), interpolation=cv2.INTER_AREA)
 
 # the list of the "real" corners from the raw image
