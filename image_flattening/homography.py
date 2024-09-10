@@ -59,5 +59,8 @@ print("Final Selected Points:", corners)
 
 dest_pts = [[0,0],[WIDTH, 0], [WIDTH, HEIGHT], [0, HEIGHT]]
 matrix = cv2.findHomography(np.array(corners), np.array(dest_pts))
-print(matrix)
+
+np.savetxt("matrix.txt", matrix[0], fmt="%f")
+
+#print(matrix[0])
 cv2.destroyAllWindows()
