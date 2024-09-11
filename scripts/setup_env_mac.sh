@@ -19,8 +19,8 @@ echo "Creating Python virtual environment..."
 python3.12 -m venv ~/Autonomous-24-25
 
 # Activate the virtual environment
-# echo "Activating Python virtual environment..."
-# source ~/Autonomous-24-25/bin/activate
+echo "Activating Python virtual environment..."
+source ~/Autonomous-24-25/bin/activate
 
 # Install required Python packages from requirements.txt
 echo "Installing Python packages from requirements.txt..."
@@ -28,7 +28,7 @@ cd ..
 pip install -r requirements.txt
 
 # Deactivate the virtual environment
-# echo "Deactivating Python virtual environment..."
-# deactivate
+echo "Deactivating Python virtual environment..."
+deactivate
 
 echo "Setup completed! Your environment is ready."
