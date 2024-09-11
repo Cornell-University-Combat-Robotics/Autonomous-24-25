@@ -8,6 +8,7 @@ import time
 # writes it to a valid 'output_path'.
 
 countFolder = 0
+
 def process_battlefield_to_video(video_path, output_path):
     # Open the video file
     cap = cv2.VideoCapture(video_path)
@@ -54,27 +55,18 @@ def process_battlefield_to_images(video_path, target_fps=0):
         print("Error opening video file")
         return
 
-    global imgList
-    now = datetime.now()
-    timestamp = str(datetime.timestamp(now)).replace('.', '')
-    #print("timestamp =", timestamp)
-    fileName = os.path.join(newPath,f'Image_{timestamp}.jpg')
-    cv2.imwrite(fileName, cap)
-    imgList.append(fileName)
-    
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+    if target_fps > 0 and target_fps < fps:
+        coeff = fps // target_fps
+    else:
+        coeff = 1
     myDirectory = os.path.join(os.getcwd(), 'image_flattening')
     # CREATE A NEW FOLDER BASED ON THE PREVIOUS FOLDER COUNT
+    global countFolder, imgList
     while os.path.exists(os.path.join(myDirectory,f'IMG{str(countFolder)}')):
         countFolder += 1
     newPath = myDirectory +"/IMG"+str(countFolder)
     os.makedirs(newPath)
-
-    fps = int(cap.get(cv2.CAP_PROP_FPS))
-    if target_fps != 0 and target_fps < fps:
-        coeff = fps // target_fps
-    else:
-        coeff = 1
-
     # Iterate through the video frames
     i = 0
     while True:
@@ -87,14 +79,22 @@ def process_battlefield_to_images(video_path, target_fps=0):
         if i % coeff == 0:
             # Apply the warp function to the frame
             warped_frame = warp(frame, 600, 600)
+            time = datetime.datetime.now()
+            timestamp = str(time.timestamp()).replace('.', '')
+            #print("timestamp =", timestamp)
+            fileName = os.path.join(newPath,f'Image_{timestamp}.jpg')
+            cv2.imwrite(fileName, warped_frame)
+            #imgList.append(fileName)
+            
 
             # Save the warped frame to our output folder
         i += 1
 
+
 # Provide the path to your input video and output video
 video_path = "test.mp4"
 output_path = "warped_battlefield.mp4"
-
+process_battlefield_to_images("test.mp4", 10)
 
 # Record start time
 print("Starting warp:")
