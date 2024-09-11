@@ -14,7 +14,7 @@ sudo apt-get install -y raspicam-utils
 
 # Install Python, pip, and virtualenv
 echo "Installing Python, pip, and virtualenv..."
-sudo apt-get install -y python3 python3-pip python3-venv
+sudo apt-get install -y python3==3.12 python3-pip python3-venv
 
 # Create a Python virtual environment if not exist
 VENV_PATH= "~/Env/Autonomous-24-25"
@@ -32,7 +32,7 @@ if [ -d "$VENV_PATH" ]; then
 else
     echo "Virtual environment does not exist at $VENV_PATH."
     echo "Creating Python virtual environment..."
-    python3 -m venv ~/Env/Autonomous-24-25
+    python3.12 -m venv ~/Env/Autonomous-24-25
 fi
 
 # Activate the virtual environment
