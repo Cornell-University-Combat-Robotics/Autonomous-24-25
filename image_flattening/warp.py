@@ -13,7 +13,7 @@ def read_matrix():
 def warp(source, WIDTH=600, HEIGHT=600):
     source = cv2.resize(source, (WIDTH, HEIGHT), interpolation=cv2.INTER_AREA)
     matrix = read_matrix()
-    print(matrix)
+    #print(matrix)
     return cv2.warpPerspective(source, np.array(matrix), (WIDTH, HEIGHT))
 
 # src = cv2.imread('cage_overhead_1.png')
