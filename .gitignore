@@ -4,3 +4,6 @@ lib
 lib64
 pyvenv.cfg
 .env
+/camera_test/wired
+/camera_test/wireless
+/camera_test/comprision
