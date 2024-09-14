@@ -1,12 +1,3 @@
-# Check and install Chocolatey
-# if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
-#     Write-Output "Chocolatey not found. Installing Chocolatey..."
-#     Set-ExecutionPolicy Bypass -Scope Process -Force
-#     iex "& { $(irm https://chocolatey.org/install.ps1 -UseBasicP) }"
-# } else {
-#     Write-Output "Chocolatey is already installed."
-# }
-
 # Install Python 3.12 with winget
 # Check if Python 3.12 is installed
 $pythonPath = Get-Command python3.12 -ErrorAction SilentlyContinue
