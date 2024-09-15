@@ -11,7 +11,6 @@ if not cap.isOpened():
 start = time.time()
 num = 0
 
-# while ((time.time()-start) < 10):
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -24,14 +23,18 @@ while True:
     # Check for user input
     key = cv2.waitKey(1)
     # Press 's' to save the current frame
+    # if key == ord('s'):
+    #     filename = 'saved_frame.png'
+    #     cv2.imwrite(filename, frame)
+    #     print(f"Frame saved as {filename}")
+    count = 0 
+    listf = []
     if key == ord('s'):
-        filename = 'saved_frame.png'
+        folder_name = 'Saved_frames'
+
+        filename = count + 'saved_frame.png'
         cv2.imwrite(filename, frame)
         print(f"Frame saved as {filename}")
-    
-    # filename = f'saved_frame{num}.png'
-    # cv2.imwrite(filename, frame)
-    # num +=1
     
     # Press 'q' to quit
     if key == ord('q'):

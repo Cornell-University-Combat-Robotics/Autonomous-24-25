@@ -7,3 +7,4 @@ pyvenv.cfg
 /camera_test/wired
 /camera_test/wireless
 /camera_test/comprision
+.DS_Store
