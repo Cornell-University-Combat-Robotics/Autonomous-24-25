@@ -16,14 +16,15 @@ Time: duration you want to program to run for, total image / time = fps
 
 ## test_regular.py
 python script testing the camera is connected and opens a pop-up window with a live feed;
-Save images by pressing 's' key into folder_name
-Delete the 'Saved_frames' folder by pressing the 'd' key
-Quit the program by pressing the 'q' key quits out the code and closes the window 
 
 Inputs: 
 Folder_name: folder the user wants to put images in 
-Del_folder: folder the user wants to delete
-
+Del_folder: folder the user wants to delete after script has run 
+ 
+Key inputs:   
+Save images by pressing 's' key into folder_name only when running program
+Delete the 'Saved_frames' folder by pressing the 'd' key only when running program
+Quit the program by pressing the 'q' key quits out the code and closes the window 
 
 ## code_collect_train_data.py
 python code for collecting training data for a specific time to a specific folder

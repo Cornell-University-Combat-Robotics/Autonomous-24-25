@@ -18,12 +18,17 @@ while True:
 
     # Display the current frame
     cv2.imshow('Frame', frame)
-    
-    # Preprocess the frame for the model, in this case, we can use warp
+
+    # Preprocess the frame for the model, in this case, we can use warp or reduce qualty, etc  
     preprocessed_frame = some_preprocess_image(frame)
-    
+    #details 
+    #use a slice function (ethan and alyssa)
+
+
     # Run the image through the model
     predictions = some_trained_model(preprocessed_frame)
+
+ 
     
     
     # Press 'q' to quit
