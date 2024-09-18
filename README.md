@@ -1,5 +1,15 @@
 # Autonomous-24-25
 
+Setting the homography matrix using `homography.py`
+1. Ensure your `image_flashing` branch is up to date
+2. Download some NHRL cage image from a video using the same angle; ensure you know the name of the file
+3. At line 6 in `homography.py`, change the filepath stored at `test_img` to your image filepath
+4. Begin selecting corners by running `python homography.py`; a pop-up window should appear
+- Pressing "esc" will kill the window and the program
+- Pressing "z" will undo the last point you selected 
+5. Select the corners of the arena floor IN ORDER: TOP-LEFT, TOP-RIGHT, BOTTOM-RIGHT, BOTTOM-LEFT
+6. The code should automatically write the resulting homography matrix to the matrix.txt file, which is called in warp.py
+
 How to collect data using `process_battlefield_to_images`:
 1. Ensure your `image_flashing` branch is up to date
 2. Manually download an NHRL fight video using the same angle; ensure you know the name of the file
