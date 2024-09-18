@@ -1,6 +1,5 @@
 # Camera_Test Folder
 
-
 ## camera_test.py
 python script for general purpose test of your setup, including saving individual images 
 
