@@ -1,5 +1,13 @@
 
+bin
+include
+lib
+lib64
+pyvenv.cfg
 .env
+/camera_test/wired
+/camera_test/wireless
+/camera_test/comprision
 .DS_Store
 image_flattening/__pycache__/warp.cpython-312.pyc
 image_flattening/warped_battlefield.mp4
