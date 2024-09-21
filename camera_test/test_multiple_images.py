@@ -6,7 +6,7 @@ import shutil
 # Open a connection to the camera
 cap = cv2.VideoCapture(1)  # For me this is 1
 
-def test_camera(cap=cap):
+def test_multiple_images(cap=cap):
     # Check if the video capture is initialized
     if not cap.isOpened():
         print("Could not open video source.")
@@ -53,6 +53,6 @@ def test_camera(cap=cap):
         # Press 'q' to quit
         if key == ord('q'):
             break
-test_camera(cap)
+test_multiple_images(cap)
 cap.release()
 cv2.destroyAllWindows()
