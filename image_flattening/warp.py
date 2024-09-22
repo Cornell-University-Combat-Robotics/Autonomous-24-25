@@ -10,6 +10,7 @@ import numpy as np
 def read_matrix():
     return np.loadtxt("matrix.txt", dtype=float)
 
+# PARAMETRIZE THIS: READ INTO VIDEO_STREAM_CROP
 def warp(source, WIDTH=600, HEIGHT=600):
     source = cv2.resize(source, (WIDTH, HEIGHT), interpolation=cv2.INTER_AREA)
     matrix = read_matrix()
