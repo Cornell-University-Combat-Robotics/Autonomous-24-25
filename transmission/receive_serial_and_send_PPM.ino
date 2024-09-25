@@ -8,8 +8,8 @@
 #define onState 0  //set polarity of the pulses: 1 is positive, 0 is negative
 #define sigPin 10  //set PPM signal output pin on the arduino
 //////////////////////////////////////////////////////////////////
-#define defaultSteering 25
-#define defaultThrottle 25
+#define defaultSteering 50
+#define defaultThrottle 50
 
 
 /*this array holds the servo values for the ppm signal
