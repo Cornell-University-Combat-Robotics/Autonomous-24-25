@@ -30,8 +30,8 @@ def update_values(event=None):
 
 # Reset the values to default
 def reset_values(event):
-    steering_scale.set(25)
-    throttle_scale.set(25)
+    steering_scale.set(50)
+    throttle_scale.set(50)
     update_values()
 
 # List available serial ports
@@ -74,20 +74,20 @@ connect_button = ttk.Button(root, text="Connect", command=connect_port)
 connect_button.pack(pady=10)
 
 # Create and place the steering control
-steering_label = ttk.Label(root, text="Steering: 25%")
+steering_label = ttk.Label(root, text="Steering: 50%")
 steering_label.pack(pady=10)
 
 steering_scale = ttk.Scale(root, from_=0, to=100, orient='horizontal', length=300, command=update_values)
-steering_scale.set(25)
+steering_scale.set(50)
 steering_scale.pack(pady=10)
 steering_scale.bind("<ButtonRelease-1>", reset_values)
 
 # Create and place the throttle control
-throttle_label = ttk.Label(root, text="Throttle: 25%")
+throttle_label = ttk.Label(root, text="Throttle: 50%")
 throttle_label.pack(pady=10)
 
 throttle_scale = ttk.Scale(root, from_=0, to=100, orient='horizontal', length=300, command=update_values)
-throttle_scale.set(25)
+throttle_scale.set(50)
 throttle_scale.pack(pady=10)
 throttle_scale.bind("<ButtonRelease-1>", reset_values)
 
