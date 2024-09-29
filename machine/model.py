@@ -9,8 +9,9 @@ class ConvNeuralNet(nn.Module):
     def __init__(self, num_classes):
         super(ConvNeuralNet, self).__init__()
         self.conv_layer = nn.Conv2D(3, 10, 10) # output: 576x576x5 image
-        self.max_pool = nn.MaxPool2d(10) # kernel for max pooling, changeable
-        self.lin = nn.Linear(1600,128) # sample and feature size, changeable
+        self.max_pool = nn.MaxPool2d(2, 2) # kernel for max pooling, changeable
+        self.lin = nn.Linear(869750, 87000)
+        self.lin = nn.Linear(87000,128) # sample and feature size, changeable
         self.relu = nn.ReLU() # output: 576x576x5 image
         self.lin = nn.Linear(128,num_classes)
         
