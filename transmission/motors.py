@@ -22,6 +22,9 @@ class Motor():
         self.speed = speed
         self.ser.send_data(self.channel, self.speed)
 
+    def get_speed(self):
+        return self.speed
+
     def stop(self, t=0):
         self.speed = 0
         self.ser.send_data(self.channel, self.speed)
