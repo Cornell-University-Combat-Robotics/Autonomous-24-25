@@ -1,7 +1,6 @@
 import time
 import serial
 
-
 class Serial():
 
     def choose_port(self):
@@ -9,14 +8,13 @@ class Serial():
             available_ports = serial.tools.list_ports.comports()
             port_dic = {}
             if len(available_ports) == 0:
-                print("No ports found")
-                return None
-
-            print("Choose a port from the options below:")
-            for i in range(len(available_ports)):
-                port = available_ports[i]
-                port_dic[str(i+1)] = port.device
-                print(str(i+1) + ":", port)
+                print("No ports found")                
+            else:
+                print("Choose a port from the options below:")
+                for i in range(len(available_ports)):
+                    port = available_ports[i]
+                    port_dic[str(i+1)] = port.device
+                    print(str(i+1) + ":", port)
             print("Choose 0 to refresh your options")
 
             selection = input("Enter your selection here: ")
