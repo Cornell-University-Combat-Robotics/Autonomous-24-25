@@ -59,7 +59,7 @@ class data(Dataset):
             label_path = img_path.replace('images', 'labels').replace('.jpg', '.txt')
             boxes, labels = self.load_yolo_labels(label_path)
             
-            # Convert bounding boxes to tensor
+            # Convert bounding boxes to tensor 
             boxes = torch.tensor(boxes, dtype=torch.float32)
             labels = torch.tensor(labels, dtype=torch.long)
 
@@ -68,12 +68,11 @@ class data(Dataset):
 # boilerplate code from ChatGPT
 def train(model, num_epochs=10, learning_rate=0.001):
     # STEP 1: load the data into a Dataset object, establish loss functions and optimizer
-    # for some reason we need to define transformations we apply?
     transform = transforms.Compose([
-        # turns the image into PyTorch tensors
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5)) #normalization adjust here
+        transforms.ToTensor(), #converts image to tensor
+        transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5)) #normalization adjust RGB mean, stdev here
     ])
+    
     class_loss = nn.CrossEntropyLoss()
     box_loss = nn.SmoothL1Loss()
 
@@ -92,20 +91,40 @@ def train(model, num_epochs=10, learning_rate=0.001):
     for epoch in range(num_epochs):
         curr_loss = 0.0
         for images, labels in training_loader:
-            optimizer.zero_grad()
+            class_labels = labels['labels']
+            bbox_labels = labels['boxes']
+            optimizer.zero_grad() # resets gradients of model param
             
             # Forward pass
             outputs = model(images)
-            # Assuming the model outputs classification and bounding boxes, example:
-            # outputs = (class_predictions, bbox_predictions)
+
             # Calculate losses
             class_pred, bbox_pred = outputs
-            loss = class_loss(class_pred, labels) + box_loss(bbox_pred, labels)  # Example, adjust as needed
+            curr_class_loss += class_loss(class_pred, class_labels).item()
+            curr_box_loss += box_loss(bbox_pred, bbox_labels).item()
+            loss = curr_class_loss + curr_box_loss
 
             # Backward pass
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item()
+            curr_loss += loss.item() #update loss
         
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {curr_loss/len(training_loader)}")
+    
+    model.eval()  # Set model to evaluation mode
+    val_loss = 0.0
+    with torch.no_grad():  # Disable gradient computation for validation
+        for images, labels in validation_loader:
+            class_labels = labels['labels']
+            bbox_labels = labels['boxes']
+
+            # Forward pass
+            class_pred, bbox_pred = model(images)
+
+            # Calculate losses
+            class_loss_value = class_loss(class_pred, class_labels)
+            box_loss_value = box_loss(bbox_pred, bbox_labels)
+            loss = class_loss_value + box_loss_value
+
+            val_loss += loss.item()
