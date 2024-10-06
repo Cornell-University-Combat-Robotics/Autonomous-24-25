@@ -2,10 +2,10 @@ from motors import Motor
 from serial_conn import Serial
 import time
 import serial
+import serial.tools.list_ports
 
-# works for Katie's computer
-# TODO: make this transferrable to other computers, make terminal interface to choose port
-ser = Serial(port="COM3")
+
+ser = Serial()
 
 right_motor = Motor(ser, speed=0, channel=0)
 left_motor = Motor(ser, speed=0, channel=1)
