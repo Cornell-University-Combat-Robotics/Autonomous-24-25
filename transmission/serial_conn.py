@@ -3,6 +3,12 @@ import serial
 
 class Serial():
 
+    def __init__(self, baudrate=9600, timeout=1, port=None):
+        if port is None:
+            port = self.choose_port()
+        self.ser = serial.Serial(port, baudrate, timeout=timeout)
+        time.sleep(2)  # Wait for the serial connection to initialize
+
     def choose_port(self):
         def get_ports():
             available_ports = serial.tools.list_ports.comports()
@@ -36,11 +42,6 @@ class Serial():
 
         return port_dic[selection]
 
-    def __init__(self, baudrate=9600, timeout=1, port=None):
-        if port is None:
-            port = self.choose_port()
-        self.ser = serial.Serial(port, baudrate, timeout=timeout)
-        time.sleep(2)  # Wait for the serial connection to initialize
 
     def send_data(self, channel, speed):
         data = f"{channel} {speed}\n"
