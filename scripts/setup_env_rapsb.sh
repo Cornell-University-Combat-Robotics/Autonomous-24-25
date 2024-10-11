@@ -14,15 +14,30 @@ sudo apt-get install -y raspicam-utils
 
 # Install Python, pip, and virtualenv
 echo "Installing Python, pip, and virtualenv..."
-sudo apt-get install -y python3.12 python3.12-pip python3.12-venv
+sudo apt-get install -y python3==3.12 python3-pip python3-venv
 
-# Create a Python virtual environment
-echo "Creating Python virtual environment..."
-python3.12 -m venv ~/Autonomous-24-25
+# Create a Python virtual environment if not exist
+VENV_PATH= "~/Env/Autonomous-24-25"
+
+# Check if the virtual environment directory exists
+if [ -d "$VENV_PATH" ]; then
+    echo "Virtual environment exists at $VENV_PATH."
+
+    # Check if the virtual environment is active
+    if [[ "$VIRTUAL_ENV" == "$VENV_PATH" ]]; then
+        echo "Virtual environment is active."
+    else
+        echo "Virtual environment is not active."
+    fi
+else
+    echo "Virtual environment does not exist at $VENV_PATH."
+    echo "Creating Python virtual environment..."
+    python3.12 -m venv ~/Env/Autonomous-24-25
+fi
 
 # Activate the virtual environment
-# echo "Activating Python virtual environment..."
-# source ~/Autonomous-24-25/bin/activate
+echo "Activating Python virtual environment..."
+source ~/Env/Autonomous-24-25/bin/activate
 
 # Install required Python packages
 echo "Installing Python packages..."
@@ -30,8 +45,8 @@ cd ..
 pip install -r requirements.txt  # Make sure to use the updated the requirements.txt file
 
 # Deactivate the virtual environment
-# echo "Deactivating Python virtual environment..."
-# deactivate
+echo "Deactivating Python virtual environment..."
+deactivate
 
 # Enable camera interface
 echo "Enabling the Raspberry Pi camera interface..."
