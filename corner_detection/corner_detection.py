@@ -1,141 +1,212 @@
-import numpy as np
 import cv2
+import numpy as np
+import os
 import math
-from PIL import Image
-import sys
+import time
 
-def get_corners(img):
-    print("check")
+# ---------------------------------------------------------------------------- #
 
-    r = 2
-    g = 1
-    b = 0
+display_image = True
+# image_path = os.getcwd() + '/bot_images/IMG_4390.JPEG'
+image_path = os.getcwd() + '/non_bot_images/red_and_blue_3.png'
 
-    # --- RED ---
-    r_query_low = 150
-    # r_query_high = 180
-    g_query_high = 70
-    # g_query_low = 40
-    b_query_high = 80
-    # b_query_low = 50
+# ---------------------------------------------------------------------------- #
 
-    Y,X = np.where((img[:,:,r] >= r_query_low) & (img[:,:,g] <= g_query_high) & (img[:,:,b] <= b_query_high))
-    # Y,X = np.where((r_query_high >= img[:,:,r] >= r_query_low) & (g_query_low <= img[:,:,g] <= g_query_high) & (b_query_low <= img[:,:,b] <= b_query_high))
-    y_points = np.column_stack((X, Y))
+"""
+get_limits(): Returns gradient for the front and back corners  
+Input: side = "front" to assign the HSV for the front cornners, "back" for the 
+                back corners
+Output: lower and upper limits that will be used in masking
+"""
+def get_limits(side):
+    if side == "front":
+        # Narrow down HSV values for red
+        lowerLimit = np.array([0, 150, 150])  # More specific lower range for red in HSV
+        upperLimit = np.array([5, 255, 255])  # Narrowed upper range for red in HSV
 
-    try:
-        print("start")
-        min_x = min(y_points, key = lambda x: x[0])[0]
-        min_y = min(y_points, key = lambda x: x[1])[1]
-        max_x = max(y_points, key = lambda x: x[0])[0]
-        max_y = max(y_points, key = lambda x: x[1])[1]
-        x_thresh = (max_x - min_x)/2
-        y_thresh = (max_y - min_y)/2
-        print("end")
-    except:
-        print("malfunction")
-        raise Exception("Could not find any red points")
+        # Upper red range (due to red's nature in HSV)
+        upper_lowerLimit = np.array([170, 150, 150])  # More specific upper lower limit for red
+        upper_upperLimit = np.array([179, 255, 255])  # More specific upper upper limit for red
+    else:
+        # Narrower blue range
+        lowerLimit = np.array([100, 200, 100])  # Narrower lower bound for blue in HSV
+        upperLimit = np.array([110, 255, 255])  # Narrower upper bound for blue
+
+        # Upper blue range
+        upper_lowerLimit = np.array([110, 200, 100])    # More specific lower bound for upper blue range
+        upper_upperLimit = np.array([120, 255, 255])    # More specific upper bound for upper blue range
+
+    return lowerLimit, upperLimit, upper_lowerLimit, upper_upperLimit
+
+"""
+Input: The image
+Output: [centroid_front, centroid_back], where centroid_front is an array of all 
+        the center points of the front corners, and centroid_back is an array of 
+        all the center points of the back corners
+"""
+def find_centroids(image):
+    hsvImage = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    centroid_front = find_centroids_per_color("front", image, hsvImage) # for now, it's red
+    centroid_back = find_centroids_per_color("back", image, hsvImage) # for now, it's blue
+    return [centroid_front, centroid_back] 
+
+"""
+Algorithm:
+- Retrieve HSV limits for the given side (either front or back)
+- Create masks for color detection in the HSV image
+- Detect contours in the mask, then calculate the centroid for each contour
+- Draw the centroid on the original image and label it with the side (front/back)
+- Return the list of centroids detected in the image
+
+Input:
+- side: This is either "front" or "back" and is passed into get_limits()
+- image: This is the image. Used to draw circle to point out the points
+- hsvImage: This is the HSV version of the image. Used in masking
+
+Output: The centroids for a specific color as an array
+"""
+def find_centroids_per_color(side, image, hsvImage):
+    lowerLimit, upperLimit, upper_red_lowerLimit, upper_red_upperLimit = get_limits(side)
+
+    mask1 = cv2.inRange(hsvImage, lowerLimit, upperLimit)
+    mask2 = cv2.inRange(hsvImage, upper_red_lowerLimit, upper_red_upperLimit)
     
-    # The image incorrectly detects only 1 or 2 corners on the same line, based on threshold split into exceed corner. This is BAD
-    if (x_thresh < 20 or y_thresh < 20) :
-        raise Exception("Could not detect four corners in image. Threshold too small")
-    else: # Image is detected properly with at least 3 corners.
-        print("pass")
-        fps = []
-        for p in y_points:
-            # If x or y differ substantially from every other point's x and y
-            Diff = True
-            for p2 in fps:
-                if (abs(p2[0] - p[0]) < x_thresh and abs(p2[1] - p[1]) < y_thresh):
-                    Diff = False
-                    break
-            if Diff:
-                print(p)
-                print(type(p))
-                fps.append(p)
+    # Combine both masks
+    mask = mask1 | mask2
 
-        # Sorted in a z manner
-        # 1----------2
-        # |          |
-        # 3----------4
+    # Find contours (detected regions) based on the mask
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # 3 corners are detected
-        if (len(fps) == 3):
-        # This section finds the two points that are on the same y level and makes a list with each of the two points
-            # Draw circles on the image
-            initial_3_points = img
-            for (x, y) in fps:
-                cv2.circle(initial_3_points, (x, y), 10, (0, 0, 255), 2) # (0, 0, 255) is in BGR, so this is red
+    centroids = []
 
-            # Save or display the image with corners
-            cv2.imwrite('initial_3_points.png', initial_3_points)
-            cv2.imshow('Initial 3 points', initial_3_points)
+    for contour in contours:
+        # Filter out small contours based on area
+        area = cv2.contourArea(contour)
+        if area > 20: # TODO: this value is subject to change based on the size of our bot's corners
+            # Compute moments for each contour
+            M = cv2.moments(contour)
+            if M["m00"] != 0:
+                # Calculate the centroid (center of the dot)
+                cx = int(M["m10"] / M["m00"])
+                cy = int(M["m01"] / M["m00"])
+                centroids.append((cx, cy))
+                
+                cv2.circle(image, (cx, cy), 8, (0, 0, 0), -1)
+                cv2.putText(image, side, (cx + 10, cy - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
 
-            firstpoint = fps[2]
-            failedy = True
-            for x in range(2):
-                if abs(firstpoint[1] - fps[x][1]) < 50:
-                    ylevel = [firstpoint, fps[x]]
-                    failedy = False
-            if failedy:
-                ylevel = [fps[0], fps[1]]
+    return centroids
 
-            # This section finds the two points that are on the same x level and makes a list with each of the two points
-            failedx = True
-            for x in range(2):
-                if abs(firstpoint[0] - fps[x][0]) < 50:
-                    xlevel = [firstpoint, fps[x]]
-                    failedx = False
-            if failedx:
-                xlevel = [fps[0], fps[1]]
+"""
+get_missing_point() returns a new array with the missing point included in
+either red_points or blue_points
 
-        # Need to look at both lists and see which point is repeated twice, that point
-        # is diagonal to the new point that we want (we do this by merging the lists and
-        # comparing the first element with the third and fourth).
-            points = ylevel + xlevel
-            if np.array_equiv(points[0],points[2]):
-                fourthpoint = np.array((points[1][0], points[3][1]))
-            elif np.array_equiv(points[0],points[3]):
-                fourthpoint = np.array((points[1][0], points[2][1]))
-            elif np.array_equiv(points[1],points[2]):
-                fourthpoint = np.array((points[0][0], points[3][1]))
-            else:
-                fourthpoint = np.array((points[0][0], points[2][1]))
-            print(fourthpoint)
-            print(type(fourthpoint))
-            fps.append(fourthpoint)
+Algorithm:
+- Let's say we are given 2 blue points and 1 red point
+- We find the length from each blue point to the red point called length A and B
+- Let's arbitrarily let length A be the hypotenuse, so its greater than length B
+- We copy the blue point associated with this length "copy" down to be next
+    to the red point as the new second red point
+"""
+def get_missing_point(points):
+    red_points = points[0]
+    blue_points = points[1]
 
-        fps = sorted(fps, key = lambda tup: tup[0] * 5 + tup[1]*10)
+    if len(red_points) == 1 and len(blue_points) == 2:
+        # Case #1: 1 red point and 2 blue points
+        red_point = red_points[0]
+        length_a = distance(blue_points[0], red_point)
+        length_b = distance(blue_points[1], red_point)
 
-    # Draw circles on the image
-    img_with_corners = img
-    for (x, y) in fps:
-        cv2.circle(img_with_corners, (x, y), 10, (0, 0, 255), 2) # (0, 0, 255) is in BGR, so this is red
+        # Identify which blue point is associated with the hypotenuse
+        if length_a > length_b:
+            # Copy the blue point associated with length_a near the red point
+            new_red_point = (red_point[0] + (blue_points[0][0] - blue_points[1][0]),
+                             red_point[1] + (blue_points[0][1] - blue_points[1][1]))
+            red_points.append(new_red_point)
+        else:
+            # Copy the blue point associated with length_b near the red point
+            new_red_point = (red_point[0] + (blue_points[1][0] - blue_points[0][0]),
+                             red_point[1] + (blue_points[1][1] - blue_points[0][1]))
+            red_points.append(new_red_point)
 
-    # Save or display the image with corners
-    cv2.imwrite('image_with_corners.png', img_with_corners)
-    cv2.imshow('Image with Corners', img_with_corners)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    elif len(blue_points) == 1 and len(red_points) == 2:
+        # Case #2: 2 red points and 1 blue point
+        blue_point = blue_points[0]
+        length_a = distance(red_points[0], blue_point)
+        length_b = distance(red_points[1], blue_point)
 
-    # (x coordinate, y coordinate)
-    return fps
+        # Identify which red point is associated with the hypotenuse
+        if length_a > length_b:
+            # Copy the red point associated with length_a near the blue point
+            new_blue_point = (blue_point[0] + (red_points[0][0] - red_points[1][0]),
+                              blue_point[1] + (red_points[0][1] - red_points[1][1]))
+            blue_points.append(new_blue_point)
+        else:
+            # Copy the red point associated with length_b near the blue point
+            new_blue_point = (blue_point[0] + (red_points[1][0] - red_points[0][0]),
+                              blue_point[1] + (red_points[1][1] - red_points[0][1]))
+            blue_points.append(new_blue_point)
 
+    return [red_points, blue_points]
+
+""" distance() returns the euclidean distance between point1 and point2 """
+def distance(point1, point2):
+    return math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+
+"""
+Given all 4 points, return the left and right front points of the robot
+
+Algorithm:
+- Given all 4 points, first calculate the center of the 4 corners
+- Next, find the vector between the center of the bot and the front 2 points
+- Calculate the angle between the 2 vectors and the positive x axis
+- IF Θ2 > Θ1 and abs(Θ2 - Θ1) <= some given threshold, THEN the red point
+    associated with the *** SMALLER *** angle is the top right front corner
+- ELSE Θ2 > Θ1, but the abs(Θ2 - Θ1) > some give threshold, THEN the red
+    point associated with the *** LARGER *** angle is the top right front corner
+"""
+def get_left_and_right_front_points(points):
+    red_points = points[0]
+    blue_points = points[1]
+    
+    all_points = red_points + blue_points
+    center = np.mean(all_points, axis=0)
+    
+    vector1 = np.array(red_points[0]) - center
+    vector2 = np.array(red_points[1]) - center
+    
+    vector1[1] = -vector1[1]
+    vector2[1] = -vector2[1]
+    
+    theta1 = math.atan2(vector1[1], vector1[0])
+    theta2 = math.atan2(vector2[1], vector2[0])
+    
+    theta1_deg = math.degrees(theta1) if math.degrees(theta1) >= 0 else math.degrees(theta1) + 360
+    theta2_deg = math.degrees(theta2) if math.degrees(theta2) >= 0 else math.degrees(theta2) + 360
+
+    # Determine which red point is the top right front corner
+    if theta2_deg > theta1_deg:
+        # The point with the smaller angle is the top right front corner
+        right_front = red_points[0]
+        left_front = red_points[1]
+    else:
+        # The point with the larger angle is the top right front corner
+        right_front = red_points[1]
+        left_front = red_points[0]
+
+    return [left_front, right_front]
+
+"""
+Compute the angle of the tangent to the front of the robot in radians.
+Input: p1 = [x1, y2] and p2 = [x2, y2] representing the front 2 corners
+Output: Angle of the tangent line relative to the x axis in degrees
+"""
 def compute_tangent_angle(p1, p2):
-    """
-    Compute the angle of the tangent to the front of the robot in radians.
-
-    Input:
-    p1, p2: tuples representing the coordinates of the two front corners p = (x, y)
-
-    Output:
-    tangent_angle_rad: angle of the tangent line relative to the x axis in radians
-    """
     x1, y1 = p1
     x2, y2 = p2
 
     dx = x2 - x1
-    dy = y2 - y1
+    dy = -(y2 - y1)
 
     angle_rad = np.arctan2(dy, dx)
     tangent_angle_rad = angle_rad + np.pi / 2
@@ -143,19 +214,45 @@ def compute_tangent_angle(p1, p2):
 
     return tangent_angle_deg
 
-# Load image using OpenCV
-image = cv2.imread('red.png')
-# Process the image
-four_corners = get_corners(image)
+image = cv2.imread(image_path)
 
-print("--------------------\n")
-print("Detected corners: " + str(four_corners) + "\n")
+if image is not None:
+    image = cv2.resize(image, (602, 803))
+    
+    start_time = time.time()
 
-# Let's just assume (for now) that the first two points from four_corners are the front 2 points
-top_left_corner = four_corners[0]
-top_right_corner = four_corners[1]
+    centroid_points = find_centroids(image)
+    print(f"Centroid points: {centroid_points}")
 
-# Computing the angle of orientation in degrees
-angle_of_orientation = compute_tangent_angle(top_left_corner, top_right_corner)
-# Print angle of orientation in degrees
-print("Angle of Orientation: " + str(angle_of_orientation) + "°\n")
+    left_and_right_front_points = get_left_and_right_front_points(centroid_points)
+
+    image_copy = image.copy()
+    left_front = left_and_right_front_points[0]
+    right_front = left_and_right_front_points[1]
+
+    if display_image:
+        # Draw the left front corner
+        cv2.circle(image_copy, (int(left_front[0]), int(left_front[1])), 5, (255, 255, 255), -1)
+        cv2.putText(image_copy, "Left Front", (int(left_front[0]), int(left_front[1]) - 30), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+
+        # Draw the right front corner
+        cv2.circle(image_copy, (int(right_front[0]), int(right_front[1])), 5, (255, 255, 255), -1)
+        cv2.putText(image_copy, "Right Front", (int(right_front[0]), int(right_front[1]) - 30), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
+
+        # Display the image
+        cv2.imshow('Image with Left and Right Front Corners', image_copy)
+        cv2.imwrite('image_with_front_corners.png', image_copy)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    # Computing the angle of orientation in degrees
+    angle_of_orientation = compute_tangent_angle(left_front, right_front)
+    print("Angle of Orientation: " + str(angle_of_orientation) + "°\n")
+
+    end_time = time.time()
+
+    # Calculate and print the execution time
+    execution_time = end_time - start_time
+    print(f"Code execution time: {execution_time} seconds")
