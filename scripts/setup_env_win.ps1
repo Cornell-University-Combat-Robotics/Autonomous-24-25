@@ -16,8 +16,8 @@ Write-Output "Creating Python virtual environment..."
 python -m venv C:\Users\$env:USERNAME\Autonomous-24-25
 
 # # Activate the virtual environment
-# Write-Output "Activating Python virtual environment..."
-# & C:\Users\$env:USERNAME\Autonomous-24-25\Scripts\Activate.ps1
+Write-Output "Activating Python virtual environment..."
+& C:\Users\$env:USERNAME\Autonomous-24-25\Scripts\Activate.ps1
 
 # Install required Python packages from requirements.txt
 Write-Output "Installing Python packages from requirements.txt..."
@@ -25,7 +25,7 @@ cd ..
 pip install -r requirements.txt
 
 # # Deactivate the virtual environment
-# Write-Output "Deactivating Python virtual environment..."
-# deactivate
+Write-Output "Deactivating Python virtual environment..."
+deactivate
 
 Write-Output "Setup completed! Your environment is ready."
