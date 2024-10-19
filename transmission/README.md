@@ -13,19 +13,21 @@ pyserial: `python -m pip install pyserial`
         * Put all the top switches up and the left joystick in the center bottom 
     * The the top right switch is used “for taking the control” (put it in the down position)
 
-3. Connect wires, cables as shown in the circuit diagram
+2. Connect wires, cables as shown in the circuit diagram
 
     <img src="readme_assest/circuit_diagram.png" alt="Circuit Diagram" width="500">
 
-4. Download [Arduino IDE](https://www.arduino.cc/en/software) (if not previously installed)
-5. Download `receive_serial_and_send_PPM.ino`
-6. In the Arduino IDE, select the Arduino nano board and appropriate port
+Note: you may be able to skip the following instructions if you have already set up your arduino
+
+3. Download [Arduino IDE](https://www.arduino.cc/en/software) (if not previously installed)
+4. Download `receive_serial_and_send_PPM.ino` (if not previously installed)
+5. In the Arduino IDE, select the Arduino nano board and appropriate port
     
     <img src="readme_assest/select_board_and_port.png" alt="Select Board" width=500>
 
     * if you’re unsure of the port, unplug and replug the arduino and see which option disappears and reappears
 
-7. Upload the .ino code to Arduino
+6. Upload the .ino code to Arduino
 
     <img src="readme_assest/upload_sketch.png" alt="Upload Sketch" width=300>
 
