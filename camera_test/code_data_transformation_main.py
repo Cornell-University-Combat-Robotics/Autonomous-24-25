@@ -5,6 +5,7 @@ from warp import warp  # Assuming 'warp' is a custom function defined in a separ
 
 # Open a connection to the camera
 cap = cv2.VideoCapture(1)  # Camera index, adjust if necessary to use the correct camera (0 for default)
+print("IN CAMERA FILE")
 
 def code_data_transformation_main(cap=cap):
     # Check if the video capture is successfully initialized
