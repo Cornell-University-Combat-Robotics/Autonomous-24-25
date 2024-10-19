@@ -3,7 +3,7 @@ from serial_conn import Serial
 import time
 import serial
 import serial.tools.list_ports
-
+# review if we actually need these ^^^ #
 
 ser = Serial()
 

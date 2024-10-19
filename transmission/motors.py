@@ -50,6 +50,7 @@ class Motor():
         self.ser.send_data(channel, speed)
 
     def move(self, speed):
+        """Set speed of motor to [speed]. Speed must be between -1 and 1"""
         if speed > Motor.max_speed:
             speed = Motor.max_speed
         if speed < Motor.min_speed:
