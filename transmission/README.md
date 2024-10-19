@@ -19,19 +19,19 @@ pyserial: `python -m pip install pyserial`
 
 3. Connect wires, cables as shown in the circuit diagram
 
-    ![circuit diagram](readme_assest/circuit_diagram.png)
+    <img src="readme_assest/circuit_diagram.png" alt="Circuit Diagram" width="500">
 
 4. Download [Arduino IDE](https://www.arduino.cc/en/software) (if not previously installed)
 5. Download `receive_serial_and_send_PPM.ino`
 6. In the Arduino IDE, select the Arduino nano board and appropriate port
     
-    ![select board](readme_assest/select_board_and_port.png)
+    <img src="readme_assest/select_board_and_port.png" alt="Select Board" width=500>
 
     * if you’re unsure of the port, unplug and replug the arduino and see which option disappears and reappears
 
 7. Upload the .ino code to Arduino
 
-    ![select board](readme_assest/upload_sketch.png)
+    <img src="readme_assest/upload_sketch.png" alt="Upload Sketch" width=300>
 
 
 
