@@ -7,16 +7,23 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 import yaml
+import model
 
-with open('/data/nhrl_bots.yaml','r') as file: #edit yaml path
+
+print("opening yaml")
+with open('./data/nhrl_bots.yaml','r') as file: #edit yaml path
     config = yaml.safe_load(file)
+print("finished reading yaml")
 
 train_images_dir = config['train']
 train_labels_dir = train_images_dir.replace('images', 'labels')
+print("found train dir")
 val_images_dir = config['val']
 val_labels_dir = val_images_dir.replace('images', 'labels')
+print("found val dir")
 test_images_dir = config['test']
 test_labels_dir = test_images_dir.replace('images', 'labels')
+print("found test dir")
 
 class Data(Dataset):
     """
@@ -75,6 +82,7 @@ class Data(Dataset):
         return image, {"boxes": boxes, "labels": labels}
 
 def train(model, num_epochs=10, learning_rate=0.001):
+    print("begin training")
     """
     Performs training and evaluation of the model
     """
@@ -101,13 +109,14 @@ def train(model, num_epochs=10, learning_rate=0.001):
         class_labels = labels['labels']
         bbox_labels = labels['boxes']
         
-        class_pred, bbox_pred = model(images)
+        class_pred, bbox_pred = model.forward(images)
 
         curr_class_loss += class_loss(class_pred, class_labels)
         curr_box_loss += box_loss(bbox_pred, bbox_labels)
         return curr_class_loss + curr_box_loss
-    
     model.train()
+    print("model is in training")
+
     for epoch in range(num_epochs):
         curr_loss = 0.0
         for images, labels in training_loader:
@@ -120,8 +129,21 @@ def train(model, num_epochs=10, learning_rate=0.001):
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {curr_loss/len(training_loader)}")
     
     model.eval() 
+    print("model is in validation")
     val_loss = 0.0
     with torch.no_grad(): 
         for images, labels in validation_loader:
             loss = loader_loss(images, labels)
             val_loss += loss.item()
+    print("end training")
+
+def main():     
+    newModel = model.ConvNeuralNet()
+    print("made model")
+    train(newModel)
+    print("finished training model")
+    torch.save(newModel, "./models")
+    print("saved new model")
+
+if __name__ == "__main__":
+    main()
