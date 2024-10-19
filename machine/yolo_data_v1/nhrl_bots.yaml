@@ -1,0 +1,13 @@
+train: ./yolo_data_v1/train/images
+val: ./yolo_data_v1/valid/images
+test: ./yolo_data_v1/test/images
+
+nc: 2
+names: ['housebot', 'robot']
+
+roboflow:
+  workspace: crc-autonomous
+  project: nhrl-robots
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/crc-autonomous/nhrl-robots/dataset/1
