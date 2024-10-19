@@ -11,7 +11,7 @@ import model
 
 
 print("opening yaml")
-with open('./data/nhrl_bots.yaml','r') as file: #edit yaml path
+with open('./yolo_data_v1/nhrl_bots.yaml','r') as file: #edit yaml path
     config = yaml.safe_load(file)
 print("finished reading yaml")
 
@@ -80,6 +80,9 @@ class Data(Dataset):
         labels = torch.tensor(labels, dtype=torch.long)
 
         return image, {"boxes": boxes, "labels": labels}
+    
+    def __len__(self):
+        return len(self.image_dir)
 
 def train(model, num_epochs=10, learning_rate=0.001):
     print("begin training")
@@ -99,7 +102,7 @@ def train(model, num_epochs=10, learning_rate=0.001):
     train_dataset = Data(train_images_dir, train_labels_dir, transform=transform)
     val_dataset = Data(val_images_dir, val_labels_dir, transform=transform)
 
-    training_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+    training_loader = DataLoader(train_dataset, batch_size = 4, shuffle=True)
     validation_loader = DataLoader(val_dataset, batch_size = 4, shuffle=False)
     
     def loader_loss(images, labels):
