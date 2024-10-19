@@ -106,4 +106,5 @@ class Serial():
         self.ser.write(data.encode())
 
     def cleanup(self):
+        """Closes serial connection"""
         self.ser.close()
