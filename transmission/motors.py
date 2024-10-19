@@ -60,9 +60,11 @@ class Motor():
         self.ser.send_data(self.channel, self.speed)
 
     def get_speed(self):
+        """returns current speed"""
         return self.speed
 
     def stop(self, t=0):
+        """Stops motor, then sleeps for [t] seconds"""
         self.speed = 0
         self.ser.send_data(self.channel, self.speed)
         time.sleep(t)
