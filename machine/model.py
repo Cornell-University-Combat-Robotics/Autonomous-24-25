@@ -14,11 +14,13 @@ class ConvNeuralNet(nn.Module):
         print("finished conv")
         self.relu = nn.ReLU() # output: 591 x 591 x 10 image
         print("finsihed relu")
-        self.max_pool = nn.MaxPool2d(4, 4) # kernel for max pooling, changeable; kernel size 2x2, stride 2; effectively halves the dimensions
+        feats_cut = 8
+        self.max_pool = nn.MaxPool2d(feats_cut, feats_cut) # kernel for max pooling, changeable; kernel size 2x2, stride 2; effectively halves the dimensions
         print("finished max pool")
-        self.lin1 = nn.Linear(147 * 147 * 10, 87000) # in_channel: 591/4 (floored to 147) x 147 x 10
+        feats = 591//feats_cut
+        self.lin1 = nn.Linear(feats * feats * 10, 5000) # in_channel: 591/4 (floored to 147) x 147 x 10
         print("finsihed lin1")
-        self.lin2 = nn.Linear(87000, 128) # sample and feature size, changeable
+        self.lin2 = nn.Linear(5000, 128) # sample and feature size, changeable
         print("finished lin2")
 
         self.class_output = nn.Linear(128, num_classes * num_bots) # predicting on each bot with a number of classes
