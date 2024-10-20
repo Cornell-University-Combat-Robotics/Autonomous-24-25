@@ -5,3 +5,4 @@ image_flattening/warped_battlefield.mp4
 image_flattening/test.mp4
 ml_env
 machine/__pycache__
+machine/yolo_data_v1
