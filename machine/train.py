@@ -10,20 +10,20 @@ import yaml
 import model
 
 
-print("opening yaml")
-with open('./yolo_data_v1/nhrl_bots.yaml','r') as file: #edit yaml path
+# print("opening yaml")
+with open('./data/yolo_data_v1/nhrl_bots.yaml','r') as file: #edit yaml path
     config = yaml.safe_load(file)
-print("finished reading yaml")
+# print("finished reading yaml")
 
 train_images_dir = config['train']
 train_labels_dir = train_images_dir.replace('images', 'labels')
-print("found train dir")
+# print("found train dir")
 val_images_dir = config['val']
 val_labels_dir = val_images_dir.replace('images', 'labels')
-print("found val dir")
+# print("found val dir")
 test_images_dir = config['test']
 test_labels_dir = test_images_dir.replace('images', 'labels')
-print("found test dir")
+# print("found test dir")
 
 class Data(Dataset):
     """
@@ -104,25 +104,32 @@ def train(model, num_epochs=10, learning_rate=0.001):
 
     training_loader = DataLoader(train_dataset, batch_size = 4, shuffle=True)
     validation_loader = DataLoader(val_dataset, batch_size = 4, shuffle=False)
-    
+
     def loader_loss(images, labels):
         """
         Calculates total loss (classification and regression) for given images and labels
         """
         class_labels = labels['labels']
+        # class_labels = torch.argmax(labels['labels'], dim=1)
+        print(class_labels)
         bbox_labels = labels['boxes']
         
         class_pred, bbox_pred = model.forward(images)
-
+        curr_class_loss = 0
+        curr_box_loss = 0
         curr_class_loss += class_loss(class_pred, class_labels)
         curr_box_loss += box_loss(bbox_pred, bbox_labels)
         return curr_class_loss + curr_box_loss
     model.train()
     print("model is in training")
-
+    print(f"Batch size: {training_loader.batch_size}")
+    print(f"Collate function: {training_loader.collate_fn}")
     for epoch in range(num_epochs):
         curr_loss = 0.0
         for images, labels in training_loader:
+            print(f"Image batch shape: {images.shape}")
+            for key, value in labels.items():
+                    print(f"Label {key} shape: {value.shape}")            
             optimizer.zero_grad()
             loss = loader_loss(images, labels)
             loss.backward()

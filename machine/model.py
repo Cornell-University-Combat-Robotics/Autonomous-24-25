@@ -9,19 +9,19 @@ class ConvNeuralNet(nn.Module):
     def __init__(self, num_classes=2, num_bots=3):
         print("initiating model")
         super(ConvNeuralNet, self).__init__()
-        print("finished super")
+        # print("finished super")
         self.conv_layer = nn.Conv2d(3, 10, 10) # output: 591 x 591 x 10 image
-        print("finished conv")
+        # print("finished conv")
         self.relu = nn.ReLU() # output: 591 x 591 x 10 image
-        print("finsihed relu")
+        # print("finsihed relu")
         feats_cut = 8
         self.max_pool = nn.MaxPool2d(feats_cut, feats_cut) # kernel for max pooling, changeable; kernel size 2x2, stride 2; effectively halves the dimensions
-        print("finished max pool")
+        # print("finished max pool")
         feats = 591//feats_cut
         self.lin1 = nn.Linear(feats * feats * 10, 5000) # in_channel: 591/4 (floored to 147) x 147 x 10
-        print("finsihed lin1")
+        # print("finsihed lin1")
         self.lin2 = nn.Linear(5000, 128) # sample and feature size, changeable
-        print("finished lin2")
+        # print("finished lin2")
 
         self.class_output = nn.Linear(128, num_classes * num_bots) # predicting on each bot with a number of classes
         self.box_output = nn.Linear(128, num_bots * 4) # for the four coordinates per bot; from chatgpt
