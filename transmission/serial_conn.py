@@ -1,6 +1,7 @@
 import time
 import serial
 
+
 class Serial():
     """
     The Serial module is used to establish connectio witht the arduino over serial communication
@@ -9,21 +10,20 @@ class Serial():
     ----------
     ser : serial.Serial
         a serial.Serial object that sets up the connection to the arduino
-    
+
     Methods
         -------
         choose_port()
             used for user to select port for serial connection
-        
+
         send_data(channel, speed)
             Sets [channel] to [speed]
-        
+
         cleanup()
             Closes serial connection
-        
+
     """
-    
-    
+
     def __init__(self, baudrate=9600, timeout=1, port=None):
         """
         Parameters
@@ -35,7 +35,7 @@ class Serial():
         port : string, optional
             port arduino is connected to. If None, then calls choose_port for port selection
         """
-        
+
         if port is None:
             port = self.choose_port()
         self.ser = serial.Serial(port, baudrate, timeout=timeout)
@@ -44,7 +44,7 @@ class Serial():
     def choose_port(self):
         """ 
         Allows user to determine what port the arduino is on
-        
+
         User Guide: 
         1. Look at port list printed by choose_port
         2. unplug arduino and press '0' to refresh list
@@ -59,7 +59,7 @@ class Serial():
             available_ports = serial.tools.list_ports.comports()
             port_dic = {}
             if len(available_ports) == 0:
-                print("No ports found")                
+                print("No ports found")
             else:
                 print("Choose a port from the options below:")
                 for i in range(len(available_ports)):
@@ -87,7 +87,6 @@ class Serial():
 
         return port_dic[selection]
 
-
     def send_data(self, channel, speed):
         """
         Sets [channel] to [speed]
@@ -96,12 +95,11 @@ class Serial():
         ----------
         channel: int
             the channel to change
-        speed: int
+        speed: float
             the value to set the channel  
-        
+
         """
-        
-        
+
         data = f"{channel} {speed}\n"
         self.ser.write(data.encode())
 
