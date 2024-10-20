@@ -17,7 +17,7 @@ import warp
 cap = cv2.VideoCapture(1)
 
 # Build homography matrix and select corners
-# from image_flattening import homography
+
 
 running = True
 
@@ -33,7 +33,6 @@ while running:
 
     cv2.imshow("Camera", warped_image)
 
-    running = False
 
     # 3. Run object detection, return all robot boxes as images and coordinates of bots
 
@@ -43,6 +42,8 @@ while running:
     # 5. Input stuff to algorithm
 
     # 6. Send instructions to bot
+
+    running = False
 
 cap.release()
 cv2.destroyAllWindows()
