@@ -3,12 +3,13 @@ import numpy as np
 import os
 import math
 import time
+from detect_our_robot import our_bot
 
 # ---------------------------------------------------------------------------- #
 
 display_image = True
 # image_path = os.getcwd() + '/bot_images/IMG_4390.JPEG'
-image_path = os.getcwd() + '/non_bot_images/red_and_blue_3.png'
+# image_path = os.getcwd() + '/non_bot_images/red_and_blue_3.png'
 
 # ---------------------------------------------------------------------------- #
 
@@ -214,10 +215,18 @@ def compute_tangent_angle(p1, p2):
 
     return tangent_angle_deg
 
-image = cv2.imread(image_path)
+# image = cv2.imread(image_path) # Used for manual input of an image
+image = our_bot
 
 if image is not None:
-    image = cv2.resize(image, (602, 803))
+    
+    if display_image:
+        cv2.imshow('Our Robot :)', our_bot)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    height, width, _ = image.shape
+    image2 = cv2.resize(image, (int(width/2), int(height/2))) # TODO: subject to change
     
     start_time = time.time()
 
@@ -252,7 +261,5 @@ if image is not None:
     print("Angle of Orientation: " + str(angle_of_orientation) + "°\n")
 
     end_time = time.time()
-
-    # Calculate and print the execution time
     execution_time = end_time - start_time
-    print(f"Code execution time: {execution_time} seconds")
+    print(f"Code execution time (corner_detection): {execution_time} seconds")
