@@ -18,7 +18,8 @@ def warp(source, WIDTH=600, HEIGHT=600):
     return cv2.warpPerspective(source, np.array(matrix), (WIDTH, HEIGHT))
 
 # src = cv2.imread('cage_overhead_1.png')
-src = cv2.imread('FLOOR_CORNERS.jpg')
+# src = cv2.imread('FLOOR_CORNERS.jpg')
+src = cv2.imread('middle_grace_jenny.PNG')
 cv2.imshow("Image", warp(src, 600, 600))
 cv2.waitKey(0)
 
