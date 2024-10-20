@@ -8,6 +8,7 @@
 import cv2
 import os
 import sys
+import time
 
 from main import warp
 
@@ -15,10 +16,14 @@ from main import warp
 cap = cv2.VideoCapture(1)
 
 # Build homography matrix and select corners
-
+ret, frame = cap.read()
+# TODO: handle missing frame
+if not ret:
+    print("Oh no we cant get an image")
+warp.build_matrix(frame)
 
 running = True
-
+n = 0
 while running:
 
     # 1. Capture image from video feed
@@ -30,7 +35,6 @@ while running:
     warped_image = warp.warp(frame)
 
     cv2.imshow("Camera", warped_image)
-
 
     # 3. Run object detection, return all robot boxes as images and coordinates of bots
 
@@ -52,25 +56,25 @@ cv2.destroyAllWindows()
 
 
 
-# init
-vid = capture_video()
-homography_mat = build_homography_mat()
+# # init
+# vid = capture_video()
+# homography_mat = build_homography_mat()
 
-while running:
-    img = grab_imag(vid)
-    warped_img = warp(img)
-    bots = detect_bots(warped_img)
-    # bots is a dictionary {bot_label:[bounding_box_coords, img]}
-    # bounding_box_coords = [(x1,y1),(x2,y2)...]
-    # Ex. bots = {"house bot":[], "bot1":[], "bot2":[]} (we don't know if bot1/bot2 is our bot or enemy)
+# while running:
+#     img = grab_imag(vid)
+#     warped_img = warp(img)
+#     bots = detect_bots(warped_img)
+#     # bots is a dictionary {bot_label:[bounding_box_coords, img]}
+#     # bounding_box_coords = [(x1,y1),(x2,y2)...]
+#     # Ex. bots = {"house bot":[], "bot1":[], "bot2":[]} (we don't know if bot1/bot2 is our bot or enemy)
 
-    bots = color_detection(bots)
-    # now know which bot s our bot vs. enemy
-    # Ex. bots = {"house bot":[], "us":[], "enemy":[]}
+#     bots = color_detection(bots)
+#     # now know which bot s our bot vs. enemy
+#     # Ex. bots = {"house bot":[], "us":[], "enemy":[]}
 
-    orientation = corner_detection(bots)
-    # orientation 
+#     orientation = corner_detection(bots)
+#     # orientation 
 
-    motor_instr = path_algo(bots, orientation)
-    # motor instr is a dictionary {"left_drive": speed, "right_drive":speed, "weapon":speed}
-    transmit(motor_instr)
+#     motor_instr = path_algo(bots, orientation)
+#     # motor instr is a dictionary {"left_drive": speed, "right_drive":speed, "weapon":speed}
+#     transmit(motor_instr)
