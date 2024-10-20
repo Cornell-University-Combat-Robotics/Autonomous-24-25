@@ -17,9 +17,10 @@ void setup()
 {
   Serial.begin(9600); // Initialize serial communication at 9600 baud rate
 
+  // TODO: set to default
   ppm[0] = 1500;
   ppm[1] = 1500;
-
+  // start for loop at i=0
   for (int i = 2; i < chanel_number; i++)
   {
     ppm[i] = default_servo_value;
