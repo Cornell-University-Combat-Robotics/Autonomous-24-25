@@ -5,8 +5,8 @@ import time
 
 # ---------------------------------------------------------------------------- #
 
-image_path_1 = os.getcwd() + '/bot_images/louis_less_pink.PNG'
-image_path_2 = os.getcwd() + '/bot_images/louis_more_pink.PNG'
+image_path_1 = os.getcwd() + '/bot_images/less_pink_bot.PNG'
+image_path_2 = os.getcwd() + '/bot_images/more_pink_bot.PNG'
 
 # ---------------------------------------------------------------------------- #
 
