@@ -1,3 +1,11 @@
+
+
+import torchvision
+import torchvision.transforms as transforms
+from torchvision.models.detection import fasterrcnn_resnet50_fpn
+from torchvision.transforms import functional as F
+import yaml
+
 import os
 from PIL import Image
 import torch
@@ -7,10 +15,17 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
-import yaml
-import model
 
+# Define the model
+model = fasterrcnn_resnet50_fpn(pretrained=True)
+model.train()
 
+# Example dataset loader (custom dataset should be used here)
+# This returns images and target dictionaries that include bounding boxes and labels
+def collate_fn(batch):
+    return tuple(zip(*batch))
+
+# THIS COULD GO POORLY ---------------------------
 # print("opening yaml")
 with open('./data/yolo_data_v1.yolov8/nhrl_bots.yaml','r') as file: #edit yaml path
     config = yaml.safe_load(file)
@@ -84,86 +99,35 @@ class Data(Dataset):
     
     def __len__(self):
         return len(self.image_dir)
-
-def train(model, num_epochs=10, learning_rate=0.001):
-    print("begin training")
-    """
-    Performs training and evaluation of the model
-    """
-    transform = transforms.Compose([
+    
+transform = transforms.Compose([
         transforms.ToTensor(), 
         transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
     ])
-    
-    class_loss = nn.CrossEntropyLoss()
-    # class_loss = nn.BCEWithLogitsLoss()
-    box_loss = nn.SmoothL1Loss()
 
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+train_dataset = Data(train_images_dir, train_labels_dir, transform=transform)
+val_dataset = Data(val_images_dir, val_labels_dir, transform=transform)
 
-    train_dataset = Data(train_images_dir, train_labels_dir, transform=transform)
-    val_dataset = Data(val_images_dir, val_labels_dir, transform=transform)
+training_loader = DataLoader(train_dataset, batch_size = 4, shuffle=True)
+validation_loader = DataLoader(val_dataset, batch_size = 4, shuffle=False)
 
-    training_loader = DataLoader(train_dataset, batch_size = 4, shuffle=True)
-    validation_loader = DataLoader(val_dataset, batch_size = 4, shuffle=False)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+# END THIS COULD GO POORLY -----------------------
 
-    def loader_loss(images, labels):
-        """
-        Calculates total loss (classification and regression) for given images and labels
-        """
-        class_labels = labels['labels']
-        # class_labels = torch.argmax(labels['labels'], dim=1)
-        print(class_labels)
-        bbox_labels = labels['boxes']
-        
-        class_pred, bbox_pred = model.forward(images)
-        curr_class_loss = 0
-        curr_box_loss = 0
-        print("HEREEEEEEEEEEEEEEEEEEEE")
-        print(class_pred)
-        print(class_labels)
+# Assume data_loader provides batches of (images, targets)
+for images, targets in training_loader:
+    images = [F.to_tensor(img) for img in images]  # Convert images to tensors
 
-        target_1d = torch.argmax(class_labels, dim=1)
-        curr_class_loss += class_loss(class_pred, target_1d)
+    # Example target: [{"boxes": [[x1, y1, x2, y2], ...], "labels": [1, 2, ...]}, ...]
+    targets = [{"boxes": torch.tensor(target["boxes"]), "labels": torch.tensor(target["labels"])} for target in targets]
 
-        # curr_class_loss += class_loss(class_pred, class_labels)
-        curr_box_loss += box_loss(bbox_pred, bbox_labels)
-        return curr_class_loss + curr_box_loss
-    model.train()
-    print("model is in training")
-    print(f"Batch size: {training_loader.batch_size}")
-    print(f"Collate function: {training_loader.collate_fn}")
-    for epoch in range(num_epochs):
-        curr_loss = 0.0
-        for images, labels in training_loader:
-            print(f"Image batch shape: {images.shape}")
-            for key, value in labels.items():
-                    print(f"Label {key} shape: {value.shape}")            
-            optimizer.zero_grad()
-            loss = loader_loss(images, labels)
-            loss.backward()
-            optimizer.step()
-            curr_loss += loss.item()
-        
-        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {curr_loss/len(training_loader)}")
-    
-    model.eval() 
-    print("model is in validation")
-    val_loss = 0.0
-    with torch.no_grad(): 
-        for images, labels in validation_loader:
-            loss = loader_loss(images, labels)
-            val_loss += loss.item()
-    print("end training")
+    # Forward pass
+    loss_dict = model(images, targets)
 
-def main():
-    # newModel = model.ConvNeuralNet()
-    newModel = fasterrcnn_resnet50_fpn(pretrained=True)
-    print("made model")
-    train(newModel)
-    print("finished training model")
-    torch.save(newModel, "./models")
-    print("saved new model")
+    # Total loss
+    losses = sum(loss for loss in loss_dict.values())
 
-if __name__ == "__main__":
-    main()
+    # Backpropagation and optimization steps
+    optimizer.zero_grad()
+    losses.backward()
+    optimizer.step()
