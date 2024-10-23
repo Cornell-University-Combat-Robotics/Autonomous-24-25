@@ -12,7 +12,7 @@ import time
 
 from main import warp
 
-# Capture video feed from camera using OpenCV 
+# Capture video feed from camera using OpenCV
 cap = cv2.VideoCapture(1)
 
 # Build homography matrix and select corners
@@ -28,7 +28,7 @@ while running:
 
     # 1. Capture image from video feed
     ret, frame = cap.read()
-    if not ret: # If a frame cannot be captured
+    if not ret:  # If a frame cannot be captured
         break
 
     # 2. Warp image
@@ -38,9 +38,7 @@ while running:
 
     # 3. Run object detection, return all robot boxes as images and coordinates of bots
 
-
     # 4. Run corner detection, return our robot orientation
-    
 
     # 5. Input stuff to algorithm
 
@@ -52,11 +50,7 @@ cap.release()
 cv2.destroyAllWindows()
 
 
-
-
-
-
-# # init
+# init
 # vid = capture_video()
 # homography_mat = build_homography_mat()
 
@@ -73,7 +67,7 @@ cv2.destroyAllWindows()
 #     # Ex. bots = {"house bot":[], "us":[], "enemy":[]}
 
 #     orientation = corner_detection(bots)
-#     # orientation 
+#     # orientation is an angle in degrees
 
 #     motor_instr = path_algo(bots, orientation)
 #     # motor instr is a dictionary {"left_drive": speed, "right_drive":speed, "weapon":speed}
