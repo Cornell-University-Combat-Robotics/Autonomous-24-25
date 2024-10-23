@@ -3,6 +3,10 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import torchvision.transforms as T
+from torchvision.models.detection import fasterrcnn_resnet50_fpn
+import torch.optim as optim
+from torchvision.transforms import functional as F
+
 
 class CustomObjectDetectionDataset(Dataset):
     def __init__(self, images_dir, labels_dir, transform=None):
@@ -69,6 +73,30 @@ dataset = CustomObjectDetectionDataset(images_dir, labels_dir, transform=transfo
 data_loader = DataLoader(dataset, batch_size=4, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
 
 # Example of iterating through the data loader
+# for images, targets in data_loader:
+#     print(images)   # List of image tensors
+#     print(targets)  # List of target dictionaries with 'boxes' and 'labels'
+
+
+model = fasterrcnn_resnet50_fpn(pretrained=True)
+model.train()
+
+optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=0.0005)
+
 for images, targets in data_loader:
-    print(images)   # List of image tensors
-    print(targets)  # List of target dictionaries with 'boxes' and 'labels'
+    images = [F.to_tensor(img) for img in images]  # Convert images to tensors
+
+    # Example target: [{"boxes": [[x1, y1, x2, y2], ...], "labels": [1, 2, ...]}, ...]
+    targets = [{"boxes": torch.tensor(target["boxes"]), "labels": torch.tensor(target["labels"])} for target in targets]
+
+    # Forward pass
+    loss_dict = model(images, targets)
+
+    # Total loss
+    losses = sum(loss for loss in loss_dict.values())
+
+    # Backpropagation and optimization steps
+    optimizer.zero_grad()
+    losses.backward()
+    optimizer.step()
+
