@@ -3,6 +3,9 @@
 
 general code can be used in all platform 
 
+'corner_detection' Folder:
+
+code for corner detection and calculating orientation of the robot
 
 ## 'raspberry_pi' Folder:
 
