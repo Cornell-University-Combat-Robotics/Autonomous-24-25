@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 # boilerplate code (class header, init, self.___), from: 
 # https://www.digitalocean.com/community/tutorials/writing-cnns-from-scratch-in-pytorch
@@ -7,7 +8,7 @@ class ConvNeuralNet(nn.Module):
     # initializing the layer architecture of the model; however, does not define the final ordering
     # assume a 600x600x3 image
     def __init__(self, num_classes=2, num_bots=3):
-        print("initiating model")
+        # print("initiating model")
         super(ConvNeuralNet, self).__init__()
         # print("finished super")
         self.conv_layer = nn.Conv2d(3, 10, 10) # output: 591 x 591 x 10 image
@@ -25,10 +26,10 @@ class ConvNeuralNet(nn.Module):
 
         self.class_output = nn.Linear(128, num_classes * num_bots) # predicting on each bot with a number of classes
         self.box_output = nn.Linear(128, num_bots * 4) # for the four coordinates per bot; from chatgpt
-        print("finished init model")
+        # print("finished init model")
     # each step "forward" trains the parameters of the models, in the order specified by the layer architecture
-    def forward(self, x):
-        print("starting forward step")
+    def forward(self, x, labels= None):
+        # print("starting forward step")
         # convolutional layers
         out = self.conv_layer(x)
         out = self.relu(out)
@@ -42,5 +43,26 @@ class ConvNeuralNet(nn.Module):
         # outputs
         class_scores = self.class_output(out)
         bounding_boxes = self.box_output(out)
-        print("finished forward step")
+        
+        if labels is not None:
+        # Calculate classification loss
+            if isinstance(labels, list):
+                labels = labels[0]
+            # class_loss = F.cross_entropy(class_scores, labels['labels'])
+            class_loss = F.cross_entropy(class_scores.expand(len(labels['labels']), -1), labels['labels'])
+            # Calculate bounding box regression loss (assuming Smooth L1 Loss here)
+            bounding_boxes = bounding_boxes[:labels['boxes'].shape[0], :]
+            bounding_boxes = bounding_boxes.view(-1, 4)
+            # print("Shape of bounding_boxes:", bounding_boxes.shape)  # Expected: [num_boxes, 4]
+            # print("Shape of labels['boxes']:", labels['boxes'].shape)  # Expected: [num_boxes, 4]
+
+            box_loss = F.smooth_l1_loss(bounding_boxes, labels['boxes'], reduction='mean')
+            # box_loss = F.smooth_l1_loss(bounding_boxes, labels['boxes'])
+            print("finished forward step with loss")
+            total_loss = class_loss + box_loss
+            return {"loss_classifier": class_loss, "loss_box_reg": box_loss, "total_loss": total_loss}
+
+        
+        # Return the loss dictionary
+        print("finished forward step with predictions")
         return class_scores, bounding_boxes

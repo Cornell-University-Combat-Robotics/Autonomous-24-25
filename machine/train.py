@@ -1,3 +1,4 @@
+import datetime
 import os
 from PIL import Image
 import torch
@@ -107,7 +108,8 @@ def train(model, num_epochs=10, learning_rate=0.001):
         transforms.ToTensor(), 
         transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
     ])
-    writer = SummaryWriter(log_dir='runs/experiment')
+    log_dir = f"runs/experiment_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    writer = SummaryWriter(log_dir=log_dir)
     # class_loss = nn.CrossEntropyLoss()
     # # class_loss = nn.BCEWithLogitsLoss()
     # box_loss = nn.SmoothL1Loss()
@@ -124,8 +126,15 @@ def train(model, num_epochs=10, learning_rate=0.001):
         """
         Calculates total loss (classification and regression) for given images and labels
         """
+        # print(f"shape: {labels['boxes'].shape} ")
+        if labels is None or 'boxes' not in labels or labels['boxes'].shape != torch.Size([1,3,4]):
+            print("Skipping batch due to missing or malformed labels")
+            return None
+        #squeeze for batch size 1 only
         labels['boxes'] = labels['boxes'].squeeze(0)  # Shape should be [num_boxes, 4]
         labels['labels'] = labels['labels'].squeeze(0)
+        # print(f"Images shape: {images.shape}")  # Debug print
+        # print(f"Labels structure (before passing to model): {labels}")
         outputs = model(images,[labels])
         if isinstance(outputs, dict):
         # Calculate and return the total loss
@@ -155,42 +164,46 @@ def train(model, num_epochs=10, learning_rate=0.001):
     # print(f"Batch size: {training_loader.batch_size}")
     # print(f"Collate function: {training_loader.collate_fn}")
     for epoch in range(num_epochs):
-        # model.train()
-        # running_loss = 0.0
-        # for i, (images, labels) in enumerate(training_loader):
-        #     optimizer.zero_grad()
-        #     loss = loader_loss(images, labels)
-        #     loss.backward()
-        #     optimizer.step()
+        model.train()
+        running_loss = 0.0
+        for i, (images, labels) in enumerate(training_loader):
+            print(f"Step {i + 1}/{len(training_loader)}")
+            optimizer.zero_grad()
+            loss = loader_loss(images, labels)
+            if loss is None:
+                continue
+            loss.backward()
+            optimizer.step()
             
-        #     running_loss += loss.item()
+            running_loss += loss.item()
             
-        #     # Log loss to TensorBoard
-        #     writer.add_scalar('Training Loss', loss.item(), epoch * len(training_loader) + i)
-        # avg_loss = running_loss / len(training_loader)
-        # writer.add_scalar('Average Loss per Epoch', avg_loss, epoch)
-        # print(f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/len(training_loader)}")
+            # Log loss to TensorBoard
+            writer.add_scalar('Training Loss', loss.item(), epoch * len(training_loader) + i)
+        avg_loss = running_loss / len(training_loader)
+        writer.add_scalar('Average Loss per Epoch', avg_loss, epoch)
+        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/len(training_loader)}")
     
-        model.eval() 
-        print("model is in validation")
-        val_loss = 0.0
-        with torch.no_grad(): 
-            for images, labels in validation_loader:
-                loss = loader_loss(images, labels)
-                val_loss += loss.item()
-        avg_val_loss = val_loss / len(validation_loader)
-        writer.add_scalar('Validation Loss', avg_val_loss, epoch)
-        print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {avg_val_loss}")
+        # model.eval() 
+        # print("model is in validation")
+        # val_loss = 0.0
+        # with torch.no_grad(): 
+        #     for images, labels in validation_loader:
+        #         loss = loader_loss(images, labels)
+        #         val_loss += loss.item()
+        # avg_val_loss = val_loss / len(validation_loader)
+        # writer.add_scalar('Validation Loss', avg_val_loss, epoch)
+        # print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {avg_val_loss}")
         
     print("end training")
 
 def main():
-    # newModel = model.ConvNeuralNet()
-    newModel = fasterrcnn_resnet50_fpn(pretrained=True)
+    newModel = model.ConvNeuralNet()
+    # newModel = fasterrcnn_resnet50_fpn(pretrained=True)
     print("made model")
-    train(newModel)
+    train(newModel, num_epochs=1)
     print("finished training model")
-    torch.save(newModel, "./models")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    torch.save(newModel, f"./models/model_{timestamp}.pth")
     print("saved new model")
 
 if __name__ == "__main__":
