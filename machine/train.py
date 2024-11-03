@@ -9,6 +9,8 @@ import torchvision.transforms as transforms
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 import yaml
 import model
+from torch.utils.tensorboard import SummaryWriter
+
 
 
 # print("opening yaml")
@@ -77,9 +79,20 @@ class Data(Dataset):
         label_path = img_path.replace('images', 'labels').replace('.jpg', '.txt')
         boxes, labels = self.load_yolo_labels(label_path)
         
+        if not boxes:
+            print(f"No boxes found in file: {img_path}")
+        else:
+            # Check if each box has exactly 4 coordinates
+            for i, box in enumerate(boxes):
+                if len(box) != 4:
+                    print(f"Incorrect box dimensions in file {img_path} at box index {i}: {box}")
+            
         boxes = torch.tensor(boxes, dtype=torch.float32)
         labels = torch.tensor(labels, dtype=torch.long)
-
+        # filename = os.path.basename(img_path)
+        if len(labels) != len(boxes):
+            print(f"Mismatch in number of boxes and labels in file {img_path}: {len(boxes)} boxes, {len(labels)} labels")
+    
         return image, {"boxes": boxes, "labels": labels}
     
     def __len__(self):
@@ -94,66 +107,81 @@ def train(model, num_epochs=10, learning_rate=0.001):
         transforms.ToTensor(), 
         transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
     ])
-    
-    class_loss = nn.CrossEntropyLoss()
-    # class_loss = nn.BCEWithLogitsLoss()
-    box_loss = nn.SmoothL1Loss()
+    writer = SummaryWriter(log_dir='runs/experiment')
+    # class_loss = nn.CrossEntropyLoss()
+    # # class_loss = nn.BCEWithLogitsLoss()
+    # box_loss = nn.SmoothL1Loss()
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     train_dataset = Data(train_images_dir, train_labels_dir, transform=transform)
     val_dataset = Data(val_images_dir, val_labels_dir, transform=transform)
 
-    training_loader = DataLoader(train_dataset, batch_size = 4, shuffle=True)
-    validation_loader = DataLoader(val_dataset, batch_size = 4, shuffle=False)
+    training_loader = DataLoader(train_dataset, batch_size = 1, shuffle=True)
+    validation_loader = DataLoader(val_dataset, batch_size = 1, shuffle=False)
 
     def loader_loss(images, labels):
         """
         Calculates total loss (classification and regression) for given images and labels
         """
-        class_labels = labels['labels']
-        # class_labels = torch.argmax(labels['labels'], dim=1)
-        print(class_labels)
-        bbox_labels = labels['boxes']
-        
-        class_pred, bbox_pred = model.forward(images)
-        curr_class_loss = 0
-        curr_box_loss = 0
-        print("HEREEEEEEEEEEEEEEEEEEEE")
-        print(class_pred)
-        print(class_labels)
+        labels['boxes'] = labels['boxes'].squeeze(0)  # Shape should be [num_boxes, 4]
+        labels['labels'] = labels['labels'].squeeze(0)
+        outputs = model(images,[labels])
+        if isinstance(outputs, dict):
+        # Calculate and return the total loss
+            loss = outputs['loss_classifier'] + outputs['loss_box_reg']
+            return loss
+        else:
+            # Raise an error if the model outputs predictions instead of a loss dictionary
+            raise TypeError("Expected a dictionary of losses, but got:", type(outputs))
+        # # class_labels = torch.argmax(labels['labels'], dim=1)
+        # # print(class_labels)
+        # bbox_labels = labels['boxes']
+        # print("got labels in loader loss")
+        # class_pred, bbox_pred = model.forward(images)
+        # # curr_class_loss = 0
+        # # curr_box_loss = 0
+        # print("HEREEEEEEEEEEEEEEEEEEEE")
+        # print(class_pred)
+        # print(class_labels)
 
-        target_1d = torch.argmax(class_labels, dim=1)
-        curr_class_loss += class_loss(class_pred, target_1d)
+        # target_1d = torch.argmax(class_labels, dim=1)
+        # curr_class_loss += class_loss(class_pred, target_1d)
 
-        # curr_class_loss += class_loss(class_pred, class_labels)
-        curr_box_loss += box_loss(bbox_pred, bbox_labels)
-        return curr_class_loss + curr_box_loss
-    model.train()
-    print("model is in training")
-    print(f"Batch size: {training_loader.batch_size}")
-    print(f"Collate function: {training_loader.collate_fn}")
+        # # curr_class_loss += class_loss(class_pred, class_labels)
+        # curr_box_loss += box_loss(bbox_pred, bbox_labels)
+        # return curr_class_loss + curr_box_loss
+    # print("model is in training")
+    # print(f"Batch size: {training_loader.batch_size}")
+    # print(f"Collate function: {training_loader.collate_fn}")
     for epoch in range(num_epochs):
-        curr_loss = 0.0
-        for images, labels in training_loader:
-            print(f"Image batch shape: {images.shape}")
-            for key, value in labels.items():
-                    print(f"Label {key} shape: {value.shape}")            
-            optimizer.zero_grad()
-            loss = loader_loss(images, labels)
-            loss.backward()
-            optimizer.step()
-            curr_loss += loss.item()
-        
-        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {curr_loss/len(training_loader)}")
+        # model.train()
+        # running_loss = 0.0
+        # for i, (images, labels) in enumerate(training_loader):
+        #     optimizer.zero_grad()
+        #     loss = loader_loss(images, labels)
+        #     loss.backward()
+        #     optimizer.step()
+            
+        #     running_loss += loss.item()
+            
+        #     # Log loss to TensorBoard
+        #     writer.add_scalar('Training Loss', loss.item(), epoch * len(training_loader) + i)
+        # avg_loss = running_loss / len(training_loader)
+        # writer.add_scalar('Average Loss per Epoch', avg_loss, epoch)
+        # print(f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/len(training_loader)}")
     
-    model.eval() 
-    print("model is in validation")
-    val_loss = 0.0
-    with torch.no_grad(): 
-        for images, labels in validation_loader:
-            loss = loader_loss(images, labels)
-            val_loss += loss.item()
+        model.eval() 
+        print("model is in validation")
+        val_loss = 0.0
+        with torch.no_grad(): 
+            for images, labels in validation_loader:
+                loss = loader_loss(images, labels)
+                val_loss += loss.item()
+        avg_val_loss = val_loss / len(validation_loader)
+        writer.add_scalar('Validation Loss', avg_val_loss, epoch)
+        print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {avg_val_loss}")
+        
     print("end training")
 
 def main():
