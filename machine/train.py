@@ -110,13 +110,11 @@ def train(model, num_epochs=10, learning_rate=0.001):
     ])
     log_dir = f"runs/experiment_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
     writer = SummaryWriter(log_dir=log_dir)
-    # class_loss = nn.CrossEntropyLoss()
-    # # class_loss = nn.BCEWithLogitsLoss()
-    # box_loss = nn.SmoothL1Loss()
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     train_dataset = Data(train_images_dir, train_labels_dir, transform=transform)
+    print(f"length: {len(train_dataset)}")
     val_dataset = Data(val_images_dir, val_labels_dir, transform=transform)
 
     training_loader = DataLoader(train_dataset, batch_size = 1, shuffle=True)
@@ -143,23 +141,6 @@ def train(model, num_epochs=10, learning_rate=0.001):
         else:
             # Raise an error if the model outputs predictions instead of a loss dictionary
             raise TypeError("Expected a dictionary of losses, but got:", type(outputs))
-        # # class_labels = torch.argmax(labels['labels'], dim=1)
-        # # print(class_labels)
-        # bbox_labels = labels['boxes']
-        # print("got labels in loader loss")
-        # class_pred, bbox_pred = model.forward(images)
-        # # curr_class_loss = 0
-        # # curr_box_loss = 0
-        # print("HEREEEEEEEEEEEEEEEEEEEE")
-        # print(class_pred)
-        # print(class_labels)
-
-        # target_1d = torch.argmax(class_labels, dim=1)
-        # curr_class_loss += class_loss(class_pred, target_1d)
-
-        # # curr_class_loss += class_loss(class_pred, class_labels)
-        # curr_box_loss += box_loss(bbox_pred, bbox_labels)
-        # return curr_class_loss + curr_box_loss
     # print("model is in training")
     # print(f"Batch size: {training_loader.batch_size}")
     # print(f"Collate function: {training_loader.collate_fn}")
@@ -200,7 +181,7 @@ def main():
     newModel = model.ConvNeuralNet()
     # newModel = fasterrcnn_resnet50_fpn(pretrained=True)
     print("made model")
-    train(newModel, num_epochs=1)
+    train(newModel, num_epochs=20)
     print("finished training model")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     torch.save(newModel, f"./models/model_{timestamp}.pth")
