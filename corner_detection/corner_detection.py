@@ -4,13 +4,6 @@ import math
 import time
 from detect_our_robot import detect_our_robot_main
 
-# ---------------------------------------------------------------------------- #
-
-# image_path = os.getcwd() + '/bot_images/IMG_4390.JPEG'
-# image_path = os.getcwd() + '/non_bot_images/red_and_blue_3.png'
-
-# ---------------------------------------------------------------------------- #
-
 """
 get_contours_per_color(): Returns contours for the front or back corners
 Input: side = "front" to assign the HSV for the front cornners, "back" for the 
@@ -21,11 +14,11 @@ Output: lower and upper limits that will be used in masking
 def get_contours_per_color(side, hsv_image):
     if side == "front":
         # Narrow down HSV values for red
-        lowerLimit = np.array([0, 150, 150])  # More specific lower range for red in HSV
-        upperLimit = np.array([5, 255, 255])  # Narrowed upper range for red in HSV
+        lowerLimit = np.array([0, 100, 150])  # More specific lower range for red in HSV
+        upperLimit = np.array([10, 255, 255])  # Narrowed upper range for red in HSV
 
         # Upper red range (due to red's nature in HSV)
-        upper_lowerLimit = np.array([170, 150, 150])  # More specific upper lower limit for red
+        upper_lowerLimit = np.array([170, 100, 150])  # More specific upper lower limit for red
         upper_upperLimit = np.array([179, 255, 255])  # More specific upper upper limit for red
     else:
         # Narrower blue range
@@ -53,6 +46,8 @@ def find_centroids(image):
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     centroid_front = find_centroids_per_color("front", image, hsv_image) # for now, it's red
     centroid_back = find_centroids_per_color("back", image, hsv_image) # for now, it's blue
+
+    print("CENTROIDS: " + str([centroid_front, centroid_back]))
     return [centroid_front, centroid_back] 
 
 """
@@ -72,6 +67,7 @@ Output: The centroids for a specific color as an array
 """
 def find_centroids_per_color(side, image, hsv_image):
     contours = get_contours_per_color(side, hsv_image)
+    print("CONTOURS for " + side + ": " + str(contours))
     centroids = []
 
     for contour in contours:
@@ -170,6 +166,7 @@ def get_left_and_right_front_points(points):
     vector1 = np.array(red_points[0]) - center
     vector2 = np.array(red_points[1]) - center
     
+    # We do this because in code, positive y is downward and we want to make it upward
     vector1[1] = -vector1[1]
     vector2[1] = -vector2[1]
     
@@ -180,7 +177,10 @@ def get_left_and_right_front_points(points):
     theta2_deg = math.degrees(theta2) if math.degrees(theta2) >= 0 else math.degrees(theta2) + 360
 
     # Determine which red point is the top right front corner
-    if theta2_deg > theta1_deg:
+    if abs(theta2_deg - theta1_deg) > 180:
+        right_front = red_points[0]
+        left_front = red_points[1]
+    elif theta2_deg > theta1_deg:
         # The point with the smaller angle is the top right front corner
         right_front = red_points[0]
         left_front = red_points[1]
@@ -205,8 +205,8 @@ def compute_tangent_angle(p1, p2):
 
     angle_rad = np.arctan2(dy, dx)
     tangent_angle_rad = angle_rad + np.pi / 2
-    tangent_angle_deg = math.degrees(tangent_angle_rad)
-
+    tangent_angle_deg = math.degrees(tangent_angle_rad) if math.degrees(tangent_angle_rad) >= 0 else math.degrees(tangent_angle_rad) + 360
+    
     return tangent_angle_deg
 
 """

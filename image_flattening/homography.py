@@ -1,11 +1,9 @@
 import cv2
 import numpy as np
 
-WIDTH = 600
-HEIGHT = 600
-# test_img = cv2.imread('cage_overhead_1.png')
-# test_img = cv2.imread('FLOOR_CORNERS.jpg')
-test_img = cv2.imread('middle_grace_jenny.PNG')
+WIDTH = 1200
+HEIGHT = 1200
+test_img = cv2.imread('northwest.PNG')
 test_img = cv2.resize(test_img, (WIDTH, HEIGHT), interpolation=cv2.INTER_AREA)
 
 # the list of the "real" corners from the raw image
@@ -63,6 +61,4 @@ dest_pts = [[0,0],[WIDTH, 0], [WIDTH, HEIGHT], [0, HEIGHT]]
 matrix = cv2.findHomography(np.array(corners), np.array(dest_pts))
 
 np.savetxt("matrix.txt", matrix[0], fmt="%f")
-
-#print(matrix[0])
 cv2.destroyAllWindows()
