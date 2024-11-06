@@ -1,11 +1,3 @@
-
-
-import torchvision
-import torchvision.transforms as transforms
-from torchvision.models.detection import fasterrcnn_resnet50_fpn
-from torchvision.transforms import functional as F
-import yaml
-
 import os
 from PIL import Image
 import torch
@@ -15,17 +7,13 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
+import yaml
+import model2
+from torch.utils.tensorboard import SummaryWriter
 
-# Define the model
-model = fasterrcnn_resnet50_fpn(pretrained=True)
-model.train()
 
-# Example dataset loader (custom dataset should be used here)
-# This returns images and target dictionaries that include bounding boxes and labels
-def collate_fn(batch):
-    return tuple(zip(*batch))
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# THIS COULD GO POORLY ---------------------------
 # print("opening yaml")
 with open('./data/yolo_data_v1.yolov8/nhrl_bots.yaml','r') as file: #edit yaml path
     config = yaml.safe_load(file)
@@ -92,42 +80,108 @@ class Data(Dataset):
         label_path = img_path.replace('images', 'labels').replace('.jpg', '.txt')
         boxes, labels = self.load_yolo_labels(label_path)
         
+        if not boxes:
+            print(f"No boxes found in file: {img_path}")
+        else:
+            # Check if each box has exactly 4 coordinates
+            for i, box in enumerate(boxes):
+                if len(box) != 4:
+                    print(f"Incorrect box dimensions in file {img_path} at box index {i}: {box}")
+            
         boxes = torch.tensor(boxes, dtype=torch.float32)
         labels = torch.tensor(labels, dtype=torch.long)
-
+        # filename = os.path.basename(img_path)
+        if len(labels) != len(boxes):
+            print(f"Mismatch in number of boxes and labels in file {img_path}: {len(boxes)} boxes, {len(labels)} labels")
+    
         return image, {"boxes": boxes, "labels": labels}
     
     def __len__(self):
-        return len(self.image_dir)
-    
-transform = transforms.Compose([
+        return len(self.image_paths)
+
+def train(model, num_epochs=10, learning_rate=0.001):
+    def loader_loss(images, targets):
+        """
+        Calculates total loss (classification and regression) for given images and targets.
+        """
+        # Move images and targets to the appropriate device (CPU or GPU)
+        images = images.to(device)
+        target_labels = targets['labels'].to(device)
+        target_boxes = targets['boxes'].to(device)
+
+        # Forward pass: get predictions from the model
+        class_scores, bounding_boxes = model(images)
+
+        # Reshape outputs and targets if necessary
+        num_samples = class_scores.size(0)  # Batch size
+        num_bots = target_labels.size(1)    # Number of bots per image
+
+        # Reshape class_scores and target_labels to (batch_size * num_bots, num_classes)
+        class_scores = class_scores.view(num_samples * num_bots, -1)
+        target_labels = target_labels.view(-1)
+
+        # Reshape bounding_boxes and target_boxes to (batch_size * num_bots, 4)
+        bounding_boxes = bounding_boxes.view(num_samples * num_bots, -1)
+        target_boxes = target_boxes.view(-1, 4)
+
+        # Compute classification loss
+        classification_loss = nn.CrossEntropyLoss()(class_scores, target_labels)
+
+        # Compute regression loss
+        regression_loss = nn.SmoothL1Loss()(bounding_boxes, target_boxes)
+
+        # Total loss
+        total_loss = classification_loss + regression_loss
+
+        return total_loss
+
+    # Transformations
+    transform = transforms.Compose([
         transforms.ToTensor(), 
-        transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
+        transforms.Normalize((0.5,), (0.5,))
     ])
+    writer = SummaryWriter(log_dir='runs/experiment')
 
-train_dataset = Data(train_images_dir, train_labels_dir, transform=transform)
-val_dataset = Data(val_images_dir, val_labels_dir, transform=transform)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-training_loader = DataLoader(train_dataset, batch_size = 4, shuffle=True)
-validation_loader = DataLoader(val_dataset, batch_size = 4, shuffle=False)
+    train_dataset = Data(train_images_dir, None, transform=transform)
+    val_dataset = Data(val_images_dir, None, transform=transform)
 
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-# END THIS COULD GO POORLY -----------------------
+    training_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
+    validation_loader = DataLoader(val_dataset, batch_size=1, shuffle=False)
 
-# Assume data_loader provides batches of (images, targets)
-for images, targets in training_loader:
-    images = [F.to_tensor(img) for img in images]  # Convert images to tensors
+    for epoch in range(num_epochs):
+        model.train()
+        running_loss = 0.0
+        for i, (images, labels) in enumerate(training_loader):
+            optimizer.zero_grad()
+            loss = loader_loss(images, labels)
+            loss.backward()
+            optimizer.step()
+            
+            running_loss += loss.item()
+            writer.add_scalar('Training Loss', loss.item(), epoch * len(training_loader) + i)
+        avg_loss = running_loss / len(training_loader)
+        writer.add_scalar('Average Loss per Epoch', avg_loss, epoch)
+        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss}")
 
-    # Example target: [{"boxes": [[x1, y1, x2, y2], ...], "labels": [1, 2, ...]}, ...]
-    targets = [{"boxes": torch.tensor(target["boxes"]), "labels": torch.tensor(target["labels"])} for target in targets]
+        # Validation loop
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for images, labels in validation_loader:
+                loss = loader_loss(images, labels)
+                val_loss += loss.item()
+        avg_val_loss = val_loss / len(validation_loader)
+        writer.add_scalar('Validation Loss', avg_val_loss, epoch)
+        print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {avg_val_loss}")
+    writer.close()
 
-    # Forward pass
-    loss_dict = model(images, targets)
+def main():
+    newModel = model2.ConvNeuralNet(num_classes=2, num_bots=3).to(device)
+    train(newModel)
+    torch.save(newModel.state_dict(), "./models/model.pth")
+    print("Model saved.")
 
-    # Total loss
-    losses = sum(loss for loss in loss_dict.values())
-
-    # Backpropagation and optimization steps
-    optimizer.zero_grad()
-    losses.backward()
-    optimizer.step()
+if __name__ == "__main__":
+    main()
