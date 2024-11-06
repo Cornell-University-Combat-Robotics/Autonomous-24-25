@@ -1,0 +1,52 @@
+{
+  "supported_datasets": [
+    {
+      "NHRL": {
+        "description": "Small dataset created by CRC identifying 3lb robots and housebots in the NHRL arena",
+        "workspace": "crc-autonomous",
+        "project": "nhrl-robots",
+        "version": 2,
+        "classes": 2,
+        "url": "https://universe.roboflow.com/crc-autonomous/nhrl-robots",
+        "train_size": 135,
+        "val_size": 39,
+        "test_size": 19,
+        "img_width": 600,
+        "img_height": 600,
+        "last_updated": "11-6-2024"
+      }
+    },
+    {
+      "Fall": {
+        "description": "Large public dataset identifying standing vs. fallen people in a room",
+        "workspace": "caucafall",
+        "project": "caucafall",
+        "version": 3,
+        "classes": 2,
+        "url": "https://universe.roboflow.com/crc-autonomous/nhrl-robots",
+        "train_size": 5693,
+        "val_size": 1632,
+        "test_size": 810,
+        "img_width": 640,
+        "img_height": 640,
+        "last_updated": "11-6-2024"
+      }
+    },
+    {
+      "Signs": {
+        "description": "Public dataset identifying 7 different kinds of traffics signs",
+        "workspace": "yolo-strvt",
+        "project": "trafficsign-6iyuq",
+        "version": 2,
+        "classes": 7,
+        "url": "https://universe.roboflow.com/yolo-strvt/trafficsign-6iyuq",
+        "train_size": 1988,
+        "val_size": 383,
+        "test_size": 152,
+        "img_width": 640,
+        "img_height": 640,
+        "last_updated": "11-6-2024"
+      }
+    }
+  ]
+}
