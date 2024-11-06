@@ -5,11 +5,8 @@ import time
 
 # ---------------------------------------------------------------------------- #
 
-# image_path_1 = os.getcwd() + '/bot_images/less_pink_bot.png'
-# image_path_2 = os.getcwd() + '/bot_images/more_pink_bot.png'
-
-image_path_1 = os.getcwd() + '/warped_images/warped_image.png'
-image_path_2 = os.getcwd() + '/warped_images/warped_image.png'
+image_path_1 = os.getcwd() + '/warped_images/northeast.png'
+image_path_2 = os.getcwd() + '/warped_images/northeast.png'
 
 # ---------------------------------------------------------------------------- #
 
@@ -76,7 +73,6 @@ def detect_our_robot_main():
     if image1 is not None and image2 is not None:
         # height1, width1, _ = image1.shape
         # height2, width2, _ = image2.shape
-
         # image1 = cv2.resize(image1, (int(width1/2), int(height1/2)))
         # image2 = cv2.resize(image2, (int(width2/2), int(height2/2)))
         
