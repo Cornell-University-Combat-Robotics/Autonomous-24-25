@@ -12,17 +12,32 @@ from global_vars import *
 
 NUM_CLASSES = None
 DATASET_NAME = ""
+DATASET_DETAILS = None
+
+with open('datasets.json', 'r') as file:
+    data = json.load(file)
+dataset_names = [list(item.keys())[0]
+                 for item in data['supported_datasets']]
 
 
-def load_data(dataset="NHRL"):
+def roboflow_download(dataset):
     load_dotenv()
     roboflow_api_key = os.getenv("ROBOFLOW_API_KEY")
 
-    with open('datasets.json', 'r') as file:
-        data = json.load(file)
-    dataset_names = [list(item.keys())[0]
-                     for item in data['supported_datasets']]
+    rf = Roboflow(api_key=roboflow_api_key)
+    project = rf.workspace(DATASET_DETAILS['workspace']).project(
+        DATASET_DETAILS['project'])
+    version = project.version(DATASET_DETAILS['version'])
+    version.download("yolov8", location=f"data/{dataset}")
 
+
+def load_data(dataset="NHRL"):
+    select_data(dataset)
+    roboflow_download(dataset)
+    return
+
+
+def select_data(dataset="NHRL"):
     while dataset not in dataset_names:
         print(f"\"{dataset}\" dataset not supported")
         dataset = input(
@@ -31,16 +46,28 @@ def load_data(dataset="NHRL"):
     ind = dataset_names.index(dataset)
     dataset_details = data['supported_datasets'][ind][dataset]
 
-    rf = Roboflow(api_key=roboflow_api_key)
-    project = rf.workspace(dataset_details['workspace']).project(
-        dataset_details['project'])
-    version = project.version(dataset_details['version'])
-    version.download("yolov8", location=f"data/{dataset}")
-
-    global DATASET_NAME, NUM_CLASSES, split_size_dic
+    global DATASET_NAME, NUM_CLASSES, DATASET_DETAILS
     DATASET_NAME = dataset
     NUM_CLASSES = dataset_details['classes']
+    DATASET_DETAILS = dataset_details
+    update_ind_cls()
+
+    directory = "data"
+    folders = [name for name in os.listdir(
+        directory) if os.path.isdir(os.path.join(directory, name))]
+    if dataset not in folders:
+        print(dataset, "not found in downloaded data.")
+        print("Downloading", dataset, "data now.")
+        roboflow_download(dataset)
     return
+
+
+idx_cls = []
+
+
+def update_ind_cls():
+    for i in range(NUM_CLASSES):
+        idx_cls.append(i+5)
 
 
 def check_size(split, size, max):
@@ -129,10 +156,15 @@ def get_color_by_probability(p):
 
 def show_predict(X, y, model=None, threshold=0.1, img_title="Model Prediction"):
     X = X.copy()
+    ind = 0
+    if X.shape[0] != 1:
+        print(f"Input contains more than one data point ({X.shape[0]})")
+        print("Showing prediction for randomly selected data point")
+        ind = random.randint(0, X.shape[0]-1)
     if model is not None:
         y = model.predict(X)
-    X = X[0]
-    y = y[0]
+    X = X[ind]
+    y = y[ind]
     for mx in range(MAX_GRID_ROW):
         for my in range(MAX_GRID_COLUMN):
             channels = y[my][mx]

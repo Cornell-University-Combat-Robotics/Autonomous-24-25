@@ -18,6 +18,44 @@ class GateLayer(layers.Layer):
         return x_boxes, x_cls
 
 
+idx_p = [0]
+idx_bb = [1, 2, 3, 4]
+
+
+@tf.function
+def loss_bb(y_true, y_pred):
+    y_true = tf.gather(y_true, idx_bb, axis=-1)
+    y_pred = tf.gather(y_pred, idx_bb, axis=-1)
+    return tf.reduce_mean(tf.keras.losses.huber(y_true, y_pred))
+
+
+@tf.function
+def loss_p(y_true, y_pred):
+    y_true = tf.gather(y_true, idx_p, axis=-1)
+    y_pred = tf.gather(y_pred, idx_p, axis=-1)
+    return tf.reduce_mean(tf.keras.losses.binary_crossentropy(y_true, y_pred))
+
+
+@tf.function
+def loss_cls(y_true, y_pred):
+    y_true = tf.gather(y_true, data.idx_cls, axis=-1)
+    y_pred = tf.gather(y_pred, data.idx_cls, axis=-1)
+    return tf.reduce_mean(tf.keras.losses.binary_crossentropy(y_true, y_pred))
+
+
+@tf.function
+def loss_func(y_true, y_pred):
+    loss_bounding_boxes = loss_bb(y_true, y_pred)
+    loss_presence = loss_p(y_true, y_pred)
+    loss_classification = loss_cls(y_true, y_pred)
+    w1 = 1
+    w2 = 2
+    w3 = 2
+    total_loss = w1 * loss_bounding_boxes + w2 * \
+        loss_presence + w3 * loss_classification
+    return total_loss
+
+
 def make_model():
     x_input = layers.Input(
         shape=(PROCESSED_IMG_WIDTH, PROCESSED_IMG_HEIGHT, 3))
@@ -50,42 +88,6 @@ def make_model():
     # Apply GateLayer
     gate_layer = GateLayer()
     x_boxes, x_cls = gate_layer([x_prob, x_boxes, x_cls])
-
-    idx_p = [0]
-    idx_bb = [1, 2, 3, 4]
-    idx_cls = []
-    for i in range(data.NUM_CLASSES):
-        idx_cls.append(i+5)
-
-    @tf.function
-    def loss_bb(y_true, y_pred):
-        y_true = tf.gather(y_true, idx_bb, axis=-1)
-        y_pred = tf.gather(y_pred, idx_bb, axis=-1)
-        return tf.reduce_mean(tf.keras.losses.huber(y_true, y_pred))
-
-    @tf.function
-    def loss_p(y_true, y_pred):
-        y_true = tf.gather(y_true, idx_p, axis=-1)
-        y_pred = tf.gather(y_pred, idx_p, axis=-1)
-        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(y_true, y_pred))
-
-    @tf.function
-    def loss_cls(y_true, y_pred):
-        y_true = tf.gather(y_true, idx_cls, axis=-1)
-        y_pred = tf.gather(y_pred, idx_cls, axis=-1)
-        return tf.reduce_mean(tf.keras.losses.binary_crossentropy(y_true, y_pred))
-
-    @tf.function
-    def loss_func(y_true, y_pred):
-        loss_bounding_boxes = loss_bb(y_true, y_pred)
-        loss_presence = loss_p(y_true, y_pred)
-        loss_classification = loss_cls(y_true, y_pred)
-        w1 = 1
-        w2 = 2
-        w3 = 2
-        total_loss = w1 * loss_bounding_boxes + w2 * \
-            loss_presence + w3 * loss_classification
-        return total_loss
 
     x = layers.Concatenate()([x_prob, x_boxes, x_cls])
     model = tf.keras.models.Model(x_input, x)
