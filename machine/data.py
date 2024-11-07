@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image
 import cv2
 import matplotlib.pyplot as plt
+from colorama import Fore, Style
 
 from global_vars import *
 
@@ -39,7 +40,8 @@ def load_data(dataset="NHRL"):
 
 def select_data(dataset="NHRL"):
     while dataset not in dataset_names:
-        print(f"\"{dataset}\" dataset not supported")
+        print(
+            Fore.RED + f"\"{dataset}\" dataset not supported" + Style.RESET_ALL)
         dataset = input(
             f"Please select one of the following options: {dataset_names}: ")
 
@@ -56,7 +58,8 @@ def select_data(dataset="NHRL"):
     folders = [name for name in os.listdir(
         directory) if os.path.isdir(os.path.join(directory, name))]
     if dataset not in folders:
-        print(dataset, "not found in downloaded data.")
+        print(Fore.YELLOW +
+              f"{dataset} not found in downloaded data." + Style.RESET_ALL)
         print("Downloading", dataset, "data now.")
         roboflow_download(dataset)
     return
@@ -72,7 +75,7 @@ def update_ind_cls():
 
 def check_size(split, size, max):
     while size <= 0 or size > max:
-        print("Invald", split, "size.")
+        print(Fore.RED + f"Invalid {split} size." + Style.RESET_ALL)
         size = int(
             input(f"Please enter a number less than or equal to {max}: "))
     return size
@@ -80,7 +83,7 @@ def check_size(split, size, max):
 
 def fetch_data(split, size=1):
     while split not in ['train', 'test', 'valid']:
-        print("Invalid input", split)
+        print(Fore.RED + f"Invalid input {split}" + Style.RESET_ALL)
         split = input("Please enter \"train\", \"valid\", or \"test\": ")
 
     img_path = f'data/{DATASET_NAME}/{split}/images'
@@ -158,7 +161,8 @@ def show_predict(X, y, model=None, threshold=0.1, img_title="Model Prediction"):
     X = X.copy()
     ind = 0
     if X.shape[0] != 1:
-        print(f"Input contains more than one data point ({X.shape[0]})")
+        print(Fore.YELLOW +
+              f"Input contains more than one data point ({X.shape[0]})" + Style.RESET_ALL)
         print("Showing prediction for randomly selected data point")
         ind = random.randint(0, X.shape[0]-1)
     if model is not None:
