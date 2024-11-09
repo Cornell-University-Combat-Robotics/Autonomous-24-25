@@ -18,7 +18,7 @@ class Motor():
 
     Methods
     -------
-    move(speed)
+    move(speed: float)
         Sets the channel to [speed]. If [speed] is greater than 1, 
         speed will be set to 1. If [speed] is less than -1, speed will be set to -1
 
