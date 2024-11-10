@@ -6,3 +6,4 @@ image_flattening/test.mp4
 ml_env
 machine/__pycache__
 machine/data
+machine/runs
