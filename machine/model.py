@@ -84,7 +84,7 @@ class ConvNeuralNet(nn.Module):
         
         if labels is not None:
             labels_flat = labels['labels'].view(-1)
-            print("Shape of labels_flat:", labels_flat.shape)
+            # print("Shape of labels_flat:", labels_flat.shape)
             
             # Calculate cross-entropy loss
             class_loss = F.cross_entropy(class_scores, labels_flat)
@@ -93,8 +93,8 @@ class ConvNeuralNet(nn.Module):
             labels_boxes = labels['boxes'].view(-1, 4)  # Flatten to [num_boxes, 4]
             
             # Print shapes for debugging
-            print("Shape of bounding_boxes (selected):", bounding_boxes.shape)
-            print("Shape of labels['boxes']:", labels_boxes.shape)
+            # print("Shape of bounding_boxes (selected):", bounding_boxes.shape)
+            # print("Shape of labels['boxes']:", labels_boxes.shape)
 
             # Calculate bounding box regression loss
             box_loss = F.smooth_l1_loss(bounding_boxes, labels_boxes, reduction='mean')

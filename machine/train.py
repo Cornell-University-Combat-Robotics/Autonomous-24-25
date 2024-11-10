@@ -37,6 +37,9 @@ class Data(Dataset):
         self.label_dir = label_dir
         self.transform = transform
         self.image_paths = [os.path.join(self.image_dir, img) for img in os.listdir(self.image_dir) if img.endswith('.jpg')]
+        
+        print(f"Found {len(self.image_paths)} images in {self.image_dir}")
+
     
     
     def load_yolo_labels(self, label_path):
@@ -71,6 +74,7 @@ class Data(Dataset):
         Retrieves and processes an image and its corresponding labels from the dataset.
         """
         img_path = self.image_paths[idx]
+        # print(f"Processing image: {img_path}")
         image = Image.open(img_path).convert("RGB")
         
         if self.transform:
@@ -97,7 +101,7 @@ class Data(Dataset):
         return image, {"boxes": boxes, "labels": labels}
     
     def __len__(self):
-        return len(self.image_dir)
+        return len(self.image_paths)
 
 def train(model, num_epochs=10, learning_rate=0.001):
     print("begin training")
@@ -159,8 +163,9 @@ def train(model, num_epochs=10, learning_rate=0.001):
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
-        for i, (images, labels) in enumerate(training_loader):
-            if (images, labels) is None: continue
+        for i, batch in enumerate(training_loader):
+            if batch is None: continue
+            images, labels = batch
             print(f"Step {i + 1}/{len(training_loader)}")
             optimizer.zero_grad()
             loss = loader_loss(images, labels)
@@ -197,7 +202,7 @@ def main():
     newModel = model.ConvNeuralNet()
     # newModel = fasterrcnn_resnet50_fpn(pretrained=True)
     print("made model")
-    train(newModel, num_epochs=20)
+    train(newModel, num_epochs=10)
     print("finished training model")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     torch.save(newModel, f"./models/model_{timestamp}.pth")
