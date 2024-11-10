@@ -29,7 +29,7 @@ def roboflow_download(dataset):
     project = rf.workspace(DATASET_DETAILS['workspace']).project(
         DATASET_DETAILS['project'])
     version = project.version(DATASET_DETAILS['version'])
-    version.download("yolov8", location=f"data/{dataset}")
+    version.download("yolov8", location=f"data/{dataset}")  # star
 
 
 def load_data(dataset="NHRL"):
@@ -95,7 +95,7 @@ def fetch_data(split, size=1):
     # Sample `size` number of image and bounding box file pairs
     sampled_indices = random.sample(range(len(image_files)), size)
     sampled_images = [image_files[i] for i in sampled_indices]
-    sampled_bboxes = [image.replace('.jpg', '.txt')
+    sampled_bboxes = [image.replace('.jpg', '.txt')  # star png
                       for image in sampled_images]
 
     X = np.zeros((size, PROCESSED_IMG_WIDTH,

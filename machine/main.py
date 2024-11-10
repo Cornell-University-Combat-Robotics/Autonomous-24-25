@@ -2,10 +2,10 @@ from data import *
 from model import *
 
 train_new_model = False
-load_new_data = False
+load_new_data = True
 
 if load_new_data:
-    load_data(dataset="Signs")
+    load_data(dataset="NHRL")
 else:
     select_data(dataset="Fall")
 
