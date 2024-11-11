@@ -4,6 +4,7 @@ import numpy as np
 
 INPUT_BASE_PATH = "data/input_video/"
 OUTPUT_BASE_PATH = "data/output_imgs/"
+video_name = "yippee-karoomba.mp4"
 
 
 def get_homography_mat(frame, output_w, output_h):
@@ -104,5 +105,4 @@ def process_video(video_path, output_w=600, output_h=600, target_fps=1):
     print(f"Total saved images: {num_saved_imgs}")
 
 
-video_name = "sep24_cage2.mp4"
 process_video(INPUT_BASE_PATH + video_name)
