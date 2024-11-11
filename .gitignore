@@ -17,4 +17,6 @@ image_flattening/test.mp4
 /image_flattening/image_flattening/
 /image_flattening/__pycache__/
 /machine/data
-/image_flattening/data
+/image_flattening/data/input_video/
+/image_flattening/data/output_imgs/
+
