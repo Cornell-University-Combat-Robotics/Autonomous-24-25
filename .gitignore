@@ -23,7 +23,7 @@ image_flattening/test.mp4
 /vid_and_img_processing/data/input_img/*.png
 /vid_and_img_processing/data/warped_img/*.png
 
-/vid_and_img_processing/data/warped_vid_frames/
+/vid_and_img_processing/data/warped_vid_frames/*
 
 /vid_and_img_processing/data/input_video/*.mp4
 /vid_and_img_processing/data/warped_video/*.mp4
