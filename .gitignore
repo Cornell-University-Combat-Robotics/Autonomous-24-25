@@ -14,3 +14,7 @@ image_flattening/warped_battlefield.mp4
 image_flattening/test.mp4
 *.pyc
 *.mp4
+/image_flattening/image_flattening/
+/image_flattening/__pycache__/
+/machine/data
+/image_flattening/data
