@@ -5,15 +5,15 @@
         "description": "Small dataset created by CRC identifying 3lb robots and housebots in the NHRL arena",
         "workspace": "crc-autonomous",
         "project": "nhrl-robots",
-        "version": 2,
+        "version": 3,
         "classes": 2,
         "url": "https://universe.roboflow.com/crc-autonomous/nhrl-robots",
-        "train_size": 135,
-        "val_size": 39,
-        "test_size": 19,
+        "train_size": 408,
+        "val_size": 117,
+        "test_size": 58,
         "img_width": 600,
         "img_height": 600,
-        "last_updated": "11-6-2024"
+        "last_updated": "11-12-2024"
       }
     },
     {

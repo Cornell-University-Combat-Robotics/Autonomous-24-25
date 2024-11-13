@@ -18,3 +18,4 @@ image_flattening/test.mp4
 /image_flattening/__pycache__/
 /machine/data
 /machine/saved_models
+/image_flattening/data

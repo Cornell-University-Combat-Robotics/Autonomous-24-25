@@ -110,8 +110,32 @@ def fetch_data(split, size=1):
         image = Image.open(image_path)
         image_resized = image.resize(
             (PROCESSED_IMG_WIDTH, PROCESSED_IMG_HEIGHT))
-        X[i] = np.array(image_resized, dtype=np.float32) / \
-            255.0  # Normalize pixel values
+
+        # Convert PIL image to numpy array (RGB)
+        image_np = np.array(image_resized)
+
+        # Convert RGB to HSV
+        image_hsv = cv2.cvtColor(image_np, cv2.COLOR_RGB2HSV)
+
+        # Increase hue, saturation, and value
+        h, s, v = cv2.split(image_hsv)
+        h = np.clip(h + 10, 0, 255)  # Increase hue by 10, clip to [0, 255]
+        # Increase saturation by 80, clip to [0, 255]
+        s = np.clip(s + 80, 0, 255)
+        v = np.clip(v + 85, 0, 255)  # Increase value by 85, clip to [0, 255]
+
+        # Merge the adjusted channels back
+        image_hsv_adjusted = cv2.merge([h, s, v])
+
+        # Convert back to RGB
+        image_rgb_adjusted = cv2.cvtColor(
+            image_hsv_adjusted, cv2.COLOR_HSV2RGB)
+
+        # Normalize pixel values to [0, 1]
+        X[i] = np.array(image_rgb_adjusted, dtype=np.float32) / 255.0
+
+        # X[i] = np.array(image_resized, dtype=np.float32) / \
+        #     255.0  # Normalize pixel values
 
     # Load bounding box data
     bbox_path = f'data/{DATASET_NAME}/{split}/labels'
@@ -173,11 +197,11 @@ def show_predict(X, y, model=None, threshold=0.1, img_title="Model Prediction"):
         for my in range(MAX_GRID_COLUMN):
             channels = y[my][mx]
             prob, x1, y1, width, height = channels[:5]
+            # print(prob)
 
             # If the probability is below the threshold, skip this cell
             if prob < threshold:
                 continue
-
             color = get_color_by_probability(prob)
 
             # Calculate the top-left corner of the bounding box
