@@ -4,7 +4,7 @@ import numpy as np
 WIDTH = 1200
 HEIGHT = 1200
 test_img = cv2.imread('northwest.PNG')
-test_img = cv2.resize(test_img, (WIDTH, HEIGHT), interpolation=cv2.INTER_AREA)
+test_img = cv2.resize(test_img, (WIDTH, HEIGHT), interpolation = cv2.INTER_AREA)
 
 # the list of the "real" corners from the raw image
 # in order:
@@ -42,23 +42,23 @@ cv2.setMouseCallback("Image", click_event)
 while True:
     key = cv2.waitKey(1) & 0xFF
     
-    if key == ord('z'):  # If 'z' is pressed
+    if key == ord('z'): # If 'z' is pressed
         if corners:
-            removed_point = corners.pop()  # Remove the last point
+            removed_point = corners.pop() # Remove the last point
             print(f"Point removed: {removed_point}")
-            redraw_image()  # Redraw the image with remaining points
+            redraw_image() # Redraw the image with remaining points
         else:
             print("No points to remove.")
     
-    elif key == 27:  # Press 'Esc' to exit
+    elif key == 27: # Press 'Esc' to exit
         break
     elif len(corners) == 4:
         break
 
 print("Final Selected Points:", corners)
 
-dest_pts = [[0,0],[WIDTH, 0], [WIDTH, HEIGHT], [0, HEIGHT]]
+dest_pts = [[0, 0],[WIDTH, 0], [WIDTH, HEIGHT], [0, HEIGHT]]
 matrix = cv2.findHomography(np.array(corners), np.array(dest_pts))
 
-np.savetxt("matrix.txt", matrix[0], fmt="%f")
+np.savetxt("matrix.txt", matrix[0], fmt = "%f")
 cv2.destroyAllWindows()
