@@ -1,5 +1,6 @@
 import datetime
 import os
+from dotenv import load_dotenv
 from PIL import Image
 import torch
 import torch.nn as nn
@@ -12,46 +13,54 @@ from torchvision.models.detection import fasterrcnn_resnet50_fpn
 import yaml
 import model
 from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data.dataloader import default_collate
+from roboflow import Roboflow
 
-# print("opening yaml")
-with open('./data/yolo_data_v1.yolov8/nhrl_bots.yaml','r') as file: #edit yaml path
-    config = yaml.safe_load(file)
-# print("finished reading yaml")
+# Load environment variables
+load_dotenv()
 
-train_images_dir = config['train']
-train_labels_dir = train_images_dir.replace('images', 'labels')
-# print("found train dir")
-val_images_dir = config['val']
-val_labels_dir = val_images_dir.replace('images', 'labels')
-# print("found val dir")
-test_images_dir = config['test']
-test_labels_dir = test_images_dir.replace('images', 'labels')
-# print("found test dir")
+# Roboflow dataset details
+DATASET_DETAILS = {
+    "workspace": "crc-autonomous",
+    "project": "nhrl-robots",
+    "version": 3
+}
+
+def roboflow_download(dataset_name, save_dir="data"):
+    """Downloads the specified dataset from Roboflow using the API."""
+    roboflow_api_key = os.getenv("ROBOFLOW_API_KEY")
+    rf = Roboflow(api_key=roboflow_api_key)
+    project = rf.workspace(DATASET_DETAILS['workspace']).project(DATASET_DETAILS['project'])
+    version = project.version(DATASET_DETAILS['version'])
+    version.download("yolov8", location=os.path.join(save_dir, dataset_name))
 
 class Data(Dataset):
-    """
-    A custom PyTorch Dataset class for loading images and corresponding YOLO-format labels.
-    """
-    def __init__(self, image_dir, label_dir, transform=None):
-        self.image_dir = image_dir
-        self.label_dir = label_dir
-        self.transform = transform
-        self.image_paths = [os.path.join(self.image_dir, img) for img in os.listdir(self.image_dir) if img.endswith('.jpg')]
+    """Custom PyTorch Dataset class that downloads data from Roboflow if not available locally."""
+    def __init__(self, dataset_name="NHRL", transform=None):
+        self.dataset_name = dataset_name
+        self.transform = transform or transforms.Compose([
+            transforms.ToTensor(), 
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
         
+        # Directories
+        data_dir = os.path.join("data", dataset_name)
+        self.image_dir = os.path.join(data_dir, "train/images")
+        self.label_dir = os.path.join(data_dir, "train/labels")
+
+        # Check if data exists; if not, download from Roboflow
+        if not os.path.exists(self.image_dir) or not os.listdir(self.image_dir):
+            print(f"{dataset_name} data not found locally. Downloading from Roboflow.")
+            roboflow_download(dataset_name)
+
+        # Populate image paths
+        self.image_paths = [os.path.join(self.image_dir, img) for img in os.listdir(self.image_dir) if img.endswith('.jpg')]
         print(f"Found {len(self.image_paths)} images in {self.image_dir}")
 
-    
-    
     def load_yolo_labels(self, label_path):
-        """
-        Reads a label file and returns a list of tuples with class index and bounding box values.
-        
-        Returns:
-        list of tuples: Each tuple contains (class_index, x_center, y_center, width, height).
-        """
+        # (Same as your current implementation)
         boxes = []
         labels = []
-
         with open(label_path, 'r') as f:
             for line in f.readlines():
                 parts = line.strip().split()
@@ -67,14 +76,10 @@ class Data(Dataset):
                 labels.append(class_index)
 
         return boxes, labels
-        
-        
-    def __getitem__(self,idx):
-        """
-        Retrieves and processes an image and its corresponding labels from the dataset.
-        """
+
+    def __getitem__(self, idx):
+        # (Same as your current implementation)
         img_path = self.image_paths[idx]
-        # print(f"Processing image: {img_path}")
         image = Image.open(img_path).convert("RGB")
         
         if self.transform:
@@ -93,7 +98,6 @@ class Data(Dataset):
             
         boxes = torch.tensor(boxes, dtype=torch.float32)
         labels = torch.tensor(labels, dtype=torch.long)
-        # filename = os.path.basename(img_path)
         if len(labels) != len(boxes):
             print(f"Mismatch in number of boxes and labels in file {img_path}: {len(boxes)} boxes, {len(labels)} labels")
             return None
@@ -103,32 +107,28 @@ class Data(Dataset):
     def __len__(self):
         return len(self.image_paths)
 
-def train(model, num_epochs=10, learning_rate=0.001):
+def train(model, num_epochs=10, learning_rate=0.0001):
     print("begin training")
-    """
-    Performs training and evaluation of the model
-    """
-    transform = transforms.Compose([
-        transforms.ToTensor(), 
-        transforms.Normalize((0.5, 0.5, 0.5),(0.5, 0.5, 0.5))
-    ])
-    log_dir = f"runs/experiment_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    writer = SummaryWriter(log_dir=log_dir)
+    writer = SummaryWriter(log_dir=f"runs/experiment_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    # Datasets and DataLoaders
+    train_dataset = Data(dataset_name="NHRL", transform=transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ]))
+    val_dataset = Data(dataset_name="NHRL", transform=transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ]))
     def collate_fn(batch):
         # Filter out None items
         batch = [item for item in batch if item is not None]
-        if len(batch) == 0:
-            return None  # If the entire batch is empty, return None
-        return torch.utils.data.dataloader.default_collate(batch)
-
-    train_dataset = Data(train_images_dir, train_labels_dir, transform=transform)
-    print(f"length: {len(train_dataset)}")
-    val_dataset = Data(val_images_dir, val_labels_dir, transform=transform)
+        # If batch is empty, return None to indicate it should be skipped
+        return default_collate(batch) if len(batch) > 0 else None
 
     training_loader = DataLoader(train_dataset, batch_size = 1, shuffle=True, collate_fn=collate_fn)
-    validation_loader = DataLoader(val_dataset, batch_size = 1, shuffle=False)
+    validation_loader = DataLoader(val_dataset, batch_size = 1, shuffle=False, collate_fn=collate_fn)
 
     def loader_loss(images, labels):
         """
@@ -160,6 +160,7 @@ def train(model, num_epochs=10, learning_rate=0.001):
     # print("model is in training")
     # print(f"Batch size: {training_loader.batch_size}")
     # print(f"Collate function: {training_loader.collate_fn}")
+    
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
@@ -185,16 +186,20 @@ def train(model, num_epochs=10, learning_rate=0.001):
         writer.add_scalar('Average Loss per Epoch', avg_loss, epoch)
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/len(training_loader)}")
     
-        # model.eval() 
-        # print("model is in validation")
-        # val_loss = 0.0
-        # with torch.no_grad(): 
-        #     for images, labels in validation_loader:
-        #         loss = loader_loss(images, labels)
-        #         val_loss += loss.item()
-        # avg_val_loss = val_loss / len(validation_loader)
-        # writer.add_scalar('Validation Loss', avg_val_loss, epoch)
-        # print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {avg_val_loss}")
+        model.eval() 
+        print("model is in validation")
+        val_loss = 0.0
+        with torch.no_grad(): 
+            for i, batch in enumerate(validation_loader):
+                if batch is None: continue
+                images, labels = batch
+                loss = loader_loss(images, labels)
+                if loss is None: continue
+                valid_loss, _, _ = loss
+                val_loss += valid_loss.item()
+        avg_val_loss = val_loss / len(validation_loader)
+        writer.add_scalar('Validation Loss', avg_val_loss, epoch)
+        print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {avg_val_loss}")
         
     print("end training")
 
@@ -202,7 +207,7 @@ def main():
     newModel = model.ConvNeuralNet()
     # newModel = fasterrcnn_resnet50_fpn(pretrained=True)
     print("made model")
-    train(newModel, num_epochs=10)
+    train(newModel, num_epochs=20)
     print("finished training model")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     torch.save(newModel, f"./models/model_{timestamp}.pth")
