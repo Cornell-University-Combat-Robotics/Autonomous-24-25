@@ -7,3 +7,4 @@ ml_env
 machine/__pycache__
 machine/data
 machine/runs
+machine/roboflow.env
