@@ -103,6 +103,6 @@ def process_video(video_path, output_w=600, output_h=600, target_fps=1):
 
 if __name__ == "__main__":
     INPUT_BASE_PATH = "data/input_video/"
-    OUTPUT_BASE_PATH = "data/output_imgs/"
-    video_name = "yippee-karoomba.mp4"
+    OUTPUT_BASE_PATH = "data/warped_vid_frames/"
+    video_name = "pikmin-gforce.mp4"
     process_video(INPUT_BASE_PATH + video_name)
