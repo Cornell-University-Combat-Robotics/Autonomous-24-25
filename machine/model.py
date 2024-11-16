@@ -80,6 +80,7 @@ class ConvNeuralNet(nn.Module):
         top_k = 3
         top_k_indices = torch.topk(prob_scores, top_k).indices  # Get indices of top-K confidence scores
         bounding_boxes = bounding_boxes[top_k_indices]  # Select the top-K bounding boxes
+        bounding_boxes *= 1200  # scale box coords
         class_scores = class_scores[top_k_indices]      # Select corresponding class scores
         
         if labels is not None:
@@ -100,11 +101,11 @@ class ConvNeuralNet(nn.Module):
             box_loss = F.smooth_l1_loss(bounding_boxes, labels_boxes, reduction='mean')
 
             # Total loss
-            total_loss = class_loss + box_loss
+            total_loss = class_loss + box_loss/600
             
             return {
                 "loss_classifier": class_loss,
-                "loss_box_reg": box_loss,
+                "loss_box_reg": box_loss/600,
                 "total_loss": total_loss
             }
         
