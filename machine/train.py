@@ -26,7 +26,7 @@ DATASET_DETAILS = {
     "version": 3
 }
 
-def roboflow_download(dataset_name, save_dir="data"):
+def roboflow_download(dataset_name, save_dir="data2"):
     """Downloads the specified dataset from Roboflow using the API."""
     roboflow_api_key = os.getenv("ROBOFLOW_API_KEY")
     rf = Roboflow(api_key=roboflow_api_key)
@@ -114,6 +114,9 @@ def train(model, num_epochs=10, learning_rate=0.0001):
 
     # Datasets and DataLoaders
     train_dataset = Data(dataset_name="NHRL", transform=transforms.Compose([
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(degrees=10),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ]))
@@ -127,30 +130,35 @@ def train(model, num_epochs=10, learning_rate=0.0001):
         # If batch is empty, return None to indicate it should be skipped
         return default_collate(batch) if len(batch) > 0 else None
 
-    training_loader = DataLoader(train_dataset, batch_size = 1, shuffle=True, collate_fn=collate_fn)
-    validation_loader = DataLoader(val_dataset, batch_size = 1, shuffle=False, collate_fn=collate_fn)
+    training_loader = DataLoader(train_dataset, batch_size = 4, shuffle=True, collate_fn=collate_fn)
+    validation_loader = DataLoader(val_dataset, batch_size = 4, shuffle=False, collate_fn=collate_fn)
 
     def loader_loss(images, labels):
         """
         Calculates total loss (classification and regression) for given images and labels
         """
         # print(f"shape: {labels['boxes'].shape} ")
-        if labels is None or 'boxes' not in labels or labels['boxes'].shape != torch.Size([1,3,4]):
-            print(labels['boxes'])
+        if labels is None or 'boxes' not in labels or labels['boxes'].dim() != 3 or labels['boxes'].shape[-1] != 4:
+            # print(labels['boxes'])
 
             print("Skipping batch due to missing or malformed labels")
             return None
         #squeeze for batch size 1 only
-        labels['boxes'] = labels['boxes'].squeeze(0)  # Shape should be [num_boxes, 4]
-        labels['labels'] = labels['labels'].squeeze(0)
+        # labels['boxes'] = labels['boxes'].squeeze(0)  # Shape should be [num_boxes, 4]
+        # labels['labels'] = labels['labels'].squeeze(0)
+        labels['boxes'] *= 600   # Scale 
         # print(f"Images shape: {images.shape}")  # Debug print
         # print(f"Labels structure (before passing to model): {labels}")
-        outputs = model(images,[labels])
+        # outputs = model(images,[labels])
+        # outputs = model(images, [labels[i] for i in range(len(labels['boxes']))])
+        labels = [{'boxes': labels['boxes'][i], 'labels': labels['labels'][i]} for i in range(len(labels['boxes']))]
+        outputs = model(images, labels)
+
         
         if isinstance(outputs, dict):
-            total_loss = outputs['total_loss']
-            class_loss = outputs['loss_classifier']
-            box_loss = outputs['loss_box_reg']
+            total_loss = outputs['total_loss'].mean()
+            class_loss = outputs['loss_classifier'].mean()
+            box_loss = outputs['loss_box_reg'].mean()
             
             # Calculate probability loss with Binary Cross Entropy on class_probs
             return total_loss, class_loss, box_loss  # Return all three losses for logging purposes
@@ -207,7 +215,8 @@ def main():
     newModel = model.ConvNeuralNet()
     # newModel = fasterrcnn_resnet50_fpn(pretrained=True)
     print("made model")
-    train(newModel, num_epochs=20)
+    # roboflow_download()
+    train(newModel, num_epochs=5)
     print("finished training model")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     torch.save(newModel, f"./models/model_{timestamp}.pth")
