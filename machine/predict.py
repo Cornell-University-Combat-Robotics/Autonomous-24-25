@@ -6,7 +6,7 @@ import numpy as np
 DEBUG = True
 
 class OurModel:
-    def __init__(self, model_path="models/model_20241111_003727.pth"):
+    def __init__(self, model_path="models/model_20241113_000141.pth"):
         # Load the model once during initialization
         self.model = torch.load(model_path)
         self.model.eval()
@@ -63,6 +63,47 @@ class OurModel:
 
         return img
 
+    def detect_bot(self, img, confidence_threshold=0.5):
+        bots = {}
+        confidences, bboxes, _ = self.predict(img)
+        height, width, _ = img.shape
+
+        for i in range(len(confidences)):
+            confidence, bbox = confidences[i], bboxes[i]
+            
+            # Determine class label
+            class_label = 0 if confidence[0] > confidence[1] else 1
+            
+            # Only add to dictionary if confidence is above threshold
+            if confidence[class_label] < confidence_threshold:
+                continue
+
+            # Extract center x, center y, box width, and box height
+            center_x = int(bbox[0] * width)
+            center_y = int(bbox[1] * height)
+            box_width = int(bbox[2] * width)
+            box_height = int(bbox[3] * height)
+
+            # Calculate bounding box corners
+            x_min = center_x - box_width // 2
+            y_min = center_y - box_height // 2
+            x_max = center_x + box_width // 2
+            y_max = center_y + box_height // 2
+
+            # Extract bounding box
+            screenshot = img[y_min:y_max, x_min:x_max]
+
+            if DEBUG:
+                cv2.imshow("Screenshot", screenshot)
+                cv2.waitKey(0)
+
+            # Write to dictionary
+            name = ('bot' if class_label == 1 else 'housebot') + str(i)
+            bots[name] = {'bbox':[[x_min, y_min], [x_max, y_max]], 'center':[center_x, center_y], 'img':screenshot}
+        
+        return bots
+
+
 # Main code block
 if __name__ == '__main__':
     # Initialize the predictor
@@ -71,7 +112,7 @@ if __name__ == '__main__':
     # Load image
     img = cv2.imread("data/sampleimg2.jpg")
     
-    # Run prediction
+    # SINGLE PREDICTION
     out = predictor.predict(img)
     confidences, bboxes, values = out
     
@@ -88,3 +129,8 @@ if __name__ == '__main__':
     cv2.imshow("Prediction", pred_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+    # DETECT_BOT
+    # bots = predictor.detect_bot(img, 0.1)
+    # print(bots)
+    # cv2.destroyAllWindows()
