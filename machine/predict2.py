@@ -6,7 +6,7 @@ import numpy as np
 DEBUG = True
 
 class OurModel:
-    def __init__(self, model_path="models/model_20241116_121621.pth"):
+    def __init__(self, model_path="models/model_20241117_102522.pth"):
         # Load the model once during initialization
         self.model = torch.load(model_path)
         self.model.eval()
