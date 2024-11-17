@@ -110,7 +110,7 @@ class Data(Dataset):
 def train(model, num_epochs=10, learning_rate=0.0001):
     print("begin training")
     writer = SummaryWriter(log_dir=f"runs/experiment_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}")
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-4)
 
     # Datasets and DataLoaders
     train_dataset = Data(dataset_name="NHRL", transform=transforms.Compose([
@@ -216,7 +216,7 @@ def main():
     # newModel = fasterrcnn_resnet50_fpn(pretrained=True)
     print("made model")
     # roboflow_download()
-    train(newModel, num_epochs=5)
+    train(newModel, num_epochs=10)
     print("finished training model")
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     torch.save(newModel, f"./models/model_{timestamp}.pth")

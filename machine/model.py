@@ -7,6 +7,7 @@ class ConvNeuralNet(nn.Module):
         super(ConvNeuralNet, self).__init__()
         self.num_classes = num_classes
         self.num_bots = num_bots
+        self.dropout = nn.Dropout(p=0.3)
 
         # Define convolutional layers
         self.conv1 = nn.Conv2d(3, 32, 3, 1)
@@ -31,6 +32,11 @@ class ConvNeuralNet(nn.Module):
         self.relu5 = nn.ReLU()
         self.batchnorm5 = nn.BatchNorm2d(32)
         
+        self.conv6 = nn.Conv2d(32, 32, kernel_size=3, padding=1)
+        self.relu6 = nn.ReLU()
+        self.maxpool6 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.batchnorm6 = nn.BatchNorm2d(32)
+        
         # Define output layers
         self.prob_output = nn.Conv2d(32, 1, kernel_size=3, padding=1)
         self.box_output = nn.Conv2d(32, 4, kernel_size=3, padding=1)
@@ -47,23 +53,34 @@ class ConvNeuralNet(nn.Module):
         x = self.relu1(x)
         x = self.maxpool1(x)
         x = self.batchnorm1(x)
+        x = self.dropout(x)
 
         x = self.conv2(x)
         x = self.relu2(x)
         x = self.batchnorm2(x)
+        x = self.dropout(x)
 
         x = self.conv3(x)
         x = self.relu3(x)
         x = self.batchnorm3(x)
+        x = self.dropout(x)
 
         x = self.conv4(x)
         x = self.relu4(x)
         x = self.maxpool4(x)
         x = self.batchnorm4(x)
+        x = self.dropout(x)
 
         x = self.conv5(x)
         x = self.relu5(x)
         x = self.batchnorm5(x)
+        x = self.dropout(x)
+        
+        x = self.conv6(x)
+        x = self.relu6(x)
+        x = self.maxpool6(x)
+        x = self.batchnorm6(x)
+        x = self.dropout(x)
 
        # Probability output for confidence scores
         prob_scores = self.prob_output(x)  # Shape: [batch_size, 1, height, width]
@@ -80,7 +97,7 @@ class ConvNeuralNet(nn.Module):
         top_k = 3
         top_k_indices = torch.topk(prob_scores, top_k).indices  # Get indices of top-K confidence scores
         bounding_boxes = bounding_boxes[top_k_indices]  # Select the top-K bounding boxes
-        bounding_boxes *= 1200  # scale box coords
+        bounding_boxes *= 600  # scale box coords
         class_scores = class_scores[top_k_indices]      # Select corresponding class scores
         
         if labels is not None:
@@ -101,11 +118,13 @@ class ConvNeuralNet(nn.Module):
             box_loss = F.smooth_l1_loss(bounding_boxes, labels_boxes, reduction='mean')
 
             # Total loss
-            total_loss = class_loss + box_loss/600
+            box_loss /= 600
+            class_loss *= 2
+            total_loss = class_loss + box_loss
             
             return {
                 "loss_classifier": class_loss,
-                "loss_box_reg": box_loss/600,
+                "loss_box_reg": box_loss,
                 "total_loss": total_loss
             }
         
