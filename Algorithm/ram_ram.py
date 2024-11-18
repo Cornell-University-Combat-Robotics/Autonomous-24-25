@@ -1,8 +1,10 @@
-import Math
+import math
 import time
 from motors import Motor
 from serial_conn import Serial
 import numpy as np
+
+
 
 # ----------------------------- CONSTANTS -----------------------------
 
@@ -28,6 +30,11 @@ enemy_previous_positions: list # list of tuples ()
 
 old_time : float # previous time step 
 delta_t : float # determine the time step
+
+
+# output of object detection:
+bots = {'huey': {'bb': list, 'center': list, 'orientation': float},
+    	'enemy': {'bb': list, 'center': list}}
 
 # ----------------------------- METHODS -----------------------------
 
@@ -58,8 +65,10 @@ def predict_desired_orientation_angle(our_pos: np.array, our_orientation: np.arr
 	# return the angle in angle
 	orientation = our_orientation
 	direction = enemy_future_position - our_pos
+	# We want to take our orientation and turn it into a vector
+	huey_vector = np.array([math.cos(orientation), math.sin(orientation)])
 	# calculate the angle between the bot and the enemy
-	angle = np.acrcos(np.dot(direction, orientation) / (np.linalg.norm(direction) * np.linalg.norm(orientation)))
+	angle = np.acrcos(np.dot(direction, huey_vector) / (np.linalg.norm(direction) * np.linalg.norm(huey_vector)))
 	return angle
 
 # predict the desired turn of the bot given the current position and velocity of the enemy
@@ -70,7 +79,7 @@ def predict_desired_turn(our_pos: np.array, our_orientation: np.array, enemy_pos
 # predict the desired speed of the bot given the current position and velocity of the enemy
 def predict_desired_speed(our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float):
 	angle = predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)		
-	return Math.abs(angle - 180.0) * (MAX_SPEED / 180.0)
+	return math.abs(angle - 180.0) * (MAX_SPEED / 180.0)
 
 # ----------------------------- END of METHODS -----------------------------
 
@@ -112,9 +121,9 @@ while True:
 	# Run Corner Detection
 	
 	# get new position and heading values
-	huey_position # from Corner Detection
-	huey_orientation # from Corner Detection
-	enemy_position # from Object Detection
+	huey_position = bots['huey'].get('center')
+	huey_orientation = bots['huey'].get('orientation')
+	enemy_position = bots['enemy'].get('center')
 	enemy_velocity = calculate_velocity(enemy_position, enemy_previous_positions[-1], delta_t)
 	turn = predict_desired_turn(huey_position, enemy_position, enemy_velocity, delta_t)
 	speed = predict_desired_speed(huey_position, enemy_position, enemy_velocity, delta_t)

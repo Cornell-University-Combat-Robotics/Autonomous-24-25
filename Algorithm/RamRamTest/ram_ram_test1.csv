@@ -1,0 +1,2 @@
+time,delta_time,bots,huey_pos,huey_facing,enemy_pos,huey_old_pos,huey_velocity,enemy_old_pos[-1],enemy_velocity,speed,turn,left_speed,right_speed
+10:15:17,0.9403023719787598,"{'huey': {'bb': [190, 290, 20, 20], 'center': [200, 300], 'orientation': 0.0}, 'enemy': {'bb': [590, 290, 20, 20], 'center': [600, 300]}}",,0.0,"[600, 300]",[1200 1200],[1063.48769268  957.13892341],"[array([0, 0])]",[-638.09261561 -319.0463078 ],[nan nan],[nan nan],None,None
