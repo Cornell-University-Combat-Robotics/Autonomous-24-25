@@ -110,7 +110,7 @@ class Ram():
             self.huey_move(self.left, self.right, speed, turn)
 
         if (Ram.TEST_MODE):
-            angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)		
+            angle = self.predict_desired_orientation_angle(self.huey_position, self.huey_orientation, self.enemy_position, enemy_velocity, self.delta_t)		
             test_ram.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
                                       enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
                                       huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
