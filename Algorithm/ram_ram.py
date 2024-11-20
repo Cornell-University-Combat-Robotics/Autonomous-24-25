@@ -67,6 +67,7 @@ def predict_desired_orientation_angle(our_pos: np.array, our_orientation: np.arr
 	direction = enemy_future_position - our_pos
 	# We want to take our orientation and turn it into a vector
 	huey_vector = np.array([math.cos(orientation), math.sin(orientation)])
+
 	# calculate the angle between the bot and the enemy
 	angle = np.acrcos(np.dot(direction, huey_vector) / (np.linalg.norm(direction) * np.linalg.norm(huey_vector)))
 	return angle
