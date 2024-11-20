@@ -88,7 +88,7 @@ class Ram():
     # predict the desired speed of the bot given the current position and velocity of the enemy
     def predict_desired_speed(self, our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float):
         angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)		
-        return abs(angle - 180.0) * (Ram.MAX_SPEED / 180.0)
+        return 1-(abs(angle) * (Ram.MAX_SPEED / 180.0))
 
     # main method for ram ram and takes in output from corner detection
     def ram_ram(self, bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}}):
