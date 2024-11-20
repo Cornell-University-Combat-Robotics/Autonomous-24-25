@@ -26,8 +26,8 @@ turn_speed = 5  # Degrees per turn for Huey
 
 # Function to calculate the angle from huey to enemy (for ram_ram method)
 def calculate_angle(p1, p2):
-    dx = p2[0] - p1[0]
-    dy = p2[1] - p1[1]
+    dx = p1[0] - p2[0]
+    dy = p1[1] - p2[1]
     angle = math.atan2(dy, dx)  # Get angle in radians
     angle_degrees = math.degrees(angle)  # Convert to degrees
     return angle_degrees

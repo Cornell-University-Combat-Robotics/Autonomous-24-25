@@ -13,8 +13,8 @@ class Ram():
     MAX_TURN = 1 # between 0 and 1
     MIN_TURN = 0 # between 0 and 1
     ARENA_WIDTH = 1200 # in pixels
-    BATTLE_MODE = False # this is true when the match actually has begun
-    TEST_MODE = True
+    BATTLE_MODE = False # this is true when the match actually has begun and will cause the motors to move
+    TEST_MODE = True # saves values to CSV file
 
     def __init__(self) -> None:
         # ----------------------------- INIT ----------------------------- 
@@ -24,7 +24,7 @@ class Ram():
         self.huey_orientation = 45
 
         if Ram.BATTLE_MODE:
-            # initialize a serial ctionnection
+            # initialize a serial connection
             serial = Serial()
             # initialize the motor
             self.left = Motor(ser = serial, channel = 0)
@@ -73,11 +73,12 @@ class Ram():
     def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float):
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
         # return the angle in angle
-        orientation = our_orientation
+        orientation = np.array([math.cos(our_orientation), math.sin(our_orientation)])
         direction = enemy_future_position - our_pos
         # calculate the angle between the bot and the enemy
-        angle = np.arccos(np.dot(direction, orientation) / (np.linalg.norm(direction) * np.linalg.norm(orientation)))
-        return angle
+        angle = np.degrees(np.arccos(np.dot(direction, orientation) / (np.linalg.norm(direction) * np.linalg.norm(orientation))))
+        sign = np.sign(np.cross(orientation, direction)) 
+        return sign*angle
 
     # predict the desired turn of the bot given the current position and velocity of the enemy
     def predict_desired_turn(self, our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float):
@@ -121,6 +122,3 @@ class Ram():
         self.enemy_previous_positions.append(self.enemy_position)
         if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
             self.enemy_previous_positions.pop(0)
-        
-        # TODO: 
-        # enemy_position = self.predict_enemy_position(enemy_position, enemy_velocity, self.delta_t)
