@@ -1,9 +1,9 @@
 import math
 import os
 import time
-
 import cv2
 import numpy as np
+from color_picker import ColorPicker
 
 
 class RobotCornerDetection:
@@ -65,8 +65,10 @@ class RobotCornerDetection:
         )
 
         # Define the HSV range around the selected color
-        lower_limit = np.array([max(0, selected_color[0] - 10), 100, 100])
-        upper_limit = np.array([min(179, selected_color[0] + 10), 255, 255])
+        # We tried using 10 for the range; It was too large and picked up orange instead of red
+        # For now, it is +-8
+        lower_limit = np.array([max(0, selected_color[0] - 8), 100, 100])
+        upper_limit = np.array([min(179, selected_color[0] + 8), 255, 255])
 
         mask = cv2.inRange(hsv_image, lower_limit, upper_limit)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -415,75 +417,10 @@ class RobotCornerDetection:
 
             return result
 
-    @staticmethod
-    def pick_colors(image_path):
-        """
-        Allows the user to manually pick colors for front and back corners.
-
-        Args:
-            image_path (str): Path to the image to pick colors from.
-
-        Returns:
-            list: Selected colors for front and back corners in HSV format.
-        """
-        test_img = cv2.imread(image_path)
-        selected_colors = []
-        corners = []
-
-        def click_event(event, x, y, flags, param):
-            if event == cv2.EVENT_LBUTTONDOWN:
-                color = test_img[y, x]  # OpenCV reads as BGR
-                hsv_color = cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_BGR2HSV)[0][0]
-                selected_colors.append(hsv_color)
-                corners.append([x, y])
-                print(f"Selected color (HSV): {hsv_color}")
-                print(f"Point added: {x}, {y}")
-                redraw_image()
-
-        def redraw_image():
-            img_copy = test_img.copy()
-            for point in corners:
-                cv2.circle(img_copy, point, 5, (0, 255, 0), -1)
-                cv2.putText(
-                    img_copy,
-                    f"{point}",
-                    point,
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    (255, 0, 0),
-                    1,
-                )
-            cv2.imshow("Select Colors", img_copy)
-
-        cv2.imshow("Select Colors", test_img)
-        cv2.setMouseCallback("Select Colors", click_event)
-
-        while True:
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord("z"):  # If 'z' is pressed
-                if selected_colors and corners:
-                    removed_color = selected_colors.pop()
-                    removed_point = corners.pop()
-                    print(f"Color removed: {removed_color}")
-                    print(f"Point removed: {removed_point}")
-                    redraw_image()
-                else:
-                    print("No points to remove.")
-            elif key == 27:  # Press 'Esc' to exit
-                break
-            elif len(selected_colors) == 2:
-                break
-
-        print("Final Selected Colors (HSV):", selected_colors)
-        print("Final Selected Points:", corners)
-        cv2.destroyAllWindows()
-        return selected_colors
-
 
 if __name__ == "__main__":
-    # Allow the user to pick colors
-    image_path = os.getcwd() + "/warped_images/east.png"
-    selected_colors = RobotCornerDetection.pick_colors(image_path)
+    image_path = os.getcwd() + "/warped_images/west_3.png"
+    selected_colors = ColorPicker.pick_colors(image_path)
 
     image1 = cv2.imread(image_path)
     image2 = cv2.imread(image_path)
@@ -494,5 +431,5 @@ if __name__ == "__main__":
         "bot2": {"bb": [[150, 150], [160, 160]], "img": image2},
     }
 
-    corner = RobotCornerDetection(bots, selected_colors)
-    corner.corner_detection_main()
+    corner_detection = RobotCornerDetection(bots, selected_colors)
+    corner_detection.corner_detection_main()
