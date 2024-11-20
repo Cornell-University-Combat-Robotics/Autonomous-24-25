@@ -25,12 +25,12 @@ speed = 5
 turn_speed = 5  # Degrees per turn for Huey
 
 # Function to calculate the angle from huey to enemy (for ram_ram method)
-def calculate_angle(p1, p2):
-    dx = p1[0] - p2[0]
-    dy = p1[1] - p2[1]
-    angle = math.atan2(dy, dx)  # Get angle in radians
-    angle_degrees = math.degrees(angle)  # Convert to degrees
-    return angle_degrees
+# def calculate_angle(p1, p2):
+#     dx = p1[0] - p2[0]
+#     dy = p1[1] - p2[1]
+#     angle = math.atan2(dy, dx)  # Get angle in radians
+#     angle_degrees = math.degrees(angle)  # Convert to degrees
+#     return angle_degrees
 
 # This is the method called every 0.18 seconds
 def ram_ram(bots={'huey': {'bb': [], 'center': [], 'orientation': 0.0}, 'enemy': {'bb': [], 'center': []}}):
@@ -73,6 +73,10 @@ def draw_arrow(surface, color, position, orientation, size=20):
         (end_x - arrowhead_size * math.cos(angle2), end_y - arrowhead_size * math.sin(angle2)),
     ])
 
+def fix_angle(angle):
+    angle = 360 - angle
+    return normalize_angle(angle)
+
 # Main game loop
 running = True
 last_called_time = pygame.time.get_ticks()  # Time of last method call (in milliseconds)
@@ -88,10 +92,12 @@ while running:
     # Get the state of keys
     keys = pygame.key.get_pressed()
 
-    # Control huey with WASD keys
+    # Control huey with WAD keys
     if keys[pygame.K_a]:  # Turn left (counterclockwise)
+        # huey['orientation'] = huey['orientation'] + turn_speed
         huey['orientation'] = normalize_angle(huey['orientation'] - turn_speed)
     if keys[pygame.K_d]:  # Turn right (clockwise)
+        # huey['orientation'] = huey['orientation'] - turn_speed
         huey['orientation'] = normalize_angle(huey['orientation'] + turn_speed)
     if keys[pygame.K_w]:  # Move forward
         # Move huey in the direction of its orientation
@@ -115,7 +121,7 @@ while running:
     if huey['center'][1] > height: huey['center'][1] = height
 
     # Calculate the angle from huey to enemy (for ram_ram method)
-    angle = calculate_angle(huey['center'], enemy['center'])
+    # angle = calculate_angle(huey['center'], enemy['center'])
 
     # Check if 0.18 seconds (180 ms) have passed since the last call
     current_time = pygame.time.get_ticks()
@@ -125,7 +131,7 @@ while running:
             'huey': {
                 'bb': [huey['center'][0] - 10, huey['center'][1] - 10, 20, 20],  # Example bounding box for huey
                 'center': huey['center'],
-                'orientation': huey['orientation']
+                'orientation': fix_angle(huey['orientation'])
             },
             'enemy': {
                 'bb': [enemy['center'][0] - 10, enemy['center'][1] - 10, 20, 20],  # Example bounding box for enemy
@@ -148,7 +154,7 @@ while running:
 
     # Display the orientation of huey
     font = pygame.font.SysFont(None, 36)
-    angle_text = font.render(f"Huey Orientation: {huey['orientation']:.2f}°", True, (0, 0, 0))
+    angle_text = font.render(f"Huey Orientation: {fix_angle(huey['orientation']):.2f}°", True, (0, 0, 0))
     screen.blit(angle_text, (10, 10))
 
     # Update the window
