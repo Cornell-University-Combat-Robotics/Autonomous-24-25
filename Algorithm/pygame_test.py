@@ -1,7 +1,7 @@
 import pygame
 import math
 import time
-from ram_class import Ram
+from ram import Ram
 
 # Initialize pygame
 pygame.init()

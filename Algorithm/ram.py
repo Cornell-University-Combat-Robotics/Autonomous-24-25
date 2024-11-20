@@ -6,6 +6,57 @@ import numpy as np
 import test_ram
 
 class Ram():
+    """
+    The Ram Module is used to control the movement of the bot in the arena. It uses a PID controller to move the bot to the desired position
+
+    Attributes
+    ----------
+    huey_position : np.array
+        the current position of the bot
+    huey_old_position : np.array
+        the previous position of the bot
+    huey_orientation : float
+        the current orientation of the bot
+    left : Motor
+        the left motor of the bot
+    right : Motor
+        the right motor of the bot
+    enemy_position : np.array
+        the current position of the enemy
+    enemy_previous_positions : list
+        a list of previous enemy positions
+    old_time : float
+        the previous time
+    delta_t : float 
+        the change in time between the previous time and the current time
+
+
+    Methods
+    -------
+    huey_move(left: Motor, right: Motor, speed: float, turn: float)
+        uses a PID controller to move the bot to the desired position
+
+    calculate_velocity(old_pos: np.array, curr_pos: np.array, dt: float)
+        calculates the velocity of the bot given the current and previous position
+    
+    acceleration(old_vel: float, bot_vel: float, dt: float)
+        calculates the acceleration of the bot given the current and previous velocity
+    
+    predict_enemy_position(enemy_position: np.array, enemy_velocity: float, dt: float)
+        predicts the enemy position given the current position and velocity
+
+    predict_desired_orientation_angle(our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float)  
+        predicts the desired orientation angle of the bot given the current position and velocity of the enemy
+    
+    predict_desired_turn(our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float)
+        predicts the desired turn of the bot given the current position and velocity of the enemy
+    
+    predict_desired_speed(our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float)
+        predicts the desired speed of the bot given the current position and velocity of the enemy
+
+    ram_ram(bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}})
+        main method for the ram ram algorithm that turns to face the enemy and charge towards it
+    """
     # ----------------------------- CONSTANTS -----------------------------
     ENEMY_HISTORY_BUFFER = 10 # how many previous enemy position we are recording
     MAX_SPEED = 1 # between 0 and 1
@@ -16,12 +67,28 @@ class Ram():
     BATTLE_MODE = False # this is true when the match actually has begun and will cause the motors to move
     TEST_MODE = True # saves values to CSV file
 
-    def __init__(self) -> None:
+    '''
+    Constructor for the Ram class that initializes the position and orientation of the bot, the motors, the enemy position, 
+    the enemy position array, the old time, and the delta time. 
+
+    Parameters
+    ----------
+    huey_position : np.array
+        the initial position of the bot
+    huey_old_position : np.array
+        the previous position of the bot
+    huey_orientation : float
+        the initial orientation of the bot
+    enemy_position : np.array
+        the initial position of the enemy
+    '''
+    def __init__(self, huey_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])), huey_old_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])),
+                 huey_orientation=45, enemy_position = np.array([0, 0]))-> None:
         # ----------------------------- INIT ----------------------------- 
         # initialize the position and orientation of huey
-        self.huey_position = np.array([Ram.ARENA_WIDTH, Ram.ARENA_WIDTH])
-        self.huey_old_position = np.array([Ram.ARENA_WIDTH, Ram.ARENA_WIDTH])
-        self.huey_orientation = 45
+        self.huey_position = huey_position
+        self.huey_old_position = huey_old_position
+        self.huey_orientation = huey_orientation
 
         if Ram.BATTLE_MODE:
             # initialize a serial connection
@@ -35,7 +102,7 @@ class Ram():
 
 
         # initialize the current enemy position
-        self.enemy_position = np.array([0, 0])
+        self.enemy_position = enemy_position
         
         # initialize the enemy position array
         self.enemy_previous_positions = []
@@ -48,28 +115,28 @@ class Ram():
             
     # ----------------------------- HELPER METHODS -----------------------------
 
-    # use a PID controller to move the bot to the desired position
+    ''' use a PID controller to move the bot to the desired position '''
     def huey_move(self, left: Motor, right: Motor, speed: float, turn: float):
         left.move((speed + turn) / 2.0)
         right.move((speed - turn) / 2.0)
 
-    # calculate the velocity of the bot given the current and previous position
+    ''' calculate the velocity of the bot given the current and previous position '''
     def calculate_velocity(self, old_pos: np.array, curr_pos: np.array, dt: float):
         if (dt == 0.0):
             return 0.0
         return (curr_pos - old_pos) / dt
 
-    # calculate the acceleration of the bot given the current and previous velocity
+    ''' calculate the acceleration of the bot given the current and previous velocity '''
     def acceleration(self, old_vel: float, bot_vel: float, dt: float):
         if (dt == 0.0):
             return 0.0
         return (bot_vel - old_vel) / dt
 
-    # predict the enemy position given the current position and velocity
+    ''' predict the enemy position given the current position and velocity '''
     def predict_enemy_position(self, enemy_position: np.array, enemy_velocity: float, dt: float):
         return enemy_position + dt * enemy_velocity
     
-    # predict the desired orientation angle of the bot given the current position and velocity of the enemy
+    ''' predict the desired orientation angle of the bot given the current position and velocity of the enemy '''
     def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float):
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
         # return the angle in angle
@@ -80,17 +147,17 @@ class Ram():
         sign = np.sign(np.cross(orientation, direction)) 
         return sign*angle
 
-    # predict the desired turn of the bot given the current position and velocity of the enemy
+    ''' predict the desired turn of the bot given the current position and velocity of the enemy '''
     def predict_desired_turn(self, our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float):
         angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)
         return angle * (Ram.MAX_TURN / 180.0)
 
-    # predict the desired speed of the bot given the current position and velocity of the enemy
+    ''' predict the desired speed of the bot given the current position and velocity of the enemy '''
     def predict_desired_speed(self, our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float):
         angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)		
         return 1-(abs(angle) * (Ram.MAX_SPEED / 180.0))
 
-    # main method for ram ram and takes in output from corner detection
+    ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
     def ram_ram(self, bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}}):
         self.delta_t = time.time() - self.old_time # record delta time
         self.old_time = time.time()
