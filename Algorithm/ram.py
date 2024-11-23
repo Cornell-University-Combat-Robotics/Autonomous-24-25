@@ -67,7 +67,7 @@ class Ram():
     MAX_TURN = 1 # between 0 and 1
     MIN_TURN = 0 # between 0 and 1
     ARENA_WIDTH = 1200 # in pixels
-    BATTLE_MODE = False # this is true when the match actually has begun and will cause the motors to move
+    BATTLE_MODE = True # this is true when the match actually has begun and will cause the motors to move
     TEST_MODE = True # saves values to CSV file
 
     '''
@@ -95,7 +95,7 @@ class Ram():
 
         if Ram.BATTLE_MODE:
             # initialize a serial connection
-            serial = Serial()
+            serial = Serial(port='COM3')
             # initialize the motor
             self.left = Motor(ser = serial, channel = Ram.LEFT)
             self.right = Motor(ser = serial, channel = Ram.RIGHT)
@@ -120,6 +120,7 @@ class Ram():
 
     ''' use a PID controller to move the bot to the desired position '''
     def huey_move(self, left: Motor, right: Motor, speed: float, turn: float):
+        print(f'Here: {speed} and {turn}')
         left.move((speed + turn) / 2.0)
         right.move((speed - turn) / 2.0)
 
@@ -160,6 +161,10 @@ class Ram():
         angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)		
         return 1-(abs(angle) * (Ram.MAX_SPEED / 180.0))
 
+    def cleanup(self):
+        self.left.stop()
+        self.right.stop()
+    
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
     def ram_ram(self, bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}}):
         self.delta_t = time.time() - self.old_time # record delta time
@@ -186,7 +191,7 @@ class Ram():
                                       enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
                                       huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
                                       enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
-                                      left_speed=self.left, right_speed=self.right, angle = angle)
+                                      left_speed=self.left.get_speed(), right_speed=self.right.get_speed(), angle = angle)
         self.huey_old_position = self.huey_position
         # if the array for enemy_previous_positions is full, then pop the first one
         self.enemy_previous_positions.append(self.enemy_position)
