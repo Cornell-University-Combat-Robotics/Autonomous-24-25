@@ -39,9 +39,12 @@ def obj_detection_sim(width, height):
 '''
 def test_file_init():
     global fpath
-    myDirectory = os.path.join(os.getcwd(), os.path.join('Algorithm', 'RamRamTest'))
+    if 'Algorithm' in str(os.getcwd()):
+        myDirectory = os.path.join(os.getcwd(), os.path.join('RamRamTest'))
+    else:
+        myDirectory = os.path.join(os.getcwd(), os.path.join('Algorithm', 'RamRamTest'))
     i = 0
-    
+
     # remember to join the entire file path
     while os.path.exists(os.path.join(myDirectory, "ram_ram_test%s.csv" % i)):
         i += 1
@@ -71,6 +74,4 @@ def test_file_update(delta_time = None, bots  = None, huey_pos = None, huey_faci
                        'enemy_old_pos[-1]' : str(enemy_old_pos), 'enemy_velocity' : str(enemy_velocity), 'speed': str(speed),'turn': str(turn), 
                        'left_speed' : str(left_speed), 'right_speed' : str(right_speed), 'angle' : str(angle)}
         writer.writerow(update_dict) 
-        # print(update_dict)
-
 

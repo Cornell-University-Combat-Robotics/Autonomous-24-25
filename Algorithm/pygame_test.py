@@ -19,8 +19,12 @@ point1_color = (255, 0, 0)  # Red (Huey)
 point2_color = (0, 0, 255)  # Blue (Enemy)
 
 # Starting coordinates for the two points
-huey = {'center': [width // 4, height // 2], 'orientation': 0.0}  # Huey's position and orientation (0 degrees = along x-axis)
-enemy = {'center': [3 * width // 4, height // 2]}  # Enemy's position
+# huey = {'center': [width // 4, height // 2], 'orientation': 0.0}  # Huey's position and orientation (0 degrees = along x-axis)
+# enemy = {'center': [3 * width // 4, height // 2]}  # Enemy's position
+
+# Intialize Huey and Enemy's positions at the corners of the screen
+huey = {'center': [10, 10], 'orientation': 0.0}  # Huey's position and orientation (0 degrees = along x-axis)
+enemy = {'center': [width - 10, height - 10]}  # Enemy's position
 
 # Movement speed for both bots
 speed = 5
@@ -113,10 +117,16 @@ while running:
     if huey['center'][0] > width: huey['center'][0] = width
     if huey['center'][1] < 0: huey['center'][1] = 0
     if huey['center'][1] > height: huey['center'][1] = height
+    # Ensure enemy stays within screen bounds
+    if enemy['center'][0] < 0: enemy['center'][0] = 0
+    if enemy['center'][0] > width: enemy['center'][0] = width
+    if enemy['center'][1] < 0: enemy['center'][1] = 0
+    if enemy['center'][1] > height: enemy['center'][1] = height
 
-    # Check if 0.18 seconds (180 ms) have passed since the last call
+
+    # Implement DELAY is values are only fed to the algorithm after DELAY ms
     current_time = pygame.time.get_ticks()
-    if current_time - last_called_time >= DELAY:  # 180 ms = 0.18 seconds
+    if current_time - last_called_time >= DELAY:  
         # Prepare the data to pass to ram_ram
         bots_data = {
             'huey': {
@@ -130,7 +140,7 @@ while running:
             }
         }
         # Call the ram_ram method with the bots' data
-        ram_ram(bots=bots_data)  # 'self' is None here as this isn't part of a class, replace if needed
+        ram_ram(bots=bots_data) 
         last_called_time = current_time  # Update the last called time
 
     # Draw the points (Huey and Enemy)

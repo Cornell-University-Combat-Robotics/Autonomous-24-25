@@ -1,5 +1,5 @@
 import time
-from serial_conn import Serial
+from outsider.serial_conn import Serial
 
 
 class Motor():

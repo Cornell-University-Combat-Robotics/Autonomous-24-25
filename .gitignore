@@ -1,4 +1,3 @@
-
 bin
 include
 lib
@@ -9,12 +8,9 @@ pyvenv.cfg
 /camera_test/wireless
 /camera_test/comprision
 .DS_Store
-image_flattening/__pycache__/warp.cpython-312.pyc
-image_flattening/warped_battlefield.mp4
-image_flattening/test.mp4
 *.pyc
 *.mp4
 /image_flattening/image_flattening/
-/image_flattening/__pycache__/
 /machine/data
 /image_flattening/data
+
