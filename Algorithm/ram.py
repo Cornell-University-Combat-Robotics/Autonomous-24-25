@@ -60,6 +60,8 @@ class Ram():
     """
     # ----------------------------- CONSTANTS -----------------------------
     ENEMY_HISTORY_BUFFER = 10 # how many previous enemy position we are recording
+    LEFT = 0
+    RIGHT = 3
     MAX_SPEED = 1 # between 0 and 1
     MIN_SPEED = 0 # between 0 and 1
     MAX_TURN = 1 # between 0 and 1
@@ -95,8 +97,8 @@ class Ram():
             # initialize a serial connection
             serial = Serial()
             # initialize the motor
-            self.left = Motor(ser = serial, channel = 0)
-            self.right = Motor(ser = serial, channel = 1)
+            self.left = Motor(ser = serial, channel = Ram.LEFT)
+            self.right = Motor(ser = serial, channel = Ram.RIGHT)
         else:
             self.left = None
             self.right = None
