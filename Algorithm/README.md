@@ -1,12 +1,12 @@
 # Algorithm
 
 ## Description
-This code tests and runs the Ram Ram algorithm by controlling the movements of two robots through a Tkinter window. 
+This code tests the Ram Ram algorithm by controlling the movements of two robots through a Tkinter window. 
 
 ## Mode
 We have 2 mode inside ram.py
-1. TEST_MODE: When it
-2. BATTLE_MODE:
+1. `TEST_MODE`: When `True`, a csv file with inputs and outputs to the algorithm will be generated in `Algorithm/RamRamTest`
+2. `BATTLE_MODE`: When `True`, Huey's motors willbe initalized and a signal to move them will be sent out in each iteration. Set this to `True` if you want Huey to move and `False` otherwise
 
 ## Packages
 In order to get the Algorithm code to work, you need install the following libraries
@@ -27,4 +27,7 @@ Run `python3 Algorithm/pygame_test.py`
 
 ## Testing
 
-C
+A Tkinter window will pop up, showing a blue dot and a red dot connected by a line in the corners. 
+The red dot with the arrow is our bot and the blue dot is the enemy. 
+Our bot is controlled by the WAD keys (W: forward, A: turn left, D: turn right).
+Enemy is controlled by the arrow keys.
