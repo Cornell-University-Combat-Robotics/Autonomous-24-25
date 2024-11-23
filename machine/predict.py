@@ -7,6 +7,7 @@ from roboflow import Roboflow
 from inference import get_model
 import os
 from dotenv import load_dotenv
+from template_model import TemplateModel
 
 load_dotenv()
 
@@ -14,7 +15,7 @@ ROBOFLOW_API_KEY = os.getenv('ROBOFLOW_API_KEY')
 
 DEBUG = True
 
-class OurModel:
+class OurModel(TemplateModel):
     def __init__(self, model_path="models/model_20241113_000141.pth"):
         # Load the model once during initialization
         self.model = torch.load(model_path)
@@ -108,7 +109,13 @@ class OurModel:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
     
-class YoloModel:
+    def train(self, batch, epoch, train_path, validation_path, save_path, save):
+        return super().train(batch, epoch, train_path, validation_path, save_path, save)
+
+    def evaluate(self, test_path):
+        return super().evaluate(test_path)
+
+class YoloModel(TemplateModel):
     def __init__(self):
         self.model = get_model(model_id='nhrl-robots/6', api_key=ROBOFLOW_API_KEY)
 
@@ -183,18 +190,24 @@ class YoloModel:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
+    def train(self, batch, epoch, train_path, validation_path, save_path, save):
+        return super().train(batch, epoch, train_path, validation_path, save_path, save)
+    
+    def evaluate(self, test_path):
+        return super().evaluate(test_path)
+
 # Main code block
 if __name__ == '__main__':
     # USING OUR MODEL
     # # Initialize the predictor
-    predictor = OurModel()
+    # predictor = OurModel()
 
     # # Load image
-    img = cv2.imread("data/sampleimg2.jpg")
+    # img = cv2.imread("data/sampleimg2.jpg")
     
     # # SINGLE PREDICTION
     # start_time = time.time()
-    out = predictor.predict(img, confidence_threshold=0.1, show=True)
+    # out = predictor.predict(img, confidence_threshold=0.1, show=True)
     # end_time = time.time()
     # elapsed = end_time - start_time
     # print(f'elapsed time: {elapsed:.4f}')
@@ -221,18 +234,18 @@ if __name__ == '__main__':
 
     # -----------------------------------------------
     # TESTING YOLO MODEL
-    # print('starting testing with YOLO model')
+    print('starting testing with YOLO model')
     # start_time = time.time()
-    # predictor = YoloModel()
+    predictor = YoloModel()
     # end_time = time.time()
     # print(f'loaded model in {(end_time - start_time):.4f}')
     # start_time = time.time()
-    # img = cv2.imread("data/sampleimg2.jpg")
-    # bots = predictor.predict(img, show=True)
+    img = cv2.imread("data/sampleimg2.jpg")
+    bots = predictor.predict(img, show=True)
     # end_time = time.time()
     # elapsed = end_time - start_time
     # print(f'elapsed time: {elapsed:.4f}')
-    # print(bots)
+    print(bots)
 
     # pred_img = predictor.display_predictions(img)
 
