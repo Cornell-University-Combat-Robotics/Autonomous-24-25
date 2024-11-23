@@ -6,7 +6,7 @@ import numpy as np
 DEBUG = True
 
 class OurModel:
-    def __init__(self, model_path="models/model_20241117_102522.pth"):
+    def __init__(self, model_path="models/model_20241123_115700.pth"): 
         # Load the model once during initialization
         self.model = torch.load(model_path)
         self.model.eval()
@@ -16,16 +16,58 @@ class OurModel:
         ])
     
     def predict(self, img):
-        # Preprocess image
-        img_tensor = self.transform(img).unsqueeze(0)
+    # Preprocess image
+        img_tensor = self.transform(img).unsqueeze(0)  # Add batch dimension
 
         # Run model inference
         with torch.no_grad():
-            output = self.model(img_tensor)
-            
-        confidences, bboxes, values = output
-        
-        return confidences, bboxes, values
+            class_probs, bbox_pred = self.model(img_tensor)
+
+        # class_probs: [1, num_objects, num_classes]
+        # bbox_pred: [1, num_objects, 4]
+
+        # Remove batch dimension
+        class_probs = class_probs.squeeze(0)  # [num_objects, num_classes]
+        bbox_pred = bbox_pred.squeeze(0)      # [num_objects, 4]
+
+        # Get predicted classes and confidence scores
+        confidence_scores, predicted_classes = torch.max(class_probs, dim=-1)  # [num_objects]
+
+        # Separate housebot and robot predictions
+        housebot_mask = predicted_classes == 0  # Assuming 0 is the class index for housebot
+        robot_mask = predicted_classes == 1     # Assuming 1 is the class index for robot
+
+        # Select predictions for housebot
+        housebot_scores = confidence_scores[housebot_mask]
+        housebot_boxes = bbox_pred[housebot_mask]
+
+        # Select top 1 housebot
+        if housebot_scores.numel() > 0:
+            top_housebot_scores, top_indices = torch.topk(housebot_scores, k=1)
+            top_housebot_boxes = housebot_boxes[top_indices]
+        else:
+            top_housebot_scores = torch.tensor([])
+            top_housebot_boxes = torch.tensor([])
+
+        # Select predictions for robots
+        robot_scores = confidence_scores[robot_mask]
+        robot_boxes = bbox_pred[robot_mask]
+
+        # Select top 2 robots
+        if robot_scores.numel() > 0:
+            k = min(2, robot_scores.size(0))  # Ensure k does not exceed available predictions
+            top_robot_scores, top_indices = torch.topk(robot_scores, k=k)
+            top_robot_boxes = robot_boxes[top_indices]
+        else:
+            top_robot_scores = torch.tensor([])
+            top_robot_boxes = torch.tensor([])
+
+        # Combine top predictions
+        final_boxes = torch.cat([top_housebot_boxes, top_robot_boxes], dim=0) if top_housebot_boxes.numel() > 0 and top_robot_boxes.numel() > 0 else torch.tensor([])
+        final_scores = torch.cat([top_housebot_scores, top_robot_scores], dim=0) if top_housebot_scores.numel() > 0 and top_robot_scores.numel() > 0 else torch.tensor([])
+
+        return final_boxes, final_scores
+
     
     def draw_prediction(self, img, confidences, bboxes, confidence_threshold=0.5):
         height, width, _ = img.shape
@@ -34,10 +76,7 @@ class OurModel:
             confidence, bbox = confidences[i], bboxes[i]
             class_label = torch.argmax(confidence).item()
             class_confidence = confidence[class_label]
-            
-            # Determine class label
-            class_label = 0 if confidence[0] > confidence[1] else 1
-            
+                        
             # Only draw boxes if confidence is above threshold
             if class_confidence < confidence_threshold:
                 continue
@@ -74,23 +113,20 @@ if __name__ == '__main__':
     predictor = OurModel()
 
     # Load image
-    # img = cv2.imread("data/sampleimg2.jpg")
-    img = cv2.imread("data/yolo_data_v1.yolov8/train/images/Image_1726619260161941_jpg.rf.984eefed8d2a58fc92a1d057f54070d6.jpg")
+    img = cv2.imread("data/NHRL/test/images/11269_png.rf.9476b224e81e5090dc0b1555402b45c2.jpg")
     
     # Run prediction
     out = predictor.predict(img)
-    confidences, bboxes, values = out
+    confidences, bboxes = out
     confidences = torch.softmax(confidences, dim=-1)
     bboxes = torch.clamp(bboxes, min=0, max=600)
     
     if DEBUG: 
         print(f'len: {len(out)}')
         print(f'tensor 1: {confidences}')
-        print(f'tensor 2: {bboxes}')
-        print(f'tensor 3: len {len(values)}, is: {values}')
-    
+        print(f'tensor 2: {bboxes}')    
     # Draw predictions on the image
-    pred_img = predictor.draw_prediction(img, confidences, bboxes, confidence_threshold=0.1)
+    pred_img = predictor.draw_prediction(img, confidences, bboxes, confidence_threshold=0.5)
 
     # Display the resulting image
     cv2.imshow("Prediction", pred_img)
