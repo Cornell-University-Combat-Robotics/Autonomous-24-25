@@ -1,3 +1,4 @@
+# Import libraries
 import pygame
 import math
 import time
@@ -6,6 +7,7 @@ from ram import Ram
 # Initialize pygame
 pygame.init()
 algo = Ram()
+DELAY = 1000 # how often to get bot positions and orientations (milliseconds)
 
 # Set up window dimensions
 width, height = 800, 600
@@ -24,22 +26,14 @@ enemy = {'center': [3 * width // 4, height // 2]}  # Enemy's position
 speed = 5
 turn_speed = 5  # Degrees per turn for Huey
 
-# Function to calculate the angle from huey to enemy (for ram_ram method)
-# def calculate_angle(p1, p2):
-#     dx = p1[0] - p2[0]
-#     dy = p1[1] - p2[1]
-#     angle = math.atan2(dy, dx)  # Get angle in radians
-#     angle_degrees = math.degrees(angle)  # Convert to degrees
-#     return angle_degrees
-
-# This is the method called every 0.18 seconds
+# Get bot data and send it to the algorithm
 def ram_ram(bots={'huey': {'bb': [], 'center': [], 'orientation': 0.0}, 'enemy': {'bb': [], 'center': []}}):
     # Simulate the method receiving bots' data
     print("Updating bots data:")
     print(f"Huey: {bots['huey']}")
     print(f"Enemy: {bots['enemy']}")
-    # Additional logic for the ram_ram method can be placed here
     algo.ram_ram(bots)
+
 # Normalize the angle to be between 0 and 360 degrees
 def normalize_angle(angle):
     if angle < 0:
@@ -64,6 +58,7 @@ def draw_arrow(surface, color, position, orientation, size=20):
     arrowhead_angle = math.radians(30)  # 30 degree angle for the arrowhead
     dx = end_x - position[0]
     dy = end_y - position[1]
+    
     # Create two points for the arrowhead
     angle1 = math.atan2(dy, dx) + arrowhead_angle
     angle2 = math.atan2(dy, dx) - arrowhead_angle
@@ -73,6 +68,7 @@ def draw_arrow(surface, color, position, orientation, size=20):
         (end_x - arrowhead_size * math.cos(angle2), end_y - arrowhead_size * math.sin(angle2)),
     ])
 
+# fixes angle so positive and negative is conventional
 def fix_angle(angle):
     angle = 360 - angle
     return normalize_angle(angle)
@@ -94,10 +90,8 @@ while running:
 
     # Control huey with WAD keys
     if keys[pygame.K_a]:  # Turn left (counterclockwise)
-        # huey['orientation'] = huey['orientation'] + turn_speed
         huey['orientation'] = normalize_angle(huey['orientation'] - turn_speed)
     if keys[pygame.K_d]:  # Turn right (clockwise)
-        # huey['orientation'] = huey['orientation'] - turn_speed
         huey['orientation'] = normalize_angle(huey['orientation'] + turn_speed)
     if keys[pygame.K_w]:  # Move forward
         # Move huey in the direction of its orientation
@@ -120,12 +114,9 @@ while running:
     if huey['center'][1] < 0: huey['center'][1] = 0
     if huey['center'][1] > height: huey['center'][1] = height
 
-    # Calculate the angle from huey to enemy (for ram_ram method)
-    # angle = calculate_angle(huey['center'], enemy['center'])
-
     # Check if 0.18 seconds (180 ms) have passed since the last call
     current_time = pygame.time.get_ticks()
-    if current_time - last_called_time >= 1000:  # 180 ms = 0.18 seconds
+    if current_time - last_called_time >= DELAY:  # 180 ms = 0.18 seconds
         # Prepare the data to pass to ram_ram
         bots_data = {
             'huey': {

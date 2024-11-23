@@ -3,7 +3,7 @@ import time
 from motors import Motor
 from serial_conn import Serial
 import numpy as np
-import test_ram
+import Algorithm.test_ram_csv as test_ram_csv
 
 class Ram():
     """
@@ -179,7 +179,7 @@ class Ram():
 
         if (Ram.TEST_MODE):
             angle = self.predict_desired_orientation_angle(self.huey_position, self.huey_orientation, self.enemy_position, enemy_velocity, self.delta_t)		
-            test_ram.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
+            test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
                                       enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
                                       huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
                                       enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
