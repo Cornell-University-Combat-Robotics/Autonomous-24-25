@@ -140,12 +140,22 @@ class Ram():
     def predict_enemy_position(self, enemy_position: np.array, enemy_velocity: float, dt: float):
         return enemy_position + dt * enemy_velocity
     
+    
+    def invert_y(self, pos: np.array):
+        pos[1] = -pos[1]
+        return pos
+    
     ''' predict the desired orientation angle of the bot given the current position and velocity of the enemy '''
     def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: float, dt: float):
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
         # return the angle in angle
         our_orientation = np.radians(our_orientation)
         orientation = np.array([math.cos(our_orientation), math.sin(our_orientation)])
+        # @@@@@@@@@@@@@@@@@@@
+        enemy_future_position = self.invert_y(enemy_future_position)
+        our_pos = self.invert_y(our_pos)
+        # @@@@@@@@@@@@@@@@@@@
+        
         direction = enemy_future_position - our_pos
         # calculate the angle between the bot and the enemy
         angle = np.degrees(np.arccos(np.dot(direction, orientation) / (np.linalg.norm(direction) * np.linalg.norm(orientation))))
@@ -189,6 +199,8 @@ class Ram():
 
         if (Ram.TEST_MODE):
             angle = self.predict_desired_orientation_angle(self.huey_position, self.huey_orientation, self.enemy_position, enemy_velocity, self.delta_t)	
+            direction = self.predict_enemy_position(self.enemy_position, enemy_velocity, self.delta_t) - self.huey_position
+
             if (not Ram.BATTLE_MODE):
                 left_speed = (speed + turn) / 2.0
                 right_speed = (speed - turn) / 2.0
@@ -196,7 +208,7 @@ class Ram():
                                       enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
                                       huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
                                       enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
-                                      left_speed=left_speed, right_speed=right_speed, angle = angle)
+                                      left_speed=left_speed, right_speed=right_speed, angle = angle, direction = direction)
             
             else:
                 test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
