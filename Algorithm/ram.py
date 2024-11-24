@@ -141,9 +141,10 @@ class Ram():
         return enemy_position + dt * enemy_velocity
     
     ''' predict the desired orientation angle of the bot given the current position and velocity of the enemy '''
-    def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float):
+    def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: float, dt: float):
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
         # return the angle in angle
+        our_orientation = np.radians(our_orientation)
         orientation = np.array([math.cos(our_orientation), math.sin(our_orientation)])
         direction = enemy_future_position - our_pos
         # calculate the angle between the bot and the enemy
@@ -152,12 +153,12 @@ class Ram():
         return sign*angle
 
     ''' predict the desired turn of the bot given the current position and velocity of the enemy '''
-    def predict_desired_turn(self, our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float):
+    def predict_desired_turn(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: float, dt: float):
         angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)
         return angle * (Ram.MAX_TURN / 180.0)
 
     ''' predict the desired speed of the bot given the current position and velocity of the enemy '''
-    def predict_desired_speed(self, our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float):
+    def predict_desired_speed(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: float, dt: float):
         angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)		
         return 1-(abs(angle) * (Ram.MAX_SPEED / 180.0))
 
@@ -188,11 +189,21 @@ class Ram():
 
         if (Ram.TEST_MODE):
             angle = self.predict_desired_orientation_angle(self.huey_position, self.huey_orientation, self.enemy_position, enemy_velocity, self.delta_t)	
-            test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
+            if (not Ram.BATTLE_MODE):
+                left_speed = (speed + turn) / 2.0
+                right_speed = (speed - turn) / 2.0
+                test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
                                       enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
                                       huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
                                       enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
-                                      left_speed=self.left, right_speed=self.right, angle = angle)
+                                      left_speed=left_speed, right_speed=right_speed, angle = angle)
+            
+            else:
+                test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
+                                      enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
+                                      huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
+                                      enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
+                                      left_speed=self.left.get_speed(), right_speed=self.right.get_speed(), angle = angle)
         # TODO: fix input to CSV to handle motors
         self.huey_old_position = self.huey_position
         # if the array for enemy_previous_positions is full, then pop the first one
