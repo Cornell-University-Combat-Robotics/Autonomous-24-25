@@ -33,9 +33,9 @@ turn_speed = 5  # Degrees per turn for Huey
 # Get bot data and send it to the algorithm
 def ram_ram(bots={'huey': {'bb': [], 'center': [], 'orientation': 0.0}, 'enemy': {'bb': [], 'center': []}}):
     # Simulate the method receiving bots' data
-    # print("Updating bots data:")
-    # print(f"Huey: {bots['huey']}")
-    # print(f"Enemy: {bots['enemy']}")
+    print("Updating bots data:")
+    print(f"Huey: {bots['huey']}")
+    print(f"Enemy: {bots['enemy']}")
     algo.ram_ram(bots)
 
 # Normalize the angle to be between 0 and 360 degrees

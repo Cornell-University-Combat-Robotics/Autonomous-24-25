@@ -67,7 +67,7 @@ class Ram():
     MAX_TURN = 1 # between 0 and 1
     MIN_TURN = 0 # between 0 and 1
     ARENA_WIDTH = 1200 # in pixels
-    BATTLE_MODE = True # this is true when the match actually has begun and will cause the motors to move
+    BATTLE_MODE = False # this is true when the match actually has begun and will cause the motors to move
     TEST_MODE = True # saves values to CSV file
 
     '''
@@ -95,7 +95,7 @@ class Ram():
 
         if Ram.BATTLE_MODE:
             # initialize a serial connection
-            serial = Serial(port='COM3')
+            self.serial = Serial(port='COM3')
             # initialize the motor
             self.left = Motor(ser = serial, channel = Ram.LEFT)
             self.right = Motor(ser = serial, channel = Ram.RIGHT)
@@ -164,6 +164,7 @@ class Ram():
     def cleanup(self):
         self.left.stop()
         self.right.stop()
+        self.serial.cleanup()
     
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
     def ram_ram(self, bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}}):
@@ -191,7 +192,8 @@ class Ram():
                                       enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
                                       huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
                                       enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
-                                      left_speed=self.left.get_speed(), right_speed=self.right.get_speed(), angle = angle)
+                                      left_speed=self.left, right_speed=self.right, angle = angle)
+        # TODO: fix input to CSV to handle motors
         self.huey_old_position = self.huey_position
         # if the array for enemy_previous_positions is full, then pop the first one
         self.enemy_previous_positions.append(self.enemy_position)
