@@ -165,5 +165,8 @@ while running:
     pygame.time.Clock().tick(60)
 
 # Quit pygame
-algo.cleanup()
+try:
+    algo.cleanup()
+except:
+    print("Algo cleanup failed")
 pygame.quit()
