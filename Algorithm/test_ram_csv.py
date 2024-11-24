@@ -3,6 +3,7 @@ import csv
 import time
 import os 
 
+
 cursor_pos = None
 fpath = None
 fields = ['time', 'delta_time', 'bots', 'huey_pos', 'huey_facing', 'enemy_pos', 'huey_old_pos', 'huey_velocity', 'enemy_old_pos[-1]'
