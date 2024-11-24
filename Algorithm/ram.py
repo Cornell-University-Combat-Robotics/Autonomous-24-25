@@ -97,8 +97,8 @@ class Ram():
             # initialize a serial connection
             self.serial = Serial(port='COM3')
             # initialize the motor
-            self.left = Motor(ser = serial, channel = Ram.LEFT)
-            self.right = Motor(ser = serial, channel = Ram.RIGHT)
+            self.left = Motor(ser = self.serial, channel = Ram.LEFT)
+            self.right = Motor(ser = self.serial, channel = Ram.RIGHT)
         else:
             self.left = None
             self.right = None
