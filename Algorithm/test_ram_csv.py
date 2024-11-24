@@ -7,7 +7,7 @@ import os
 cursor_pos = None
 fpath = None
 fields = ['time', 'delta_time', 'bots', 'huey_pos', 'huey_facing', 'enemy_pos', 'huey_old_pos', 'huey_velocity', 'enemy_old_pos[-1]'
-          , 'enemy_velocity', 'speed', 'turn', 'left_speed', 'right_speed', 'angle']
+          , 'enemy_velocity', 'speed', 'turn', 'left_speed', 'right_speed', 'angle', 'direction']
 
 class NoEnemyError(Exception):
     pass
@@ -61,7 +61,7 @@ def test_file_init():
 '''
 def test_file_update(delta_time = None, bots  = None, huey_pos = None, huey_facing  = None, enemy_pos  = None, 
                      huey_old_pos  = None, huey_velocity  = None, enemy_old_pos = None, enemy_velocity = None, 
-                     speed  = None, turn  = None, left_speed = None, right_speed = None, angle = None):
+                     speed  = None, turn  = None, left_speed = None, right_speed = None, angle = None, direction = None):
     # 'time', 'delta_time', 'bots', 'huey_pos', 'huey_facing', 'enemy_pos', 'huey_old_pos', 'huey_velocity', 'enemy_old_pos[-1]'
     #       , 'enemy_velocity', 'speed', 'turn', 'left_speed', 'right_speed'
     if (fpath is None):
@@ -73,6 +73,7 @@ def test_file_update(delta_time = None, bots  = None, huey_pos = None, huey_faci
                        'huey_facing' : str(huey_facing), 
                        'enemy_pos' : str(enemy_pos), 'huey_old_pos': str(huey_old_pos), 'huey_velocity' : str(huey_velocity), 
                        'enemy_old_pos[-1]' : str(enemy_old_pos), 'enemy_velocity' : str(enemy_velocity), 'speed': str(speed),'turn': str(turn), 
-                       'left_speed' : str(left_speed), 'right_speed' : str(right_speed), 'angle' : str(angle)}
+                       'left_speed' : str(left_speed), 'right_speed' : str(right_speed), 'angle' : str(angle), 'direction' 
+                       : str(direction)}
         writer.writerow(update_dict) 
 
