@@ -13,7 +13,7 @@ load_dotenv()
 
 ROBOFLOW_API_KEY = os.getenv('ROBOFLOW_API_KEY')
 
-DEBUG = True
+DEBUG = False
 
 class OurModel(TemplateModel):
     def __init__(self, model_path="models/model_20241113_000141.pth"):
@@ -239,12 +239,12 @@ if __name__ == '__main__':
     predictor = YoloModel()
     # end_time = time.time()
     # print(f'loaded model in {(end_time - start_time):.4f}')
-    # start_time = time.time()
+    start_time = time.time()
     img = cv2.imread("data/sampleimg2.jpg")
-    bots = predictor.predict(img, show=True)
-    # end_time = time.time()
-    # elapsed = end_time - start_time
-    # print(f'elapsed time: {elapsed:.4f}')
+    bots = predictor.predict(img)
+    end_time = time.time()
+    elapsed = end_time - start_time
+    print(f'elapsed time: {elapsed:.4f}')
     print(bots)
 
     # pred_img = predictor.display_predictions(img)
