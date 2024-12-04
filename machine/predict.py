@@ -198,50 +198,18 @@ class YoloModel(TemplateModel):
 
 # Main code block
 if __name__ == '__main__':
-    # USING OUR MODEL
-    # # Initialize the predictor
-    # predictor = OurModel()
-
-    # # Load image
-    # img = cv2.imread("data/sampleimg2.jpg")
-    
-    # # SINGLE PREDICTION
-    # start_time = time.time()
-    # out = predictor.predict(img, confidence_threshold=0.1, show=True)
-    # end_time = time.time()
-    # elapsed = end_time - start_time
-    # print(f'elapsed time: {elapsed:.4f}')
-    # confidences, bboxes, values = out
-    
-    # if DEBUG: 
-    #     print(f'len: {len(out)}')
-    #     print(f'tensor 1: {confidences}')
-    #     print(f'tensor 2: {bboxes}')
-    #     print(f'tensor 3: len {len(values)}, is: {values}')
-    
-    # # Draw predictions on the image
-    # pred_img = predictor.draw_prediction(img, confidences, bboxes, confidence_threshold=0.1)
-
-    # # Display the resulting image
-    # cv2.imshow("Prediction", pred_img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
-    # # DETECT_BOT
-    # # bots = predictor.detect_bot(img, 0.1)
-    # # print(bots)
-    # # cv2.destroyAllWindows()
-
-    # -----------------------------------------------
+    # TESTING WITH OUR MODEL
+    print('starting testing with YOLO model')
     # TESTING YOLO MODEL
     print('starting testing with YOLO model')
     # start_time = time.time()
+    # predictor = OurModel()
     predictor = YoloModel()
     # end_time = time.time()
     # print(f'loaded model in {(end_time - start_time):.4f}')
     start_time = time.time()
     img = cv2.imread("data/sampleimg2.jpg")
-    bots = predictor.predict(img)
+    bots = predictor.predict(img, show = True)
     end_time = time.time()
     elapsed = end_time - start_time
     print(f'elapsed time: {elapsed:.4f}')
