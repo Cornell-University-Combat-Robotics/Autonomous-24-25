@@ -12,6 +12,8 @@ Params:
 
 Returns:
     - A numpy matrix, which, when used with cv2.warpPerspective, 'flattens' the perspective
+
+As a change from the original get_homography_mat, does NOT resize the input image.
 """
 def get_homography_mat(frame, output_w=1200, output_h=1200):
     corners = []
@@ -61,7 +63,28 @@ def get_homography_mat(frame, output_w=1200, output_h=1200):
 """
 Re-combined from camera_test/warp.py, vid_and_img_processing/warp_image.py
 
-Given a frame and a homography matrix, 
+Given a frame and a homography matrix, warp the perspective and isolate the flat plane.
+
+Params:
+    - frame: A cv2 image of the full arena, as seen from the camera
+    - h_mat: The homography matrix used for transformation, derived from 'get_homography_mat'
+    - output_w: The ideal output width of the image. By default, 1200px
+    - output_h: The ideal output height of the image. By default, 1200px
+
+Returns:
+    - A cv2 image of the 'warped' arena
+
+As a change from the original warp, does NOT resize the input image.
 """
 def warp(frame, h_mat, output_w=1200, output_h=1200):
-    
+    return cv2.warpPerspective(frame, h_mat, (output_w, output_h))
+
+if __name__ == "__main__":
+    frame = cv2.imread('./vid_and_img_processing/sample_cage_ss.png')
+    # height, width, _ = frame.shape
+    frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4)
+    h_mat = get_homography_mat(frame, 700, 700)
+    warped_frame = warp(frame, h_mat, 700, 700)
+    cv2.imshow("Warped cage", warped_frame)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
