@@ -1,8 +1,6 @@
 import math
 import time
 import os
-from outsider.motors import Motor
-from outsider.serial_conn import Serial
 import numpy as np
 import test_ram_csv as test_ram_csv
 
@@ -18,10 +16,10 @@ class Ram():
         the previous position of the bot
     huey_orientation : float
         the current orientation of the bot
-    left : Motor
-        the left motor of the bot
-    right : Motor
-        the right motor of the bot
+    left : float
+        the left motor speed of the bot
+    right : float
+        the right motor speed of the bot
     enemy_position : np.array
         the current position of the enemy
     enemy_previous_positions : list
@@ -93,15 +91,8 @@ class Ram():
         self.huey_old_position = huey_old_position
         self.huey_orientation = huey_orientation
 
-        if Ram.BATTLE_MODE:
-            # initialize a serial connection
-            self.serial = Serial(port='COM3')
-            # initialize the motor
-            self.left = Motor(ser = self.serial, channel = Ram.LEFT)
-            self.right = Motor(ser = self.serial, channel = Ram.RIGHT)
-        else:
-            self.left = None
-            self.right = None
+        self.left = 0
+        self.right = 0
 
 
         # initialize the current enemy position
@@ -119,10 +110,11 @@ class Ram():
     # ----------------------------- HELPER METHODS -----------------------------
 
     ''' use a PID controller to move the bot to the desired position '''
-    def huey_move(self, left: Motor, right: Motor, speed: float, turn: float):
+    def huey_move(self, speed: float, turn: float):
         print(f'Here: {speed} and {turn}')
-        left.move((speed + turn) / 2.0)
-        right.move((speed - turn) / 2.0)
+        self.left = ((speed + turn) / 2.0)
+        self.right = ((speed - turn) / 2.0)
+        return {'left': self.left, 'right': self.right}
 
     ''' calculate the velocity of the bot given the current and previous position '''
     def calculate_velocity(self, old_pos: np.array, curr_pos: np.array, dt: float):
@@ -172,11 +164,6 @@ class Ram():
         angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)		
         return 1-(abs(angle) * (Ram.MAX_SPEED / 180.0))
 
-    def cleanup(self):
-        self.left.stop()
-        self.right.stop()
-        self.serial.cleanup()
-    
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
     def ram_ram(self, bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}}):
         self.delta_t = time.time() - self.old_time # record delta time
@@ -194,31 +181,21 @@ class Ram():
         speed = self.predict_desired_speed(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
                                          enemy_velocity= enemy_velocity, dt = self.delta_t)
         
-        if (Ram.BATTLE_MODE):
-            self.huey_move(self.left, self.right, speed, turn)
 
         if (Ram.TEST_MODE):
             angle = self.predict_desired_orientation_angle(self.huey_position, self.huey_orientation, self.enemy_position, enemy_velocity, self.delta_t)	
             direction = self.predict_enemy_position(self.enemy_position, enemy_velocity, self.delta_t) - self.huey_position
 
-            if (not Ram.BATTLE_MODE):
-                left_speed = (speed + turn) / 2.0
-                right_speed = (speed - turn) / 2.0
-                test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
-                                      enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
-                                      huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
-                                      enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
-                                      left_speed=left_speed, right_speed=right_speed, angle = angle, direction = direction)
+            test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
+                                    enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
+                                    huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
+                                    enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
+                                    left_speed=self.left, right_speed=self.right, angle = angle, direction = direction)
             
-            else:
-                test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
-                                      enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
-                                      huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
-                                      enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
-                                      left_speed=self.left.get_speed(), right_speed=self.right.get_speed(), angle = angle)
-        # TODO: fix input to CSV to handle motors
         self.huey_old_position = self.huey_position
         # if the array for enemy_previous_positions is full, then pop the first one
         self.enemy_previous_positions.append(self.enemy_position)
         if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
             self.enemy_previous_positions.pop(0)
+
+        return self.huey_move(speed, turn)
