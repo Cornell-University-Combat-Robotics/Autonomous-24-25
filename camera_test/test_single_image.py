@@ -1,8 +1,10 @@
 import cv2
 import time 
 
+#WARNING: this may or may work for raspberry pi, you may need to install raspcamera drivers
+
 # Open a connection to the camera
-cap = cv2.VideoCapture(1)  # For me this is 1
+cap = cv2.VideoCapture(1)  # For me this is 1, 0 as the webcam, test for your own setup
 
 # Function to capture a single image from the camera feed
 def test_single_image(cap=cap):
