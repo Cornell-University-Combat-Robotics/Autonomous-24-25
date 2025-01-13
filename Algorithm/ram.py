@@ -109,44 +109,62 @@ class Ram():
             
     # ----------------------------- HELPER METHODS -----------------------------
 
-    ''' use a PID controller to move the bot to the desired position '''
+    ''' 
+    use a PID controller to move the bot to the desired position 
+    Precondition: speed is between [0,1], turn is between [-1,1] 
+    '''
     def huey_move(self, speed: float, turn: float):
-        print(f'Here: {speed} and {turn}')
+        # print(f'Here: {speed} and {turn}')
         self.left = ((speed + turn) / 2.0)
         self.right = ((speed - turn) / 2.0)
         return {'left': self.left, 'right': self.right}
 
-    ''' calculate the velocity of the bot given the current and previous position '''
+    ''' 
+    calculate the velocity of the bot given the current and previous position
+    Precondition: dt >= 0, if dt == 0, the velocity == 0; curr_pos & old_pos: 2-value array [x,y] 
+    x & y: > 0 
+    '''
     def calculate_velocity(self, old_pos: np.array, curr_pos: np.array, dt: float):
         if (dt == 0.0):
-            return 0.0
+            return np.array([0.0, 0.0])
         return (curr_pos - old_pos) / dt
 
-    ''' calculate the acceleration of the bot given the current and previous velocity '''
-    def acceleration(self, old_vel: float, bot_vel: float, dt: float):
+    ''' 
+    calculate the acceleration of the bot given the current and previous velocity. Returns 0 if dt is 0 
+    Precondition: dt >= 0, if dt == 0, the acceleration == 0; curr_vel & old_vel: 2-value array [x,y] 
+    '''
+    def acceleration(self, old_vel: np.array, bot_vel: np.array, dt: float):
         if (dt == 0.0):
-            return 0.0
+            return np.array([0.0, 0.0])
         return (bot_vel - old_vel) / dt
 
-    ''' predict the enemy position given the current position and velocity '''
-    def predict_enemy_position(self, enemy_position: np.array, enemy_velocity: float, dt: float):
+    ''' 
+    Returns the predicted enemy position as a two float np.array given the current position and velocity 
+    Precondition: dt >= 0; enemy_position / enemy_velocity: 2-value np array [x, y] / [vx, vy]
+    '''
+    def predict_enemy_position(self, enemy_position: np.array, enemy_velocity: np.array, dt: float):
         return enemy_position + dt * enemy_velocity
     
     
+    '''
+    inverting the y position
+    Precondition: np.array
+    '''
     def invert_y(self, pos: np.array):
         pos[1] = -pos[1]
         return pos
     
-    ''' predict the desired orientation angle of the bot given the current position and velocity of the enemy '''
+    ''' 
+    predict the desired orientation angle of the bot given all parameters, NOTE: the positive direction is counterclockwise
+    Precondition: our_pos & enemy_position 
+    '''
     def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: float, dt: float):
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
-        # return the angle in angle
+        # return the angle in degrees
         our_orientation = np.radians(our_orientation)
         orientation = np.array([math.cos(our_orientation), math.sin(our_orientation)])
-        # @@@@@@@@@@@@@@@@@@@
         enemy_future_position = self.invert_y(enemy_future_position)
         our_pos = self.invert_y(our_pos)
-        # @@@@@@@@@@@@@@@@@@@
         
         direction = enemy_future_position - our_pos
         # calculate the angle between the bot and the enemy
