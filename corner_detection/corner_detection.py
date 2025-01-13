@@ -3,7 +3,7 @@ import os
 import time
 import cv2
 import numpy as np
-from color_picker import ColorPicker
+import pprint
 
 
 class RobotCornerDetection:
@@ -73,23 +73,32 @@ class RobotCornerDetection:
         mask = cv2.inRange(hsv_image, lower_limit, upper_limit)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return contours
-
-    def find_our_bot(self, image1: np.ndarray, image2: np.ndarray):
+    
+    def find_our_bot(self, images: list[np.ndarray]):
         """
         Identifies which image contains our robot based on bright pink pixel count.
 
         Args:
-            image1 (np.ndarray): The first input image.
-            image2 (np.ndarray): The second input image.
+            images (list[np.ndarray]): List of input images.
 
         Returns:
             np.ndarray: The image containing our robot.
         """
-        image_1_pixels = self.find_bot_color_pixels(image1)
-        image_2_pixels = self.find_bot_color_pixels(image2)
-        return image1 if image_1_pixels > image_2_pixels else image2
+        if not images:
+            return None
 
-    def detect_our_robot_main(self, bot1_image: np.ndarray, bot2_image: np.ndarray):
+        max_pink_pixels = -1
+        our_bot_image = None
+
+        for image in images:
+            pink_pixel_count = self.find_bot_color_pixels(image)
+            if pink_pixel_count > max_pink_pixels:
+                max_pink_pixels = pink_pixel_count
+                our_bot_image = image
+
+        return our_bot_image
+    
+    def detect_our_robot_main(self, bot_images: list[np.ndarray]):
         """
         Detects the image containing our robot between two given images.
 
@@ -100,12 +109,12 @@ class RobotCornerDetection:
         Returns:
             np.ndarray: The image identified as containing our robot.
         """
-        if bot1_image is not None and bot2_image is not None:
+        if bot_images and all(img is not None for img in bot_images):
             start_time = time.time()
-            our_bot = self.find_our_bot(bot1_image, bot2_image)
+            our_bot = self.find_our_bot(bot_images)
             end_time = time.time()
             print(
-                f"Code execution time (detect_our_robot): {end_time - start_time} seconds"
+                f"Code execution time (detect_our_robot_main): {end_time - start_time} seconds"
             )
             return our_bot
         return None
@@ -347,28 +356,41 @@ class RobotCornerDetection:
         Main function for detecting corners and orientation of the robot.
 
         Returns:
-            dict: A dictionary containing details of the robot and enemy robot.
+            dict: A dictionary containing details of the robot and enemy robots.
         """
-        bot1_image = self.bots["bot1"]["img"]
-        bot2_image = self.bots["bot2"]["img"]
-        image = self.detect_our_robot_main(bot1_image, bot2_image)
+        bot_images = [bot["img"] for bot in self.bots.values()]
+        image = self.detect_our_robot_main(bot_images)
+        
         if image is not None:
             centroid_points = self.find_centroids(image)
-            left_front, right_front = self.get_left_and_right_front_points(
-                centroid_points
-            )
+            left_front, right_front = self.get_left_and_right_front_points(centroid_points)
             orientation = self.compute_tangent_angle(left_front, right_front)
+
+            # Find the identified bot (our robot)
+            huey_bb = None
+            for _, bot_data in self.bots.items():
+                if bot_data["img"] is image:
+                    huey_bb = bot_data["bb"]
+                    break
+
             huey = {
-                "bb": self.bots["bot1"]["bb"],
-                "center": np.mean(self.bots["bot1"]["bb"], axis=0),
+                "bb": huey_bb,
+                "center": np.mean(huey_bb, axis=0),
                 "orientation": orientation,
             }
-            enemy = {
-                "bb": self.bots["bot2"]["bb"],
-                "center": np.mean(self.bots["bot2"]["bb"], axis=0),
-            }
-            result = {"huey": huey, "enemy": enemy}
-            print("Result:", result)
+
+            # Enemy bots are all except the identified bot
+            enemy_bots = []
+            for bot_key, bot_data in self.bots.items():
+                if bot_data["img"] is not image and bot_key != "housebot":
+                    enemy = {
+                        "bb": bot_data["bb"],
+                        "center": np.mean(bot_data["bb"], axis=0),
+                    }
+                    enemy_bots.append(enemy)
+
+            result = {"huey": huey, "enemies": enemy_bots}
+            pprint.pprint(result, sort_dicts=False, indent=2)
 
             if self.display_image:
                 # Draw the left front corner
@@ -419,17 +441,31 @@ class RobotCornerDetection:
 
 
 if __name__ == "__main__":
-    image_path = os.getcwd() + "/warped_images/west_3.png"
-    selected_colors = ColorPicker.pick_colors(image_path)
+    heuy_image_path = os.getcwd() + "/warped_images/east_4.png"
+    not_huey_image_path = os.getcwd() + "/warped_images/east_4_not_huey.png"
+    selected_colors_file = os.getcwd() + "/selected_colors.txt"
 
-    image1 = cv2.imread(image_path)
-    image2 = cv2.imread(image_path)
+    huey_image = cv2.imread(heuy_image_path)
+    not_huey_image = cv2.imread(not_huey_image_path)
 
     bots = {
-        "housebot": {"bb": [[0, 0], [1, 1]], "img": image1},
-        "bot1": {"bb": [[50, 50], [60, 60]], "img": image1},
-        "bot2": {"bb": [[150, 150], [160, 160]], "img": image2},
+        "housebot": {"bb": [[0, 0], [1, 1]], "img": not_huey_image},
+        "bot1": {"bb": [[50, 50], [60, 60]], "img": not_huey_image},
+        "bot2": {"bb": [[150, 150], [160, 160]], "img": huey_image},
+        "bot3": {"bb": [[300, 150], [400, 180]], "img": not_huey_image}
     }
+
+    selected_colors = []
+    try:
+        with open(selected_colors_file, "r") as file:
+            for line in file:
+                hsv = list(map(int, line.strip().split(", ")))
+                selected_colors.append(hsv)
+        if len(selected_colors) != 2:
+            raise ValueError("The file must contain exactly two HSV values.")
+    except Exception as e:
+        print(f"Error reading selected_colors.txt: {e}")
+        exit(1)
 
     corner_detection = RobotCornerDetection(bots, selected_colors)
     corner_detection.corner_detection_main()

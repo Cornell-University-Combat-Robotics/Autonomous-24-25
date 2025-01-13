@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 
 
 class ColorPicker:
@@ -11,6 +12,7 @@ class ColorPicker:
     def pick_colors(image_path):
         """
         Allows the user to manually pick colors for front and back corners.
+        Users must select the front point first before the back point.
 
         Args:
             image_path (str): Path to the image to pick colors from.
@@ -70,3 +72,14 @@ class ColorPicker:
         print("Final Selected Points:", corners)
         cv2.destroyAllWindows()
         return selected_colors
+    
+if __name__ == "__main__":
+    image_path = os.getcwd() + "/warped_images/east.png"
+    output_file = "selected_colors.txt"
+    selected_colors = ColorPicker.pick_colors(image_path)
+
+    with open(output_file, "w") as file:
+        for color in selected_colors:
+            file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
+
+    print(f"Selected colors have been saved to '{output_file}'.")
