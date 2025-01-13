@@ -8,6 +8,8 @@ from inference import get_model
 import os
 from dotenv import load_dotenv
 from template_model import TemplateModel
+from ultralytics import YOLO
+import onnxruntime as ort
 
 load_dotenv()
 
@@ -196,9 +198,76 @@ class YoloModel(TemplateModel):
     def evaluate(self, test_path):
         return super().evaluate(test_path)
 
+class OnnxModel(TemplateModel):
+    def __init__(self):
+        onnx_model_path = '/Users/tylerl/Autonomous-24-25/machine/models/best.onnx'
+        session = ort.InferenceSession(onnx_model_path)
+        self.model = session
+        
+
+    def predict(self, img, confidence_threshold=0.5, show=False):
+        image_path = img
+        image = cv2.imread(image_path)
+        
+        input_image = cv2.resize(image, (640, 640))  # Resize to model's required size
+        input_image = input_image.astype(np.float32)  # Convert to float32
+        input_image = input_image / 255.0  # Normalize to [0, 1] if required by the model
+        input_image = np.transpose(input_image, (2, 0, 1))  # Convert HWC to CHW if required
+        input_image = np.expand_dims(input_image, axis=0)  # Add batch dimension
+
+        # input_image = cv2.resize(image, (input_width, input_height))  # Use your model’s required size
+        # input_image = input_image.astype(np.float32) / 255.0  # Normalize to [0, 1] if required
+        # input_image = np.transpose(input_image, (2, 0, 1))  # Convert HWC to CHW format
+        # input_image = np.expand_dims(input_image, axis=0)  # Add batch dimension
+        
+        
+        input_name = self.model.get_inputs()[0].name
+        
+        bots = self.model.run(None, {input_name: input_image})
+
+        return bots
+    
+    def show_predictions(self, img, predictions):
+        for name, data in predictions.items():
+        # Extract bounding box coordinates and class details
+            x_min, y_min = data['bbox'][0]
+            x_max, y_max = data['bbox'][1]
+            center_x, center_y = data['center']
+        
+            # Choose color based on the class
+            if 'housebot' in name:
+                color = (0, 0, 255)  # Red for housebot
+            else:
+                color = (0, 255, 0)  # Green for bots
+            
+            # Draw the bounding box
+            cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
+            
+            # Add label text
+            cv2.putText(
+                img, name, 
+                (x_min, y_min - 10),  # Slightly above the top-left corner
+                cv2.FONT_HERSHEY_SIMPLEX, 
+                0.5, color, 2
+            )
+
+        # Display the image with predictions
+        cv2.imshow("Predictions", img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    def train(self, batch, epoch, train_path, validation_path, save_path, save):
+        
+        return super().train(batch, epoch, train_path, validation_path, save_path, save)
+    
+    def evaluate(self, test_path):
+        
+        return super().evaluate(test_path)    
+    
+
 # Main code block
 if __name__ == '__main__':
-    # TESTING WITH OUR MODEL
+    """ # TESTING WITH OUR MODEL
     print('starting testing with YOLO model')
     # TESTING YOLO MODEL
     print('starting testing with YOLO model')
@@ -213,7 +282,7 @@ if __name__ == '__main__':
     end_time = time.time()
     elapsed = end_time - start_time
     print(f'elapsed time: {elapsed:.4f}')
-    print(bots)
+    print(bots) """
 
     # pred_img = predictor.display_predictions(img)
 
@@ -227,3 +296,19 @@ if __name__ == '__main__':
     # elapsed = end_time - start_time
     # print(f'elapsed time: {elapsed:.4f}')
     # print(bots)
+
+    # Testing Onnx Model
+    print('starting testing with Onnx model')
+    # start_time = time.time()
+    # predictor = OurModel()
+    predictor = OnnxModel()
+    # end_time = time.time()
+    # print(f'loaded model in {(end_time - start_time):.4f}')
+    start_time = time.time()
+    img = '/Users/tylerl/Autonomous-24-25/12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg'
+    bots = predictor.predict(img, show = True)
+    end_time = time.time()
+    elapsed = end_time - start_time
+    print(f'elapsed time: {elapsed:.4f}')
+    print(bots)
+    predictor.show_predictions(img,bots)
