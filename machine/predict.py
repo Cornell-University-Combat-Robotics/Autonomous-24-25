@@ -316,11 +316,22 @@ if __name__ == '__main__':
     end_time = time.time()
     elapsed = end_time - start_time
     print(f'elapsed time: {elapsed:.4f}')
-    print(bots)
     print(bots[0][0][0])
+    print(len(bots[0][0][0]))
     with open("tensoroutput.txt", "w") as file:
-  # Write to the file
-        for row in bots[0][0][0]:
-            val = float(row)
-            file.write(f'{val:.4f}\n')
-    predictor.show_predictions(img,bots)
+        file.write(str(bots[0]))
+#   # Write to the file
+#         # for row in bots[0][0][0]:
+#         #     val = float(row)
+#         #     file.write(f'{val:.4f}\n')
+#         for row0 in bots:
+#             file.write("[\n")
+#             for row1 in row0:
+#                 file.write("[\n")
+#                 for row2 in row1:
+#                     file.write("[\n")
+#                     file.write(str(row2))
+#                     file.write("\n]")
+#                 file.write("\n]")
+#             file.write("\n]")
+    # predictor.show_predictions(img,bots)
