@@ -11,20 +11,25 @@ class RobotCornerDetection:
     A class for detecting the corners and orientation of robots in images
     based on their unique colors and shapes.
     """
-
-    def __init__(self, bots, selected_colors, display_image=True):
+    
+    def __init__(self, selected_colors, display_image=True):
         """
         Initializes the RobotCornerDetection class.
 
         Args:
             bots (dict): A dictionary containing information about the bots,
-                        including bounding boxes and images.
+                        including bounding boxes and images. This is empty for
+                        now when initialized before the match. There is a
+                        setter that will run during the match.
             selected_colors (list): Manually selected colors for front and back corners.
             display_image (bool): Whether to display images during processing.
         """
-        self.bots = bots
+        self.bots = {}
         self.selected_colors = selected_colors
         self.display_image = display_image
+
+    def set_bots(self, bots):
+        self.bots = bots
 
     @staticmethod
     def find_bot_color_pixels(image: np.ndarray, bot_color_hsv: list):

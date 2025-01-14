@@ -4,14 +4,16 @@ import numpy as np
 """
 Duplicated from vid_and_img_processing/vid_to_warped_frames.py
 
-Given some frame of the arena, allows user to select points. Returns the resulting homography matrix.
+Given some frame of the arena, allows user to select points. 
+Returns the resulting homography matrix.
 Params:
     - frame: A cv2 image of the full arena, as seen from the camera
     - output_w: The ideal output width of the image. By default, 1200px
     - output_h: The ideal output height of the image. By default, 1200px
 
 Returns:
-    - A numpy matrix, which, when used with cv2.warpPerspective, 'flattens' the perspective
+    - A numpy matrix, which, when used with cv2.warpPerspective
+    - 'flattens' the perspective
 
 As a change from the original get_homography_mat, does NOT resize the input image.
 """
