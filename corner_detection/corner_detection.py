@@ -27,23 +27,23 @@ class RobotCornerDetection:
         self.display_image = display_image
 
     @staticmethod
-    def find_bot_color_pixels(image: np.ndarray):
+    def find_bot_color_pixels(image: np.ndarray, bot_color_hsv: list):
         """
-        Detects the number of bright pink pixels in the given image.
+        Detects the number of a predefined color pixels in the given image.
 
         Args:
             image (np.ndarray): Input image of the robot in BGR format.
 
         Returns:
-            int: The number of bright pink pixels detected in the image.
+            int: The number of predefined color pixels detected in the image.
         """
         hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-        # Define the HSV range for the robot's pink color
-        lower_limit = np.array([140, 100, 100])
-        upper_limit = np.array([170, 255, 255])
+        # Define the HSV range for the robot's color
+        lower_limit = np.array([max(0, bot_color_hsv[0] - 10), 100, 100])
+        upper_limit = np.array([min(179, bot_color_hsv[0] + 10), 255, 255])
 
-        # Create a mask for the pink color in the image
+        # Create a mask for the robot's color in the image
         mask = cv2.inRange(hsv_image, lower_limit, upper_limit)
 
         # Count the number of non-zero pixels in the mask
@@ -61,7 +61,7 @@ class RobotCornerDetection:
             list: Contours corresponding to the given color.
         """
         selected_color = (
-            self.selected_colors[0] if side == "front" else self.selected_colors[1]
+            self.selected_colors[1] if side == "front" else self.selected_colors[2]
         )
 
         # Define the HSV range around the selected color
@@ -76,7 +76,7 @@ class RobotCornerDetection:
     
     def find_our_bot(self, images: list[np.ndarray]):
         """
-        Identifies which image contains our robot based on bright pink pixel count.
+        Identifies which image contains our robot based on a predefined robot color.
 
         Args:
             images (list[np.ndarray]): List of input images.
@@ -87,13 +87,14 @@ class RobotCornerDetection:
         if not images:
             return None
 
-        max_pink_pixels = -1
+        max_color_pixels = -1
         our_bot_image = None
+        bot_color_hsv = self.selected_colors[0]
 
         for image in images:
-            pink_pixel_count = self.find_bot_color_pixels(image)
-            if pink_pixel_count > max_pink_pixels:
-                max_pink_pixels = pink_pixel_count
+            color_pixel_count = self.find_bot_color_pixels(image, bot_color_hsv)
+            if color_pixel_count > max_color_pixels:
+                max_color_pixels = color_pixel_count
                 our_bot_image = image
 
         return our_bot_image
@@ -461,8 +462,8 @@ if __name__ == "__main__":
             for line in file:
                 hsv = list(map(int, line.strip().split(", ")))
                 selected_colors.append(hsv)
-        if len(selected_colors) != 2:
-            raise ValueError("The file must contain exactly two HSV values.")
+        if len(selected_colors) != 3:
+            raise ValueError("The file must contain exactly 3 HSV values.")
     except Exception as e:
         print(f"Error reading selected_colors.txt: {e}")
         exit(1)
