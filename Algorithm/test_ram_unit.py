@@ -7,9 +7,9 @@ algo = Ram()
 
 class TestRam(unittest.TestCase):
     def test_init(self):
-        self.assertEqual(Ram.left, 0)
-        self.assertEqual(Ram.right, 0)
-        self.assertEqual(Ram.enemy_previous)
+        algo = Ram()
+        self.assertAlmostEqual(algo.left, 0)
+        self.assertAlmostEqual(algo.right, 0)
 
 
     def test_huey_move(self):
@@ -42,61 +42,61 @@ class TestRam(unittest.TestCase):
 
     def test_calculate_velocity(self):
             #Edge Cases:
-            arr1 = algo.calculate_velocity([0,0],[0,0], 0)
-            arr2 = [0,0]
+            arr1 = algo.calculate_velocity(np.array([0,0]),np.array([0,0]), 0)
+            arr2 = np.array([0,0])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([0,0],[100,0],1.0)
-            arr2 = [100,0]
+            arr1 = algo.calculate_velocity(np.array([0,0]),np.array([100,0]),1.0)
+            arr2 = np.array([100,0])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([0,0],[0,100],1.0)
-            arr2 = [0,100]
+            arr1 = algo.calculate_velocity(np.array([0,0]),np.array([0,100]),1.0)
+            arr2 = np.array([0,100])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([100,0],[0,0],1.0)
-            arr2 = [-100,0]
+            arr1 = algo.calculate_velocity(np.array([100,0]),np.array([0,0]),1.0)
+            arr2 = np.array([-100,0])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([0,100],[0,0],1.0)
-            arr2 = [0,-100]
+            arr1 = algo.calculate_velocity(np.array([0,100]),np.array([0,0]),1.0)
+            arr2 = np.array([0,-100])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([0,0],[100,0],10.0)
-            arr2 = [10,0]
+            arr1 = algo.calculate_velocity(np.array([0,0]),np.array([100,0]),10.0)
+            arr2 = np.array([10,0])
             np.testing.assert_almost_equal(arr1, arr2)
 
             #Regular Cases:
-            arr1 = algo.calculate_velocity([0,20],[50,40],1.0)
-            arr2 = [50,20]
+            arr1 = algo.calculate_velocity(np.array([0,20]),np.array([50,40]),1.0)
+            arr2 = np.array([50,20])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([100,50],[10,30],1.0)
-            arr2 = [-90,-20]
+            arr1 = algo.calculate_velocity(np.array([100,50]),np.array([10,30]),1.0)
+            arr2 = np.array([-90,-20])
             np.testing.assert_almost_equal(arr1, arr2)
          
 
     def test_acceleration(self):
                  #Edge Cases:
-            arr1 = algo.calculate_velocity([0,0],[0,0], 0)
-            arr2 = [0,0]
+            arr1 = algo.acceleration(np.array([0,0]),np.array([0,0]), 0)
+            arr2 = np.array([0,0])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([0,0],[100,0],1.0)
-            arr2 = [100,0]
+            arr1 = algo.acceleration(np.array([0,0]),np.array([100,0]),1.0)
+            arr2 = np.array([100,0])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([0,0],[0,100],1.0)
-            arr2 = [0,100]
+            arr1 = algo.acceleration(np.array([0,0]),np.array([0,100]),1.0)
+            arr2 = np.array([0,100])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([100,0],[0,0],1.0)
-            arr2 = [-100,0]
+            arr1 = algo.acceleration(np.array([100,0]),np.array([0,0]),1.0)
+            arr2 = np.array([-100,0])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([0,100],[0,0],1.0)
-            arr2 = [0,-100]
+            arr1 = algo.acceleration(np.array([0,100]),np.array([0,0]),1.0)
+            arr2 = np.array([0,-100])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([0,0],[100,0],10.0)
-            arr2 = [10,0]
+            arr1 = algo.acceleration(np.array([0,0]),np.array([100,0]),10.0)
+            arr2 = np.array([10,0])
             np.testing.assert_almost_equal(arr1, arr2)
 
             #Regular Cases:
-            arr1 = algo.calculate_velocity([0,20],[50,40],1.0)
-            arr2 = [50,20]
+            arr1 = algo.acceleration(np.array([0,20]),np.array([50,40]),1.0)
+            arr2 = np.array([50,20])
             np.testing.assert_almost_equal(arr1, arr2)
-            arr1 = algo.calculate_velocity([100,50],[10,30],1.0)
-            arr2 = [-90,-20]
+            arr1 = algo.acceleration(np.array([100,50]),np.array([10,30]),1.0)
+            arr2 = np.array([-90,-20])
             np.testing.assert_almost_equal(arr1, arr2)
         
          
@@ -132,9 +132,93 @@ class TestRam(unittest.TestCase):
 
     def test_invert_y(self):
         np.testing.assert_almost_equal(algo.invert_y(np.array([0,0])), np.array([0,0]))
-        np.testing.assert_almost_equal(algo.invert_y(np.array([1,1])), np.array([-1,-1]))
-        np.testing.assert_almost_equal(algo.invert_y(np.array([-1,1])), np.array([1,-1]))
+        np.testing.assert_almost_equal(algo.invert_y(np.array([1,1])), np.array([1,-1]))
+        np.testing.assert_almost_equal(algo.invert_y(np.array([-1,1])), np.array([-1,-1]))
         np.testing.assert_almost_equal(algo.invert_y(np.array([0,-1])), np.array([0,1]))
-        np.testing.assert_almost_equal(algo.invert_y(np.array([-1,0])), np.array([1,0]))
-    
-    
+        np.testing.assert_almost_equal(algo.invert_y(np.array([-1,0])), np.array([-1,0]))
+
+    def test_predict_desired_orientation_angle(self):
+        ## Edge cases
+        # 0 degrees
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([100,0]), enemy_velocity=np.array([0, 0]), dt = 0.1), 0)
+        # -90 degre
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([0, 0]), dt = 0.1), -90)
+        # 180 degrees
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([100,600]), enemy_velocity=np.array([0, 0]), dt = 0.1), -180)
+        # 90 degrees
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([0,100]), enemy_velocity=np.array([0, 0]), dt = 0.1), 90)
+
+        # -40 degrees
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([150,36.002981839]), enemy_velocity=np.array([0, 0]), dt = 0.1), -38, decimal=2)
+        
+        #  dt = 0
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([100, 100]), dt = 0), -90)
+        
+        # velocity = west
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=0,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([-100, 0]), dt = 0.1), 0)
+        # velocity = east
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=0,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([100, 0]), dt = 0.1), 0)
+        # velocity = south
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=0,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([0, 100]), dt = 0.1), -5.710593137)
+
+        # velocity = north
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=0,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([0, -100]), dt = 0.1), 5.710593137)
+        
+        # bots are overlapping
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                                enemy_pos=np.array([100,100]), enemy_velocity=np.array([0, 0]), dt = 0.1), 0)
+        
+        # Funky case
+        np.testing.assert_almost_equal(algo.predict_desired_orientation_angle(our_pos=np.array([100,100]), our_orientation=100,
+                                                                                enemy_pos=np.array([150,150]), enemy_velocity=np.array([0, 0]), dt = 0.1), -10)
+        
+
+    def test_predict_desired_turn(self):
+        #Edge Cases
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([100,0]), enemy_velocity=np.array([0, 0]), dt = 0.1), 0)
+        # -90 degre
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([0, 0]), dt = 0.1), -0.5)
+        # 180 degrees
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([100,600]), enemy_velocity=np.array([0, 0]), dt = 0.1), -1)
+        # 90 degrees
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([0,100]), enemy_velocity=np.array([0, 0]), dt = 0.1), 0.5)
+
+        # -38 degrees
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([150,36.002981839]), enemy_velocity=np.array([0, 0]), dt = 0.1), -0.211111111, decimal=2)
+        #  dt = 0
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([100, 100]), dt = 0), -0.5)
+        # velocity = west
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=0,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([-100, 0]), dt = 0.1), 0)
+        # velocity = east
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=0,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([100, 0]), dt = 0.1), 0)
+        # velocity = south
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=0,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([0, 100]), dt = 0.1), -0.03172551742)
+
+        # velocity = north
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=0,  
+                                                                              enemy_pos=np.array([200,100]), enemy_velocity=np.array([0, -100]), dt = 0.1), 0.03172551742)
+        
+        # bots are overlapping
+        np.testing.assert_almost_equal(algo.predict_desired_turn(our_pos=np.array([100,100]), our_orientation=90,  
+                                                                                enemy_pos=np.array([100,100]), enemy_velocity=np.array([0, 0]), dt = 0.1), 0)
+        
+    # def test_predict_desired_turn():
