@@ -155,10 +155,10 @@ class Ram():
         return pos
     
     ''' 
-    predict the desired orientation angle of the bot given all parameters, NOTE: the positive direction is counterclockwise
+    Returns the predicted desired orientation angle of the bot given all parameters, NOTE: the positive direction is counterclockwise
     Precondition: our_pos & enemy_position 
     '''
-    def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: float, dt: float):
+    def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
         # return the angle in degrees
         our_orientation = np.radians(our_orientation)
@@ -173,12 +173,12 @@ class Ram():
         return sign*angle
 
     ''' predict the desired turn of the bot given the current position and velocity of the enemy '''
-    def predict_desired_turn(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: float, dt: float):
+    def predict_desired_turn(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)
         return angle * (Ram.MAX_TURN / 180.0)
 
     ''' predict the desired speed of the bot given the current position and velocity of the enemy '''
-    def predict_desired_speed(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: float, dt: float):
+    def predict_desired_speed(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)		
         return 1-(abs(angle) * (Ram.MAX_SPEED / 180.0))
 
