@@ -328,6 +328,8 @@ if __name__ == '__main__':
     print(f'elapsed time: {elapsed:.4f}')
     print(bots[0][0][0])
     print(len(bots[0][0][0]))
+    for i in range(6):
+        print(bots[0][0][i][0])
     with open("tensoroutput.txt", "w") as file:
         file.write(str(bots[0][0]))
 #   # Write to the file
