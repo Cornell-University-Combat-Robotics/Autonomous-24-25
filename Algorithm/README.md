@@ -11,6 +11,7 @@ We have 2 mode inside ram.py
 ## Packages
 In order to get the Algorithm code to work, you need install the following libraries
 
+- numpy: `pip install numpy`
 - Pygame : `pip install Pygame`
 - Tkinter : `pip install Tk`
 - Pyserial : `python -m pip install pyserial`
