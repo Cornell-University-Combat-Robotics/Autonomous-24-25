@@ -160,7 +160,13 @@ class Ram():
     '''
     def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
-        # return the angle in degrees
+        
+        if np.linalg.norm(enemy_future_position - our_pos) < Ram.DANGER_ZONE:
+            enemy_future_position = enemy_pos
+            if np.array_equal(enemy_pos, our_pos):
+                return 0
+
+        #  return the angle in degrees
         our_orientation = np.radians(our_orientation)
         orientation = np.array([math.cos(our_orientation), math.sin(our_orientation)])
         enemy_future_position = self.invert_y(enemy_future_position)
@@ -168,7 +174,12 @@ class Ram():
         
         direction = enemy_future_position - our_pos
         # calculate the angle between the bot and the enemy
-        angle = np.degrees(np.arccos(np.dot(direction, orientation) / (np.linalg.norm(direction) * np.linalg.norm(orientation))))
+        ratio = np.dot(direction, orientation) / (np.linalg.norm(direction) * np.linalg.norm(orientation))
+        if (ratio > 1):
+            ratio = 1
+        elif (ratio < -1):
+            ratio = -1
+        angle = np.degrees(np.arccos(ratio))
         sign = np.sign(np.cross(orientation, direction)) 
         return sign*angle
 
@@ -217,3 +228,39 @@ class Ram():
             self.enemy_previous_positions.pop(0)
 
         return self.huey_move(speed, turn)
+    
+    ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
+    def ram_ram_raw(self, bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}}):
+        self.delta_t = time.time() - self.old_time # record delta time
+        self.old_time = time.time()
+        
+        
+        # get new position and heading values
+        self.huey_position = np.array(bots['huey'].get('center'))
+        self.huey_orientation = bots['huey'].get('orientation')
+        
+        self.enemy_position = np.array(bots['enemy'].get('center'))
+        enemy_velocity = self.calculate_velocity(self.enemy_position, self.enemy_previous_positions[-1], self.delta_t)
+        turn = self.predict_desired_turn(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
+                                         enemy_velocity= enemy_velocity, dt = self.delta_t)
+        speed = self.predict_desired_speed(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
+                                         enemy_velocity= enemy_velocity, dt = self.delta_t)
+        
+
+        if (Ram.TEST_MODE):
+            angle = self.predict_desired_orientation_angle(self.huey_position, self.huey_orientation, self.enemy_position, enemy_velocity, self.delta_t)	
+            direction = self.predict_enemy_position(self.enemy_position, enemy_velocity, self.delta_t) - self.huey_position
+
+            test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
+                                    enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
+                                    huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
+                                    enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
+                                    left_speed=self.left, right_speed=self.right, angle = angle, direction = direction)
+            
+        self.huey_old_position = self.huey_position
+        # if the array for enemy_previous_positions is full, then pop the first one
+        self.enemy_previous_positions.append(self.enemy_position)
+        if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
+            self.enemy_previous_positions.pop(0)
+
+        return [speed, turn]
