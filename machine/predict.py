@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from template_model import TemplateModel
 from ultralytics import YOLO
 import onnxruntime as ort
+import pandas as pd
 
 load_dotenv()
 
@@ -228,33 +229,38 @@ class OnnxModel(TemplateModel):
         return bots
     
     def show_predictions(self, img, predictions):
-        for name, data in predictions.items():
-        # Extract bounding box coordinates and class details
-            x_min, y_min = data['bbox'][0]
-            x_max, y_max = data['bbox'][1]
-            center_x, center_y = data['center']
-        
-            # Choose color based on the class
-            if 'housebot' in name:
-                color = (0, 0, 255)  # Red for housebot
-            else:
-                color = (0, 255, 0)  # Green for bots
-            
-            # Draw the bounding box
-            cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
-            
-            # Add label text
-            cv2.putText(
-                img, name, 
-                (x_min, y_min - 10),  # Slightly above the top-left corner
-                cv2.FONT_HERSHEY_SIMPLEX, 
-                0.5, color, 2
-            )
+        image = cv2.imread(img)
 
-        # Display the image with predictions
-        cv2.imshow("Predictions", img)
+# Iterate through detections
+        detections = predictions[0][0]  # Access the first dimension of the output
+        for i in range(detections.shape[1]):  # Loop through each detection
+            x, y, width, height, confidence, class_id = detections[:, i]
+            
+            if confidence > 0.5:  # Confidence threshold
+                # Convert YOLO format to (xmin, ymin, xmax, ymax)
+                xmin = int(x - width / 2)
+                ymin = int(y - height / 2)
+                xmax = int(x + width / 2)
+                ymax = int(y + height / 2)
+                
+                # Draw the bounding box
+                color = (0, 255, 0)  # Green for bounding box
+                cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color, 2)
+                
+                # Annotate with class and confidence
+                label = f"Class: {int(class_id)} Conf: {confidence:.2f}"
+                cv2.putText(image, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+        # Display the result
+        cv2.imshow('YOLO Detection', image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+
+        # Display the image with predictions
+        # cv2.imshow("Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
     def train(self, batch, epoch, train_path, validation_path, save_path, save):
         
@@ -311,4 +317,10 @@ if __name__ == '__main__':
     elapsed = end_time - start_time
     print(f'elapsed time: {elapsed:.4f}')
     print(bots)
+    print(bots[0][0][0])
+    with open("tensoroutput.txt", "w") as file:
+  # Write to the file
+        for row in bots[0][0][0]:
+            val = float(row)
+            file.write(f'{val:.4f}\n')
     predictor.show_predictions(img,bots)
