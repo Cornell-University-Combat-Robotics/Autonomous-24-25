@@ -9,4 +9,8 @@ machine/data
 machine/runs
 machine/roboflow.env
 NHRL-Robots-6
-
+NHRL
+NHRL-Robots-4
+runs
+data/input_video
+data/warped_vid_frames

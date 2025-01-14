@@ -18,6 +18,7 @@ ROBOFLOW_API_KEY = os.getenv('ROBOFLOW_API_KEY')
 
 DEBUG = False
 
+
 class OurModel(TemplateModel):
     def __init__(self, model_path="models/model_20241113_000141.pth"):
         # Load the model once during initialization
@@ -27,7 +28,7 @@ class OurModel(TemplateModel):
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
-    
+
     def predict(self, img, confidence_threshold=0.5, show=False):
         # Preprocess image
         img_tensor = self.transform(img).unsqueeze(0)
@@ -35,7 +36,7 @@ class OurModel(TemplateModel):
         # Run model inference
         with torch.no_grad():
             output = self.model(img_tensor)
-        
+
         bots = {}
         confidences, bboxes, _ = output
         height, width, _ = img.shape
@@ -43,10 +44,10 @@ class OurModel(TemplateModel):
         robots = 1
         for i in range(len(confidences)):
             confidence, bbox = confidences[i], bboxes[i]
-            
+
             # Determine class label
             class_label = 0 if confidence[0] > confidence[1] else 1
-            
+
             # Only add to dictionary if confidence is above threshold
             if confidence[class_label] < confidence_threshold:
                 continue
@@ -76,34 +77,35 @@ class OurModel(TemplateModel):
             elif class_label == 1:
                 name = 'bot' + str(robots)
                 robots += 1
-            bots[name] = {'bb':[[x_min, y_min], [x_max, y_max]], 'center':[center_x, center_y], 'img':screenshot}
-        
+            bots[name] = {'bb': [[x_min, y_min], [x_max, y_max]],
+                          'center': [center_x, center_y], 'img': screenshot}
+
         if show:
             self.show_predictions(img, bots)
 
         return bots
-    
+
     def show_predictions(self, img, predictions):
         for name, data in predictions.items():
-        # Extract bounding box coordinates and class details
+            # Extract bounding box coordinates and class details
             x_min, y_min = data['bbox'][0]
             x_max, y_max = data['bbox'][1]
             center_x, center_y = data['center']
-        
+
             # Choose color based on the class
             if 'housebot' in name:
                 color = (0, 0, 255)  # Red for housebot
             else:
                 color = (0, 255, 0)  # Green for bots
-            
+
             # Draw the bounding box
             cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
-            
+
             # Add label text
             cv2.putText(
-                img, name, 
+                img, name,
                 (x_min, y_min - 10),  # Slightly above the top-left corner
-                cv2.FONT_HERSHEY_SIMPLEX, 
+                cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
 
@@ -111,20 +113,22 @@ class OurModel(TemplateModel):
         cv2.imshow("Predictions", img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-    
+
     def train(self, batch, epoch, train_path, validation_path, save_path, save):
         return super().train(batch, epoch, train_path, validation_path, save_path, save)
 
     def evaluate(self, test_path):
         return super().evaluate(test_path)
 
+
 class YoloModel(TemplateModel):
     def __init__(self):
-        self.model = get_model(model_id='nhrl-robots/6', api_key=ROBOFLOW_API_KEY)
+        self.model = get_model(model_id='nhrl-robots/6',
+                               api_key=ROBOFLOW_API_KEY)
 
     def predict(self, img, confidence_threshold=0.5, show=False):
         out = self.model.infer(img)
-    
+
         bots = {}
 
         preds = out[0].predictions
@@ -140,7 +144,9 @@ class YoloModel(TemplateModel):
                 bots[name] = {}
 
                 x, y, box_width, box_height = pred.x, pred.y, pred.width, pred.height
-                if DEBUG: print(f'x: {x}, y: {y}, box_width: {box_width}, box_height: {box_height}')
+                if DEBUG:
+                    print(
+                        f'x: {x}, y: {y}, box_width: {box_width}, box_height: {box_height}')
 
                 bots[name]['center'] = [x, y]
 
@@ -163,28 +169,28 @@ class YoloModel(TemplateModel):
             self.show_predictions(img, bots)
 
         return bots
-    
+
     def show_predictions(self, img, predictions):
         for name, data in predictions.items():
-        # Extract bounding box coordinates and class details
+            # Extract bounding box coordinates and class details
             x_min, y_min = data['bbox'][0]
             x_max, y_max = data['bbox'][1]
             center_x, center_y = data['center']
-        
+
             # Choose color based on the class
             if 'housebot' in name:
                 color = (0, 0, 255)  # Red for housebot
             else:
                 color = (0, 255, 0)  # Green for bots
-            
+
             # Draw the bounding box
             cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
-            
+
             # Add label text
             cv2.putText(
-                img, name, 
+                img, name,
                 (x_min, y_min - 10),  # Slightly above the top-left corner
-                cv2.FONT_HERSHEY_SIMPLEX, 
+                cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
 
@@ -195,67 +201,71 @@ class YoloModel(TemplateModel):
 
     def train(self, batch, epoch, train_path, validation_path, save_path, save):
         return super().train(batch, epoch, train_path, validation_path, save_path, save)
-    
+
     def evaluate(self, test_path):
         return super().evaluate(test_path)
 
+
 class OnnxModel(TemplateModel):
     def __init__(self):
-        onnx_model_path = '/Users/tylerl/Autonomous-24-25/machine/models/best.onnx'
+        onnx_model_path = 'machine/models/best.onnx'
         session = ort.InferenceSession(onnx_model_path)
         self.model = session
-        
 
     def predict(self, img, confidence_threshold=0.5, show=False):
         image_path = img
         image = cv2.imread(image_path)
-        
-        input_image = cv2.resize(image, (640, 640))  # Resize to model's required size
+
+        # Resize to model's required size
+        input_image = cv2.resize(image, (640, 640))
         input_image = input_image.astype(np.float32)  # Convert to float32
-        input_image = input_image / 255.0  # Normalize to [0, 1] if required by the model
-        input_image = np.transpose(input_image, (2, 0, 1))  # Convert HWC to CHW if required
-        input_image = np.expand_dims(input_image, axis=0)  # Add batch dimension
+        # Normalize to [0, 1] if required by the model
+        input_image = input_image / 255.0
+        # Convert HWC to CHW if required
+        input_image = np.transpose(input_image, (2, 0, 1))
+        input_image = np.expand_dims(
+            input_image, axis=0)  # Add batch dimension
 
         # input_image = cv2.resize(image, (input_width, input_height))  # Use your model’s required size
         # input_image = input_image.astype(np.float32) / 255.0  # Normalize to [0, 1] if required
         # input_image = np.transpose(input_image, (2, 0, 1))  # Convert HWC to CHW format
         # input_image = np.expand_dims(input_image, axis=0)  # Add batch dimension
-        
-        
+
         input_name = self.model.get_inputs()[0].name
-        
+
         bots = self.model.run(None, {input_name: input_image})
 
         return bots
-    
+
     def show_predictions(self, img, predictions):
         image = cv2.imread(img)
 
 # Iterate through detections
-        detections = predictions[0][0]  # Access the first dimension of the output
+        # Access the first dimension of the output
+        detections = predictions[0][0]
         for i in range(detections.shape[1]):  # Loop through each detection
             x, y, width, height, confidence, class_id = detections[:, i]
-            
+
             if confidence > 0.5:  # Confidence threshold
                 # Convert YOLO format to (xmin, ymin, xmax, ymax)
                 xmin = int(x - width / 2)
                 ymin = int(y - height / 2)
                 xmax = int(x + width / 2)
                 ymax = int(y + height / 2)
-                
+
                 # Draw the bounding box
                 color = (0, 255, 0)  # Green for bounding box
                 cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color, 2)
-                
+
                 # Annotate with class and confidence
                 label = f"Class: {int(class_id)} Conf: {confidence:.2f}"
-                cv2.putText(image, label, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                cv2.putText(image, label, (xmin, ymin - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
         # Display the result
         cv2.imshow('YOLO Detection', image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-
 
         # Display the image with predictions
         # cv2.imshow("Predictions", img)
@@ -263,13 +273,13 @@ class OnnxModel(TemplateModel):
         # cv2.destroyAllWindows()
 
     def train(self, batch, epoch, train_path, validation_path, save_path, save):
-        
+
         return super().train(batch, epoch, train_path, validation_path, save_path, save)
-    
+
     def evaluate(self, test_path):
-        
-        return super().evaluate(test_path)    
-    
+
+        return super().evaluate(test_path)
+
 
 # Main code block
 if __name__ == '__main__':
@@ -311,15 +321,15 @@ if __name__ == '__main__':
     # end_time = time.time()
     # print(f'loaded model in {(end_time - start_time):.4f}')
     start_time = time.time()
-    img = '/Users/tylerl/Autonomous-24-25/12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg'
-    bots = predictor.predict(img, show = True)
+    img = '12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg'
+    bots = predictor.predict(img, show=True)
     end_time = time.time()
     elapsed = end_time - start_time
     print(f'elapsed time: {elapsed:.4f}')
     print(bots[0][0][0])
     print(len(bots[0][0][0]))
     with open("tensoroutput.txt", "w") as file:
-        file.write(str(bots[0]))
+        file.write(str(bots[0][0]))
 #   # Write to the file
 #         # for row in bots[0][0][0]:
 #         #     val = float(row)
