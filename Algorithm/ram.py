@@ -58,6 +58,7 @@ class Ram():
     """
     # ----------------------------- CONSTANTS -----------------------------
     ENEMY_HISTORY_BUFFER = 10 # how many previous enemy position we are recording
+    DANGER_ZONE = 10
     LEFT = 0
     RIGHT = 3
     MAX_SPEED = 1 # between 0 and 1
@@ -115,8 +116,8 @@ class Ram():
     '''
     def huey_move(self, speed: float, turn: float):
         # print(f'Here: {speed} and {turn}')
-        self.left = ((speed + turn) / 2.0)
-        self.right = ((speed - turn) / 2.0)
+        self.left = ((speed - turn) / 2.0)
+        self.right = ((speed + turn) / 2.0)
         return {'left': self.left, 'right': self.right}
 
     ''' 
@@ -160,7 +161,13 @@ class Ram():
     '''
     def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
-        # return the angle in degrees
+        
+        if np.linalg.norm(enemy_future_position - our_pos) < Ram.DANGER_ZONE:
+            enemy_future_position = enemy_pos
+            if np.array_equal(enemy_pos, our_pos):
+                return 0
+
+        #  return the angle in degrees
         our_orientation = np.radians(our_orientation)
         orientation = np.array([math.cos(our_orientation), math.sin(our_orientation)])
         enemy_future_position = self.invert_y(enemy_future_position)
@@ -168,7 +175,12 @@ class Ram():
         
         direction = enemy_future_position - our_pos
         # calculate the angle between the bot and the enemy
-        angle = np.degrees(np.arccos(np.dot(direction, orientation) / (np.linalg.norm(direction) * np.linalg.norm(orientation))))
+        ratio = np.dot(direction, orientation) / (np.linalg.norm(direction) * np.linalg.norm(orientation))
+        if (ratio > 1):
+            ratio = 1
+        elif (ratio < -1):
+            ratio = -1
+        angle = np.degrees(np.arccos(ratio))
         sign = np.sign(np.cross(orientation, direction)) 
         return sign*angle
 
@@ -217,3 +229,4 @@ class Ram():
             self.enemy_previous_positions.pop(0)
 
         return self.huey_move(speed, turn)
+    
