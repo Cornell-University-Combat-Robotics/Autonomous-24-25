@@ -38,6 +38,7 @@ class OurModel(TemplateModel):
             output = self.model(img_tensor)
 
         bots = {}
+        bots['bots'] = []
         confidences, bboxes, _ = output
         height, width, _ = img.shape
 
@@ -71,14 +72,13 @@ class OurModel(TemplateModel):
                 cv2.imshow("Screenshot", screenshot)
                 cv2.waitKey(0)
 
-            # Write to dictionary
+            # Writing to the dictionary
             if class_label == 0:
-                name = 'housebot'
+                bots['housebot'] = {'bb': [[x_min, y_min], [x_max, y_max]],
+                                    'center': [center_x, center_y], 'img': screenshot}
             elif class_label == 1:
-                name = 'bot' + str(robots)
-                robots += 1
-            bots[name] = {'bb': [[x_min, y_min], [x_max, y_max]],
-                          'center': [center_x, center_y], 'img': screenshot}
+                bots['bots'].append({'bb': [[x_min, y_min], [x_max, y_max]],
+                                    'center': [center_x, center_y], 'img': screenshot})
 
         if show:
             self.show_predictions(img, bots)
@@ -86,6 +86,12 @@ class OurModel(TemplateModel):
         return bots
 
     def show_predictions(self, img, predictions):
+        # Display housebot
+        try:
+            predictions['housebot']
+            # TODO: Ethan is updating how we parse the new dictionary
+        except:
+            print("No housebot")
         for name, data in predictions.items():
             # Extract bounding box coordinates and class details
             x_min, y_min = data['bbox'][0]
@@ -208,7 +214,7 @@ class YoloModel(TemplateModel):
 
 class OnnxModel(TemplateModel):
     def __init__(self):
-        onnx_model_path = 'machine/models/best.onnx'
+        onnx_model_path = './models/best.onnx'
         session = ort.InferenceSession(onnx_model_path)
         self.model = session
 
@@ -233,9 +239,22 @@ class OnnxModel(TemplateModel):
 
         input_name = self.model.get_inputs()[0].name
 
-        bots = self.model.run(None, {input_name: input_image})
-
-        return bots
+        output = self.model.run(None, {input_name: input_image})
+        
+        # Getting the indices of the robots based on the class confidences
+        bot_conf = np.where(output[0][0][5] > 0.8)
+        print(bot_conf)
+        # Getting the indices of the housebot based on the class confidences
+        house_conf = np.where(output[0][0][4] > 0.9)
+        
+        bots = []
+        
+        for i in range(6):
+            print(output[0][0][i][bot_conf])
+            bots.append(output[0][0][i][bot_conf])
+            
+        
+        return np.transpose(bots)
 
     def show_predictions(self, img, predictions):
         image = cv2.imread(img)
@@ -326,12 +345,12 @@ if __name__ == '__main__':
     end_time = time.time()
     elapsed = end_time - start_time
     print(f'elapsed time: {elapsed:.4f}')
-    print(bots[0][0][0])
-    print(len(bots[0][0][0]))
-    for i in range(6):
-        print(bots[0][0][i][0])
+    print(bots)
+    # print(len(bots[0][0][0]))
+    # for i in range(6):
+    #     print(bots[0][0][i][0])
     with open("tensoroutput.txt", "w") as file:
-        file.write(str(bots[0][0]))
+        file.write(str(bots))
 #   # Write to the file
 #         # for row in bots[0][0][0]:
 #         #     val = float(row)
