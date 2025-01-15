@@ -373,6 +373,9 @@ class PTModel(TemplateModel):
         pt_model_path = './models/100epoch11.pt'
         self.model = YOLO(pt_model_path)
 
+
+        #self.model.to('cuda')
+
     def predict(self, img: np.ndarray, show=False):
         results = self.model(img)
         result = results[0]
@@ -559,7 +562,7 @@ if __name__ == '__main__':
     print('starting testing with PT model')
     # start_time = time.time()
     # predictor = OurModel()
-    predictor = YoloModel("100epoch11", "ONNX")
+    predictor = YoloModel("100epoch11", "PT")
     # predictor = OnnxModel()
     # predictor = PTModel()
     # end_time = time.time()
