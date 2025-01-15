@@ -297,13 +297,16 @@ class YoloModel(TemplateModel):
         match model_type:
             case "TensorRT":
                 model_extension = ".engine"
-                self.model = YOLO("./machine/models/" + model_name + model_extension)
+                self.model = YOLO("./machine/models/" +
+                                  model_name + model_extension)
             case "ONNX":
                 model_extension = ".onnx"
-                self.model = YOLO("./machine/models/" + model_name + model_extension)
+                self.model = YOLO("./machine/models/" +
+                                  model_name + model_extension)
             case "PT":
                 model_extension = ".pt"
-                self.model = YOLO("./machine/models/" + model_name + model_extension)
+                self.model = YOLO("./machine/models/" +
+                                  model_name + model_extension)
             case "OpenVIVO":
                 model_extension = ".xml"
                 weights_extension = ".bin"
@@ -311,12 +314,12 @@ class YoloModel(TemplateModel):
                 classification_model_xml = "./machine/models/" + model_name + model_extension
                 weights = "./machine/models/" + model_name + weights_extension
 
-                model = core.read_model(model=classification_model_xml,weights = weights)
+                model = core.read_model(
+                    model=classification_model_xml, weights=weights)
                 cmodel = core.compile_model(model=model)
                 self.model = cmodel
-                
-                # compiled_model = core.compile_model(model=model, device_name=device.value)
 
+                # compiled_model = core.compile_model(model=model, device_name=device.value)
 
     def predict(self, img, show=False):
         results = self.model(img)
@@ -386,8 +389,7 @@ class PTModel(TemplateModel):
         pt_model_path = './models/100epoch11.pt'
         self.model = YOLO(pt_model_path)
 
-
-        #self.model.to('cuda')
+        # self.model.to('cuda')
 
     def predict(self, img: np.ndarray, show=False):
         results = self.model(img)
