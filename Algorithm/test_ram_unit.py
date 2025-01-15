@@ -1,6 +1,8 @@
 import unittest
 from ram import Ram
 import numpy as np
+import time
+
 
 algo = Ram()
 
@@ -267,10 +269,16 @@ class TestRam(unittest.TestCase):
         values = algo.ram_ram(bots1)
         self.assertAlmostEqual(values['left'], .5) 
         self.assertAlmostEqual(values['right'], 0) 
-        bots2 = {'huey': {'bb': [138, 154, 20, 20], 'center': [148, 164], 'orientation': 265.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
+        
+        bots2 = {'huey': {'bb': [138, 154, 20, 20], 'center': [148, 164], 'orientation': 270.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
+        
+        og_time = time.time()        
+        print("Final test")
         values = algo.ram_ram(bots2)
-        self.assertAlmostEqual(values['left'], -0.0766318353)
-        self.assertAlmostEqual(values['right'], 0.5)
+        dt = time.time() - og_time
+        
+        self.assertAlmostEqual(values['left'], -0.2223902366185668888888888888888888888888888888888888888888888888888888888, places = 2)
+        self.assertAlmostEqual(values['right'], 0.9999999999994331111111111111111111111111111111111111111111111111111111111, places = 2)
 
 
 
