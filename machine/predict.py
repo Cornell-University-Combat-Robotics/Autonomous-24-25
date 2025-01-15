@@ -306,7 +306,7 @@ class YoloModel(TemplateModel):
         self.model = YOLO("./machine/models/" + model_name + model_extension)
 
     def predict(self, img, show=False):
-        results = self.model(img)
+        results = self.model(img,device="mps")
         result = results[0]
 
         robots = []
@@ -559,7 +559,7 @@ if __name__ == '__main__':
     print('starting testing with PT model')
     # start_time = time.time()
     # predictor = OurModel()
-    predictor = YoloModel("100epoch11", "PT")
+    predictor = YoloModel("100epoch11", "ONNX")
     # predictor = OnnxModel()
     # predictor = PTModel()
     # end_time = time.time()
