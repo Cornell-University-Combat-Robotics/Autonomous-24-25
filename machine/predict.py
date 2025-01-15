@@ -18,7 +18,9 @@ ROBOFLOW_API_KEY = os.getenv('ROBOFLOW_API_KEY')
 
 DEBUG = False
 
-# I think this is broken... b/c of the model tho not the 
+# I think this is broken... b/c of the model tho not the
+
+
 class OurModel(TemplateModel):
     def __init__(self, model_path="models/model_20241113_000141.pth"):
         # Load the model once during initialization
@@ -77,7 +79,7 @@ class OurModel(TemplateModel):
             # Writing to the dictionary
             if class_label == 0:
                 bots['housebot'].append({'bb': [[x_min, y_min], [x_max, y_max]],
-                                    'center': [center_x, center_y], 'img': screenshot})
+                                         'center': [center_x, center_y], 'img': screenshot})
             elif class_label == 1:
                 bots['bots'].append({'bb': [[x_min, y_min], [x_max, y_max]],
                                     'center': [center_x, center_y], 'img': screenshot})
@@ -91,7 +93,7 @@ class OurModel(TemplateModel):
         # Display housebot
         housebots = predictions['housebot']
         bots = predictions['bots']
-        
+
         color = (0, 0, 255)
         for housebot in housebots:
             x_min, y_min = housebot['bbox'][0]
@@ -125,8 +127,6 @@ class OurModel(TemplateModel):
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
-
-
 
         # for name, data in predictions.items():
         #     # Extract bounding box coordinates and class details
@@ -163,7 +163,9 @@ class OurModel(TemplateModel):
         return super().evaluate(test_path)
 
 # No clue if this works
-class YoloModel(TemplateModel):
+
+
+class RoboflowModel(TemplateModel):
     def __init__(self):
         self.model = get_model(model_id='nhrl-robots/6',
                                api_key=ROBOFLOW_API_KEY)
@@ -219,7 +221,7 @@ class YoloModel(TemplateModel):
         # Display housebot
         housebots = predictions['housebot']
         bots = predictions['bots']
-        
+
         color = (0, 0, 255)
         for housebot in housebots:
             x_min, y_min = housebot['bbox'][0]
@@ -253,8 +255,6 @@ class YoloModel(TemplateModel):
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
-
-
 
         # for name, data in predictions.items():
         #     # Extract bounding box coordinates and class details
@@ -291,12 +291,21 @@ class YoloModel(TemplateModel):
         return super().evaluate(test_path)
 
 
-class PTModel(TemplateModel):
-    def __init__(self):
-        pt_model_path = './models/100epoch11.pt'
-        self.model = YOLO(pt_model_path)
+class YoloModel(TemplateModel):
+    def __init__(self, model_name, model_type):
+        match model_type:
+            case "TensorRT":
+                model_extension = ".engine"
+            case "ONNX":
+                model_extension = ".onnx"
+            case "PT":
+                model_extension = ".pt"
+            case "OpenVIVO":
+                model_extension = ".bin"
 
-    def predict(self, img: np.ndarray, show=False):
+        self.model = YOLO("./machine/models/" + model_name + model_extension)
+
+    def predict(self, img, show=False):
         results = self.model(img)
         result = results[0]
 
@@ -308,9 +317,9 @@ class PTModel(TemplateModel):
             cx, cy, width, height = box.xywh[0].tolist()
             cropped_img = img[int(y1): int(y2), int(x1):int(x2)]
 
-            cv2.imshow('image', cropped_img)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows
+            # cv2.imshow('image', cropped_img)
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows
 
             dict = {
                 "bb": [[x1, y1], [x2, y2]],
@@ -352,9 +361,77 @@ class PTModel(TemplateModel):
                 #     cv2.FONT_HERSHEY_SIMPLEX,
                 #     0.5, color, 2
                 # )
-        cv2.imshow("Predictions", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow("Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
+        return img
+
+
+class PTModel(TemplateModel):
+    def __init__(self):
+        pt_model_path = './models/100epoch11.pt'
+        self.model = YOLO(pt_model_path)
+
+    def predict(self, img: np.ndarray, show=False):
+        results = self.model(img)
+        result = results[0]
+
+        robots = []
+        housebots = []
+
+        for box in result.boxes:
+            x1, y1, x2, y2 = box.xyxy[0].tolist()
+            cx, cy, width, height = box.xywh[0].tolist()
+            cropped_img = img[int(y1): int(y2), int(x1):int(x2)]
+
+            # cv2.imshow('image', cropped_img)
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows
+
+            dict = {
+                "bb": [[x1, y1], [x2, y2]],
+                "center": [cx, cy],
+                "img": cropped_img
+            }
+
+            if box.cls == 0:
+                housebots.append(dict)
+            else:
+                robots.append(dict)
+
+        out = {"bots": robots, "housebots": housebots}
+        return out
+
+    def show_predictions(self, img, bots_dict):
+        for label, bots in bots_dict.items():
+
+            for bot in bots:
+
+                # Extract bounding box coordinates and class details
+                x_min, y_min = bot['bb'][0]
+                x_max, y_max = bot['bb'][1]
+
+                # Choose color based on the class
+                if 'housebot' in label:
+                    color = (0, 0, 255)  # Red for housebot
+                else:
+                    color = (0, 255, 0)  # Green for bots
+
+                # Draw the bounding box
+                cv2.rectangle(img, (int(x_min), int(y_min)),
+                              (int(x_max), int(y_max)), color, 2)
+
+                # Add label text
+                # cv2.putText(
+                #     img, label,
+                #     (x_min, y_min - 10),  # Slightly above the top-left corner
+                #     cv2.FONT_HERSHEY_SIMPLEX,
+                #     0.5, color, 2
+                # )
+        # cv2.imshow("Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         return img
 
@@ -482,7 +559,7 @@ if __name__ == '__main__':
     print('starting testing with PT model')
     # start_time = time.time()
     # predictor = OurModel()
-    predictor = YoloModel()
+    predictor = YoloModel("100epoch11", "PT")
     # predictor = OnnxModel()
     # predictor = PTModel()
     # end_time = time.time()
