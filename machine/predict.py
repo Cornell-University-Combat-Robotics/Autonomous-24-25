@@ -18,11 +18,14 @@ ROBOFLOW_API_KEY = os.getenv('ROBOFLOW_API_KEY')
 
 DEBUG = False
 
+# I think this is broken... b/c of the model tho not the
+
 
 class OurModel(TemplateModel):
     def __init__(self, model_path="models/model_20241113_000141.pth"):
         # Load the model once during initialization
         self.model = torch.load(model_path)
+        # Set to evaluation mode, so that we won't train new params
         self.model.eval()
         self.transform = transforms.Compose([
             transforms.ToTensor(),
@@ -30,7 +33,7 @@ class OurModel(TemplateModel):
         ])
 
     def predict(self, img, confidence_threshold=0.5, show=False):
-        # Preprocess image
+        # Preprocess image via the transformation
         img_tensor = self.transform(img).unsqueeze(0)
 
         # Run model inference
@@ -39,6 +42,7 @@ class OurModel(TemplateModel):
 
         bots = {}
         bots['bots'] = []
+        bots['housebot'] = []
         confidences, bboxes, _ = output
         height, width, _ = img.shape
 
@@ -74,8 +78,8 @@ class OurModel(TemplateModel):
 
             # Writing to the dictionary
             if class_label == 0:
-                bots['housebot'] = {'bb': [[x_min, y_min], [x_max, y_max]],
-                                    'center': [center_x, center_y], 'img': screenshot}
+                bots['housebot'].append({'bb': [[x_min, y_min], [x_max, y_max]],
+                                         'center': [center_x, center_y], 'img': screenshot})
             elif class_label == 1:
                 bots['bots'].append({'bb': [[x_min, y_min], [x_max, y_max]],
                                     'center': [center_x, center_y], 'img': screenshot})
@@ -87,33 +91,65 @@ class OurModel(TemplateModel):
 
     def show_predictions(self, img, predictions):
         # Display housebot
-        try:
-            predictions['housebot']
-            # TODO: Ethan is updating how we parse the new dictionary
-        except:
-            print("No housebot")
-        for name, data in predictions.items():
-            # Extract bounding box coordinates and class details
-            x_min, y_min = data['bbox'][0]
-            x_max, y_max = data['bbox'][1]
-            center_x, center_y = data['center']
+        housebots = predictions['housebot']
+        bots = predictions['bots']
 
-            # Choose color based on the class
-            if 'housebot' in name:
-                color = (0, 0, 255)  # Red for housebot
-            else:
-                color = (0, 255, 0)  # Green for bots
+        color = (0, 0, 255)
+        for housebot in housebots:
+            x_min, y_min = housebot['bbox'][0]
+            x_max, y_max = housebot['bbox'][1]
+            center_x, center_y = housebot['center']
 
             # Draw the bounding box
             cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
 
             # Add label text
             cv2.putText(
-                img, name,
+                img, 'housebot',
                 (x_min, y_min - 10),  # Slightly above the top-left corner
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
+
+        color = (0, 255, 0)  # Green for bots
+        for bot in bots:
+            x_min, y_min = bot['bbox'][0]
+            x_max, y_max = bot['bbox'][1]
+            center_x, center_y = bot['center']
+
+            # Draw the bounding box
+            cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
+
+            # Add label text
+            cv2.putText(
+                img, 'bot',
+                (x_min, y_min - 10),  # Slightly above the top-left corner
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, color, 2
+            )
+
+        # for name, data in predictions.items():
+        #     # Extract bounding box coordinates and class details
+        #     x_min, y_min = data['bbox'][0]
+        #     x_max, y_max = data['bbox'][1]
+        #     center_x, center_y = data['center']
+
+        #     # Choose color based on the class
+        #     if 'housebot' in name:
+        #         color = (0, 0, 255)  # Red for housebot
+        #     else:
+        #         color = (0, 255, 0)  # Green for bots
+
+        #     # Draw the bounding box
+        #     cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
+
+        #     # Add label text
+        #     cv2.putText(
+        #         img, name,
+        #         (x_min, y_min - 10),  # Slightly above the top-left corner
+        #         cv2.FONT_HERSHEY_SIMPLEX,
+        #         0.5, color, 2
+        #     )
 
         # Display the image with predictions
         cv2.imshow("Predictions", img)
@@ -126,6 +162,8 @@ class OurModel(TemplateModel):
     def evaluate(self, test_path):
         return super().evaluate(test_path)
 
+# No clue if this works
+
 
 class YoloModel(TemplateModel):
     def __init__(self):
@@ -136,25 +174,26 @@ class YoloModel(TemplateModel):
         out = self.model.infer(img)
 
         bots = {}
+        bots['housebot'] = []
+        bots['bots'] = []
 
         preds = out[0].predictions
 
         robots = 1
         for pred in preds:
             if pred.confidence > confidence_threshold:
+                p = {}
                 if pred.class_id == 0:
                     name = 'housebot'
                 elif pred.class_id == 1:
-                    name = 'bot' + str(robots)
-                    robots += 1
-                bots[name] = {}
+                    name = 'bots'
 
                 x, y, box_width, box_height = pred.x, pred.y, pred.width, pred.height
                 if DEBUG:
                     print(
                         f'x: {x}, y: {y}, box_width: {box_width}, box_height: {box_height}')
 
-                bots[name]['center'] = [x, y]
+                p['center'] = [x, y]
 
                 x_min = int(x - box_width / 2)
                 y_min = int(y - box_height / 2)
@@ -168,8 +207,10 @@ class YoloModel(TemplateModel):
                     cv2.imshow("Screenshot", screenshot)
                     cv2.waitKey(0)
 
-                bots[name]['bbox'] = [[x_min, y_min], [x_max, y_max]]
-                bots[name]['img'] = screenshot
+                p['bbox'] = [[x_min, y_min], [x_max, y_max]]
+                p['img'] = screenshot
+
+                bots[name].append(p)
 
         if show:
             self.show_predictions(img, bots)
@@ -177,28 +218,66 @@ class YoloModel(TemplateModel):
         return bots
 
     def show_predictions(self, img, predictions):
-        for name, data in predictions.items():
-            # Extract bounding box coordinates and class details
-            x_min, y_min = data['bbox'][0]
-            x_max, y_max = data['bbox'][1]
-            center_x, center_y = data['center']
+        # Display housebot
+        housebots = predictions['housebot']
+        bots = predictions['bots']
 
-            # Choose color based on the class
-            if 'housebot' in name:
-                color = (0, 0, 255)  # Red for housebot
-            else:
-                color = (0, 255, 0)  # Green for bots
+        color = (0, 0, 255)
+        for housebot in housebots:
+            x_min, y_min = housebot['bbox'][0]
+            x_max, y_max = housebot['bbox'][1]
+            center_x, center_y = housebot['center']
 
             # Draw the bounding box
             cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
 
             # Add label text
             cv2.putText(
-                img, name,
+                img, 'housebot',
                 (x_min, y_min - 10),  # Slightly above the top-left corner
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
+
+        color = (0, 255, 0)  # Green for bots
+        for bot in bots:
+            x_min, y_min = bot['bbox'][0]
+            x_max, y_max = bot['bbox'][1]
+            center_x, center_y = bot['center']
+
+            # Draw the bounding box
+            cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
+
+            # Add label text
+            cv2.putText(
+                img, 'bot',
+                (x_min, y_min - 10),  # Slightly above the top-left corner
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, color, 2
+            )
+
+        # for name, data in predictions.items():
+        #     # Extract bounding box coordinates and class details
+        #     x_min, y_min = data['bbox'][0]
+        #     x_max, y_max = data['bbox'][1]
+        #     center_x, center_y = data['center']
+
+        #     # Choose color based on the class
+        #     if 'housebot' in name:
+        #         color = (0, 0, 255)  # Red for housebot
+        #     else:
+        #         color = (0, 255, 0)  # Green for bots
+
+        #     # Draw the bounding box
+        #     cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
+
+        #     # Add label text
+        #     cv2.putText(
+        #         img, name,
+        #         (x_min, y_min - 10),  # Slightly above the top-left corner
+        #         cv2.FONT_HERSHEY_SIMPLEX,
+        #         0.5, color, 2
+        #     )
 
         # Display the image with predictions
         cv2.imshow("Predictions", img)
@@ -214,7 +293,7 @@ class YoloModel(TemplateModel):
 
 class PTModel(TemplateModel):
     def __init__(self):
-        pt_model_path = 'machine/models/100epoch11.pt'
+        pt_model_path = './models/100epoch11.pt'
         self.model = YOLO(pt_model_path)
 
     def predict(self, img: np.ndarray, show=False):
@@ -400,16 +479,17 @@ if __name__ == '__main__':
     # print(bots)
 
     # Testing Onnx Model
-    print('starting testing with Onnx model')
+    print('starting testing with PT model')
     # start_time = time.time()
     # predictor = OurModel()
+    predictor = YoloModel()
     # predictor = OnnxModel()
-    predictor = PTModel()
+    # predictor = PTModel()
     # end_time = time.time()
     # print(f'loaded model in {(end_time - start_time):.4f}')
     start_time = time.time()
     img = cv2.imread('12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg')
-    # cv2.imshow("original image", img)
+    # cv2.imshow("Original image", img)
     # cv2.waitKey(0)
     bots = predictor.predict(img, show=True)
     end_time = time.time()
