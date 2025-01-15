@@ -11,6 +11,7 @@ from template_model import TemplateModel
 from ultralytics import YOLO
 import onnxruntime as ort
 import pandas as pd
+import openvino as ov
 
 load_dotenv()
 
@@ -296,17 +297,29 @@ class YoloModel(TemplateModel):
         match model_type:
             case "TensorRT":
                 model_extension = ".engine"
+                self.model = YOLO("./machine/models/" + model_name + model_extension)
             case "ONNX":
                 model_extension = ".onnx"
+                self.model = YOLO("./machine/models/" + model_name + model_extension)
             case "PT":
                 model_extension = ".pt"
+                self.model = YOLO("./machine/models/" + model_name + model_extension)
             case "OpenVIVO":
-                model_extension = ".bin"
+                model_extension = ".xml"
+                weights_extension = ".bin"
+                core = ov.Core()
+                classification_model_xml = "./machine/models/" + model_name + model_extension
+                weights = "./machine/models/" + model_name + weights_extension
 
-        self.model = YOLO("./machine/models/" + model_name + model_extension)
+                model = core.read_model(model=classification_model_xml,weights = weights)
+                cmodel = core.compile_model(model=model)
+                self.model = cmodel
+                
+                # compiled_model = core.compile_model(model=model, device_name=device.value)
+
 
     def predict(self, img, show=False):
-        results = self.model(img,device="mps")
+        results = self.model(img)
         result = results[0]
 
         robots = []
@@ -559,7 +572,7 @@ if __name__ == '__main__':
     print('starting testing with PT model')
     # start_time = time.time()
     # predictor = OurModel()
-    predictor = YoloModel("100epoch11", "ONNX")
+    predictor = YoloModel("100epoch11", "OpenVIVO")
     # predictor = OnnxModel()
     # predictor = PTModel()
     # end_time = time.time()
