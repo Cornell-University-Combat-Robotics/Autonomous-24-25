@@ -58,6 +58,7 @@ class Ram():
     """
     # ----------------------------- CONSTANTS -----------------------------
     ENEMY_HISTORY_BUFFER = 10 # how many previous enemy position we are recording
+    DANGER_ZONE = 10
     LEFT = 0
     RIGHT = 3
     MAX_SPEED = 1 # between 0 and 1
@@ -115,8 +116,8 @@ class Ram():
     '''
     def huey_move(self, speed: float, turn: float):
         # print(f'Here: {speed} and {turn}')
-        self.left = ((speed + turn) / 2.0)
-        self.right = ((speed - turn) / 2.0)
+        self.left = ((speed - turn) / 2.0)
+        self.right = ((speed + turn) / 2.0)
         return {'left': self.left, 'right': self.right}
 
     ''' 
