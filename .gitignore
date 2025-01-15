@@ -1,4 +1,12 @@
+bin
+include
+lib
+lib64
+pyvenv.cfg
 .env
+/camera_test/wired
+/camera_test/wireless
+/camera_test/comprision
 .DS_Store
 image_flattening/__pycache__/warp.cpython-312.pyc
 image_flattening/warped_battlefield.mp4
@@ -14,3 +22,18 @@ NHRL-Robots-4
 runs
 data/input_video
 data/warped_vid_frames
+*.pyc
+*.mp4
+/image_flattening/image_flattening/
+/machine/data
+/image_flattening/data
+/image_flattening/__pycache__/
+/machine/data
+/machine/saved_models
+
+# vid_and_img_processing
+/vid_and_img_processing/data/input_img/*.png
+/vid_and_img_processing/data/warped_img/*.png
+/vid_and_img_processing/data/warped_vid_frames/*
+/vid_and_img_processing/data/input_video/*.mp4
+/vid_and_img_processing/data/warped_video/*.mp4
