@@ -165,7 +165,7 @@ class OurModel(TemplateModel):
 # No clue if this works
 
 
-class YoloModel(TemplateModel):
+class RoboflowModel(TemplateModel):
     def __init__(self):
         self.model = get_model(model_id='nhrl-robots/6',
                                api_key=ROBOFLOW_API_KEY)
@@ -289,6 +289,17 @@ class YoloModel(TemplateModel):
 
     def evaluate(self, test_path):
         return super().evaluate(test_path)
+
+
+class YoloModel(TemplateModel):
+    def __init__(self, model_name, model_type):
+        match model_type:
+            case "TensorRT":
+                model_extension = ".pt"
+            case "ONNX":
+                model_extension = ".onnx"
+
+        self.model = YOLO("./models/" + model_name + model_extension)
 
 
 class PTModel(TemplateModel):
@@ -482,7 +493,7 @@ if __name__ == '__main__':
     print('starting testing with PT model')
     # start_time = time.time()
     # predictor = OurModel()
-    predictor = YoloModel()
+    predictor = RoboflowModel()
     # predictor = OnnxModel()
     # predictor = PTModel()
     # end_time = time.time()
