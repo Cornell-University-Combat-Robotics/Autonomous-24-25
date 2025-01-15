@@ -1,0 +1,13 @@
+names:
+- housebot
+- robot
+nc: 2
+roboflow:
+  license: CC BY 4.0
+  project: nhrl-robots
+  url: https://universe.roboflow.com/crc-autonomous/nhrl-robots/dataset/6
+  version: 6
+  workspace: crc-autonomous
+test: ../test/images
+train: ../train/images
+val: ../valid/images
