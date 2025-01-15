@@ -1,9 +1,10 @@
 import numpy as np
 
+
 class TemplateModel:
     """
     A template for implementing object detection models. 
-    
+
     Note that this class only serves as a template and all methods (init, predict, train, and evaluate) must be explicitly implemented in subclasses.
     Calling a method in this class without subclass implementation will result in an error.
     """
@@ -14,7 +15,7 @@ class TemplateModel:
         """
         raise "Not implemented in subclass"
 
-    def predict(self, img:np.ndarray, confidence_threshold:float=0.5, show:bool=False) -> dict:
+    def predict(self, img: np.ndarray, confidence_threshold: float = 0.5, show: bool = False) -> dict:
         """
         Uses the model to make a prediction on a singular image, [img].
         All predictions above [confidence_threshold] are added to the resulting prediction dictionary.
@@ -29,13 +30,12 @@ class TemplateModel:
           dict: A dictionary conatining information about predicted objects in the input image. See example below.
             {
               "bots": [{"bb":[[top_left_x:int, top_left_y:int],[bottom_right_x:int, bottom_right_y:int]], "center":[center_x:int, center_y:int], "img":np.ndarry}, {...}]
-              "housebot": {"bb":[[top_left_x:int, top_left_y:int],[bottom_right_x:int, bottom_right_y:int]], "center":[center_x:int, center_y:int], "img":np.ndarry}
+              "housebots": [{"bb":[[top_left_x:int, top_left_y:int],[bottom_right_x:int, bottom_right_y:int]], "center":[center_x:int, center_y:int], "img":np.ndarry}]
             }
         """
         raise "Not implemented in subclass"
 
-    
-    def train(self, batch:int, epoch:int, train_path:str, validation_path:str, save_path:str, save:bool):
+    def train(self, batch: int, epoch: int, train_path: str, validation_path: str, save_path: str, save: bool):
         """
         Trains a model for [batch] batches and [epoch] epochs. In [save] is enabled, after training the model is saved to [save_path].
 
@@ -59,8 +59,8 @@ class TemplateModel:
 
         """
         raise "Not implemented in subclass"
-    
-    def evaluate(self, test_path:str) -> None:
+
+    def evaluate(self, test_path: str) -> None:
         """
         Evaluates the model against the images and corresponding labels in [test_path].
 
@@ -74,4 +74,3 @@ class TemplateModel:
           None: The function should print appropriate metrics (ex. accuracy)
         """
         raise "Not implemented in subclass"
-        
