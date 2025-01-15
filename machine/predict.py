@@ -218,7 +218,7 @@ class PTModel(TemplateModel):
         self.model = YOLO(pt_model_path)
 
     def predict(self, img: np.ndarray, show=False):
-        results = self.model(img)
+        results = self.model(img, device="mps")
         result = results[0]
 
         robots = []
@@ -229,9 +229,9 @@ class PTModel(TemplateModel):
             cx, cy, width, height = box.xywh[0].tolist()
             cropped_img = img[int(y1): int(y2), int(x1):int(x2)]
 
-            cv2.imshow('image', cropped_img)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows
+            # cv2.imshow('image', cropped_img)
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows
 
             dict = {
                 "bb": [[x1, y1], [x2, y2]],
@@ -273,9 +273,9 @@ class PTModel(TemplateModel):
                 #     cv2.FONT_HERSHEY_SIMPLEX,
                 #     0.5, color, 2
                 # )
-        cv2.imshow("Predictions", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow("Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         return img
 
@@ -409,8 +409,8 @@ if __name__ == '__main__':
     # print(f'loaded model in {(end_time - start_time):.4f}')
     start_time = time.time()
     img = cv2.imread('12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg')
-    cv2.imshow("original image", img)
-    cv2.waitKey(0)
+    # cv2.imshow("original image", img)
+    # cv2.waitKey(0)
     bots = predictor.predict(img, show=True)
     end_time = time.time()
     elapsed = end_time - start_time
