@@ -95,8 +95,8 @@ while running:
 
     # Movement speed for both bots
     speed_up = 5.0
-    huey_speed = speed_up * huey_bot.predict_desired_speed(our_pos=huey['center'], our_orientation=fix_angle(huey['orientation']), enemy_pos=enemy['center'], enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60))
-    huey_turn_speed = speed_up * huey_bot.predict_desired_turn(our_pos=huey['center'], our_orientation=fix_angle(huey['orientation']), enemy_pos=enemy['center'], enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60))
+    huey_turn_speed = speed_up * huey_bot.predict_desired_turn(our_pos=np.array(huey['center']), our_orientation=fix_angle(huey['orientation']), enemy_pos=np.array(enemy['center']), enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60))
+    huey_speed = speed_up * huey_bot.predict_desired_speed(our_pos=np.array(huey['center']), our_orientation=fix_angle(huey['orientation']), enemy_pos=np.array(enemy['center']), enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60))
     enemy_speed = speed_up
 
     old_pos = enemy['center']
@@ -105,7 +105,8 @@ while running:
     huey['orientation'] = normalize_angle(huey['orientation'] - huey_turn_speed)
     fixed_angle = fix_angle(huey['orientation'])
     huey['center'][0] += huey_speed * math.cos(math.radians(fix_angle(huey['orientation'])))
-    huey['center'][1] += huey_speed * math.sin(math.radians(fix_angle(huey['orientation'])))
+    huey['center'][1] -= huey_speed * math.sin(math.radians(fix_angle(huey['orientation'])))
+    huey_y_change = -1 * huey_speed * math.sin(math.radians(fix_angle(huey['orientation'])))
 
     # Control enemy with arrow keys
     if keys[pygame.K_LEFT]:  # Move left
@@ -162,13 +163,19 @@ while running:
     font = pygame.font.SysFont(None, 36)
     angle_text = font.render(f"Huey Orientation: {fix_angle(huey['orientation']):.2f}°", True, (0, 0, 0))
     screen.blit(angle_text, (10, 10))
-    speed_text = font.render(f"Huey Speed: {huey_speed/5.0:.2f}°", True, (0, 0, 0))
+    speed_text = font.render(f"Huey Speed: {huey_speed/5.0:.2f}", True, (0, 0, 0))
     screen.blit(speed_text, (10, 50))
     turn_text = font.render(f"Huey Turn: {huey_turn_speed/5.0:.2f}°", True, (0, 0, 0))
     screen.blit(turn_text, (10, 90))
-    desired_angle = huey_bot.predict_desired_orientation_angle(our_pos=huey['center'], our_orientation=fix_angle(huey['orientation']), enemy_pos=enemy['center'], enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60))
-    desired_angle_text = font.render(f"Huey Desired Angle: {desired_angle:.2f}°", True, (0, 0, 0))
+    desired_angle = huey_bot.predict_desired_orientation_angle(our_pos=np.array(huey['center']), our_orientation=fix_angle(huey['orientation']), enemy_pos=np.array(enemy['center']), enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60))
+    desired_angle_text = font.render(f"Huey Desired Angle: {desired_angle:.2f}", True, (0, 0, 0))
     screen.blit(desired_angle_text, (10, 130))
+    x_text = font.render(f"Huey X Position: {huey['center'][0]:.2f}", True, (0, 0, 0))
+    screen.blit(x_text, (10, 170))
+    y_text = font.render(f"Huey Y Position: {huey['center'][1]:.2f}", True, (0, 0, 0))
+    screen.blit(y_text, (10, 210))
+    y_change_text = font.render(f"Huey Y Position Change: {huey_y_change:.2f}", True, (0, 0, 0))
+    screen.blit(y_change_text, (10, 250))
 
     # Update the window
     pygame.display.flip()
