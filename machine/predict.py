@@ -7,7 +7,7 @@ from roboflow import Roboflow
 from inference import get_model
 import os
 from dotenv import load_dotenv
-from template_model import TemplateModel
+from machine.template_model import TemplateModel
 from ultralytics import YOLO
 import onnxruntime as ort
 import pandas as pd
@@ -353,13 +353,14 @@ class YoloModel(TemplateModel):
                 "center": [cx, cy],
                 "img": cropped_img
             }
-
+    
             if box.cls == 0:
                 housebots.append(dict)
             else:
                 robots.append(dict)
-
+                
         out = {"bots": robots, "housebots": housebots}
+
         return out
 
     def show_predictions(self, img, bots_dict):
@@ -382,14 +383,14 @@ class YoloModel(TemplateModel):
                               (int(x_max), int(y_max)), color, 2)
 
                 # Add label text
-                # cv2.putText(
-                #     img, label,
-                #     (x_min, y_min - 10),  # Slightly above the top-left corner
-                #     cv2.FONT_HERSHEY_SIMPLEX,
-                #     0.5, color, 2
-                # )
+                cv2.putText(
+                    img, label,
+                    (x_min, y_min - 10),  # Slightly above the top-left corner
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, color, 2
+                )
         cv2.imshow("Predictions", img)
-        cv2.waitKey(0)
+        # cv2.waitKey(0)
         cv2.destroyAllWindows()
 
         return img
