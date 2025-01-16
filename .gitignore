@@ -30,6 +30,7 @@ data/warped_vid_frames
 /image_flattening/__pycache__/
 /machine/data
 /machine/saved_models
+test_results
 
 # vid_and_img_processing
 /vid_and_img_processing/data/input_img/*.png
