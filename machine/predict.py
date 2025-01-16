@@ -295,7 +295,7 @@ class RoboflowModel(TemplateModel):
 class YoloModel(TemplateModel):
     # General template for using YOLO to load model files and use them.
 
-    def __init__(self, model_name, model_type):
+    def __init__(self, model_name, model_type, device = None):
         match model_type:
             case "TensorRT":
                 # Works best on NVIDIA GPUs, engine file must be compiled on the PC that it is running on.
@@ -324,12 +324,15 @@ class YoloModel(TemplateModel):
                     model=classification_model_xml, weights=weights)
                 cmodel = core.compile_model(model=model)
                 self.model = cmodel
-
+        self.device = device
                 # compiled_model = core.compile_model(model=model, device_name=device.value)
 
     def predict(self, img, show=False):
         # This prints timing info
-        results = self.model(img)
+        if self.device != None:
+            results = self.model(img, device = self.device)
+        else:
+            results = self.model(img)  
         # If multiple img passed, results has more than one element
         result = results[0]
 
