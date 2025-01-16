@@ -11,27 +11,33 @@ def test_model(model_name,model_type, device = None, img = '12567_png.rf.6bb2ea7
 
     # cv2.imshow("Original image", img)
     # cv2.waitKey(0)
-    total = 0
-    for predict in range(100):
+    data = np.zeros(100)
+    for i in range(100):
         start_time = time.time()
         bots = predictor.predict(img, show=False)
         end_time = time.time()
         elapsed = end_time - start_time
         #print(f'elapsed time: {elapsed:.4f}')
-        total += elapsed
+        data[i] = elapsed
         # predictor.show_predictions(img, bots)
-        print('-'*10)
-    return total / 100
+    print([data])
+    return data
 
 if __name__ == "__main__":
     models = ['ONNX', 'PT']
     with open('test_results.txt', 'w') as file:
         for model in models:
-            avg = test_model('100epoch11',model)
-            file.write(f'{model} average = {avg}')
+            data = test_model('100epoch11',model)
+            avg = np.mean(data)
+            file.write(f'{model} = {data}')
+            file.write('\n')
+            file.write(f'Average: {avg}')
             file.write('\n')
 
-        for model in models:
-            avg = test_model('100epoch11',model, device = "mps")
-            file.write(f'{model} average, mps = {avg}')
+        for model in ['PT']:
+            data = test_model('100epoch11',model, device = "mps")
+            avg = np.mean(data)
+            file.write(f'{model}, mps = {data}')
+            file.write('\n')
+            file.write(f'Average: {avg}')
             file.write('\n')
