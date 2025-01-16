@@ -30,11 +30,11 @@ def test_model(method,model_name,model_type, device = None, img = '12567_png.rf.
 
 if __name__ == "__main__":
     method = input("Method: y or r")
-    if method == 'YoloModel' or 'y':
+    if method == 'YoloModel' or method == 'y':
         models = ['ONNX', 'PT']
         with open('test_results.txt', 'w') as file:
             for model in models:
-                data = test_model('100epoch11',model)
+                data = test_model('YoloModel','100epoch11',model)
                 avg = np.mean(data)
                 avgn1 = np.mean(data[1:])
                 med = np.median(data)
