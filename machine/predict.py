@@ -293,21 +293,27 @@ class RoboflowModel(TemplateModel):
 
 
 class YoloModel(TemplateModel):
+    # General template for using YOLO to load model files and use them.
+
     def __init__(self, model_name, model_type):
         match model_type:
             case "TensorRT":
+                # Works best on NVIDIA GPUs, engine file must be compiled on the PC that it is running on.
                 model_extension = ".engine"
                 self.model = YOLO("./machine/models/" +
                                   model_name + model_extension)
             case "ONNX":
+                # Optimal for CPU performance
                 model_extension = ".onnx"
                 self.model = YOLO("./machine/models/" +
                                   model_name + model_extension)
             case "PT":
+                # Default kinda
                 model_extension = ".pt"
                 self.model = YOLO("./machine/models/" +
                                   model_name + model_extension)
             case "OpenVIVO":
+                # Optimal for Intel CPUs, needs a lil work
                 model_extension = ".xml"
                 weights_extension = ".bin"
                 core = ov.Core()
@@ -322,7 +328,9 @@ class YoloModel(TemplateModel):
                 # compiled_model = core.compile_model(model=model, device_name=device.value)
 
     def predict(self, img, show=False):
+        # This prints timing info
         results = self.model(img)
+        # If multiple img passed, results has more than one element
         result = results[0]
 
         robots = []
@@ -377,79 +385,9 @@ class YoloModel(TemplateModel):
                 #     cv2.FONT_HERSHEY_SIMPLEX,
                 #     0.5, color, 2
                 # )
-        # cv2.imshow("Predictions", img)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-
-        return img
-
-
-class PTModel(TemplateModel):
-    def __init__(self):
-        pt_model_path = './models/100epoch11.pt'
-        self.model = YOLO(pt_model_path)
-
-        # self.model.to('cuda')
-
-    def predict(self, img: np.ndarray, show=False):
-        results = self.model(img)
-        result = results[0]
-
-        robots = []
-        housebots = []
-
-        for box in result.boxes:
-            x1, y1, x2, y2 = box.xyxy[0].tolist()
-            cx, cy, width, height = box.xywh[0].tolist()
-            cropped_img = img[int(y1): int(y2), int(x1):int(x2)]
-
-            # cv2.imshow('image', cropped_img)
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows
-
-            dict = {
-                "bb": [[x1, y1], [x2, y2]],
-                "center": [cx, cy],
-                "img": cropped_img
-            }
-
-            if box.cls == 0:
-                housebots.append(dict)
-            else:
-                robots.append(dict)
-
-        out = {"bots": robots, "housebots": housebots}
-        return out
-
-    def show_predictions(self, img, bots_dict):
-        for label, bots in bots_dict.items():
-
-            for bot in bots:
-
-                # Extract bounding box coordinates and class details
-                x_min, y_min = bot['bb'][0]
-                x_max, y_max = bot['bb'][1]
-
-                # Choose color based on the class
-                if 'housebot' in label:
-                    color = (0, 0, 255)  # Red for housebot
-                else:
-                    color = (0, 255, 0)  # Green for bots
-
-                # Draw the bounding box
-                cv2.rectangle(img, (int(x_min), int(y_min)),
-                              (int(x_max), int(y_max)), color, 2)
-
-                # Add label text
-                # cv2.putText(
-                #     img, label,
-                #     (x_min, y_min - 10),  # Slightly above the top-left corner
-                #     cv2.FONT_HERSHEY_SIMPLEX,
-                #     0.5, color, 2
-                # )
-        # cv2.imshow("Predictions", img)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+        cv2.imshow("Predictions", img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
         return img
 
@@ -543,70 +481,19 @@ class OnnxModel(TemplateModel):
 
 # Main code block
 if __name__ == '__main__':
-    """ # TESTING WITH OUR MODEL
-    print('starting testing with YOLO model')
-    # TESTING YOLO MODEL
-    print('starting testing with YOLO model')
-    # start_time = time.time()
-    # predictor = OurModel()
-    predictor = YoloModel()
-    # end_time = time.time()
-    # print(f'loaded model in {(end_time - start_time):.4f}')
-    start_time = time.time()
-    img = cv2.imread("data/sampleimg2.jpg")
-    bots = predictor.predict(img, show = True)
-    end_time = time.time()
-    elapsed = end_time - start_time
-    print(f'elapsed time: {elapsed:.4f}')
-    print(bots) """
 
-    # pred_img = predictor.display_predictions(img)
-
-    # # Display the resulting image
-    # cv2.imshow("Prediction", pred_img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-
-    # bots = predictor.detect_bot(img)
-    # end_time = time.time()
-    # elapsed = end_time - start_time
-    # print(f'elapsed time: {elapsed:.4f}')
-    # print(bots)
-
-    # Testing Onnx Model
     print('starting testing with PT model')
-    # start_time = time.time()
-    # predictor = OurModel()
     predictor = YoloModel("100epoch11", "PT")
-    # predictor = OnnxModel()
-    # predictor = PTModel()
-    # end_time = time.time()
-    # print(f'loaded model in {(end_time - start_time):.4f}')
-    start_time = time.time()
+
     img = cv2.imread('12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg')
+
     # cv2.imshow("Original image", img)
     # cv2.waitKey(0)
+
+    start_time = time.time()
     bots = predictor.predict(img, show=True)
     end_time = time.time()
     elapsed = end_time - start_time
     print(f'elapsed time: {elapsed:.4f}')
-    # print(len(bots[0][0][0]))
-    # for i in range(6):
-    #     print(bots[0][0][i][0])
-    # with open("tensoroutput.txt", "w") as file:
-    #     file.write(str(bots))
-#   # Write to the file
-#         # for row in bots[0][0][0]:
-#         #     val = float(row)
-#         #     file.write(f'{val:.4f}\n')
-#         for row0 in bots:
-#             file.write("[\n")
-#             for row1 in row0:
-#                 file.write("[\n")
-#                 for row2 in row1:
-#                     file.write("[\n")
-#                     file.write(str(row2))
-#                     file.write("\n]")
-#                 file.write("\n]")
-#             file.write("\n]")
+
     predictor.show_predictions(img, bots)
