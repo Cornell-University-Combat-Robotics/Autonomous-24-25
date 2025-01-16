@@ -58,7 +58,7 @@ class Ram():
     """
     # ----------------------------- CONSTANTS -----------------------------
     ENEMY_HISTORY_BUFFER = 10 # how many previous enemy position we are recording
-    DANGER_ZONE = 10
+    DANGER_ZONE = 50
     LEFT = 0
     RIGHT = 3
     MAX_SPEED = 1 # between 0 and 1
@@ -115,7 +115,8 @@ class Ram():
     Precondition: speed is between [0,1], turn is between [-1,1] 
     '''
     def huey_move(self, speed: float, turn: float):
-        # print(f'Here: {speed} and {turn}')
+        print(f'Here: {speed} and {turn}')
+        
         self.left = ((speed - turn) / 2.0)
         self.right = ((speed + turn) / 2.0)
         return {'left': self.left, 'right': self.right}
@@ -162,12 +163,16 @@ class Ram():
     '''
     def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         print("start of predict desired orientation angle")
+        print("*****Our_pos: ",our_pos, " our_orientation: ", our_orientation, " enemy_pos: ", enemy_pos, "enemy_velocity: ", enemy_velocity, "dt: ", dt)
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
-        
-        if np.linalg.norm(enemy_future_position - our_pos) < Ram.DANGER_ZONE:
+        our_pos= np.copy(our_pos)
+        if np.linalg.norm(enemy_pos - our_pos) < Ram.DANGER_ZONE:
             enemy_future_position = enemy_pos
             if np.array_equal(enemy_pos, our_pos):
                 return 0
+            
+        if(np.array_equal(our_pos,enemy_future_position)):
+            return 0
 
         #  return the angle in degrees
         our_orientation = np.radians(our_orientation)
@@ -210,6 +215,9 @@ class Ram():
 
     def predict_desired_turn_and_speed(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         angle = self.predict_desired_orientation_angle(our_pos, our_orientation, enemy_pos, enemy_velocity, dt)
+        print("Predicted Angle From Predict Turn and Speed: ", angle)
+        print("Turn: ",  angle * (Ram.MAX_TURN / 180.0))
+        print("Speed: ", 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0)))
         return angle * (Ram.MAX_TURN / 180.0), 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0))
 
 
@@ -227,12 +235,16 @@ class Ram():
         
         self.enemy_position = np.array(bots['enemy'].get('center'))
         enemy_velocity = self.calculate_velocity(self.enemy_previous_positions[-1], self.enemy_position, self.delta_t)
-        # turn = self.predict_desired_turn(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
-        #                                  enemy_velocity= enemy_velocity, dt = self.delta_t)
-        # speed = self.predict_desired_speed(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
-                                        #  enemy_velocity= enemy_velocity, dt = self.delta_t)
-        turn, speed = self.predict_desired_turn_and_speed(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
-                                                            enemy_velocity= enemy_velocity, dt = self.delta_t)
+        print(f'Pre-Speed -- Position: {self.huey_position}, Orientation: {self.huey_orientation}, Enemy Position: {self.enemy_position}, Enemy Velocity: {enemy_velocity}, dt: {self.delta_t}')
+        speed = self.predict_desired_speed(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
+                                         enemy_velocity= enemy_velocity, dt = self.delta_t)   
+        print(f'Pre-Turn -- Position: {self.huey_position}, Orientation: {self.huey_orientation}, Enemy Position: {self.enemy_position}, Enemy Velocity: {enemy_velocity}, dt: {self.delta_t}')     
+        turn = self.predict_desired_turn(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
+                                         enemy_velocity= enemy_velocity, dt = self.delta_t)
+        print(f'Post-SpeedTurn -- Position: {self.huey_position}, Orientation: {self.huey_orientation}, Enemy Position: {self.enemy_position}, Enemy Velocity: {enemy_velocity}, dt: {self.delta_t}')
+
+        # turn, speed = self.predict_desired_turn_and_speed(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
+                                                            # enemy_velocity= enemy_velocity, dt = self.delta_t)
 
         if (Ram.TEST_MODE):
             angle = self.predict_desired_orientation_angle(self.huey_position, self.huey_orientation, self.enemy_position, enemy_velocity, self.delta_t)	
