@@ -8,27 +8,47 @@
 import cv2
 import os
 import numpy as np
+import time
 
 from warp_main import get_homography_mat, warp
 from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
+from machine.predict import YoloModel
 
-# Capture video feed from camera using OpenCV
-# cap = cv2.VideoCapture(1)
+# --------- TAKE A STARTING PHOTO ---------
+print("Press '0' to take a starting photo ...")
+cap = cv2.VideoCapture(0)
+while True:
+    ret, frame = cap.read() # Capture each frame from the camera
+    if not ret:
+        print("Failed to capture image")  # If frame capture fails, break the loop
+        break
+
+    # Shows the live video feed in a window (optional)
+    cv2.imshow("EpocCam Video Feed", frame)
+
+    key = cv2.waitKey(1)
+    if key == 48:  # ASCII value for '0' key
+        break
+
+cv2.imwrite("arena.png", frame)
+cv2.imshow("Starting Image", frame)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
 # ---------- BEFORE THE MATCH ----------
 
 # Homography Matrix
-frame = cv2.imread('arena.png')
-frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4)
+# frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4) # TODO: subject to change
 h_mat = get_homography_mat(frame, 700, 700)
 warped_frame = warp(frame, h_mat, 700, 700)
 cv2.imshow("Warped Cage", warped_frame)
+cv2.imwrite("warped_frame.png", warped_frame)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
 # ColorPicker: Manually picking colors for the robot, front and back colors
-image_path = os.getcwd() + "/corner_detection/warped_images/east.png" # TODO: This should use the same image for the homography
+image_path = os.getcwd() + "/warped_frame.png" # TODO: This should use the same image for the homography
 output_file = "selected_colors.txt"
 selected_colors = ColorPicker.pick_colors(image_path)
 
@@ -56,11 +76,11 @@ except Exception as e:
 corner_detection = RobotCornerDetection(selected_colors)
 
 # Defining ML Model Object
-# predictor = OnnxModel() # TODO: This needs to be pushed/merged before uncommenting
+predictor = YoloModel("100epoch11", "PT")
 
-# Defining Ram Ram Algorithm Object
-# TODO: need to define the following: huey_position, huey_orientation, enemy_position
-# algorithm = Ram() # TODO: This needs to be pushed/merged before uncommenting
+# # Defining Ram Ram Algorithm Object
+# # TODO: need to define the following: huey_position, huey_orientation, enemy_position
+# # algorithm = Ram() # TODO: This needs to be pushed/merged before uncommenting
 
 # ---------- WAITING FOR MATCH TO START ----------
 
@@ -87,32 +107,45 @@ while True:
         break
 
 cv2.destroyAllWindows()
+time.sleep(3)
 print("Proceeding with the rest of the program ...")
 
 # ---------- DURING THE MATCH ----------
 
-running = True
-while running:
-    # 1. Capture image from video feed
-    # ret, frame = cap.read()
-    # if not ret:  # If a frame cannot be captured
-    #     break
-    image = cv2.imread('arena.png') # TODO: This should be the image taken from the camera
+cap = cv2.VideoCapture(0)
+while True: # 🙏🙏🙏🙏🙏🙏🙏🙏🙏🙏 NO ONE CHANGE THIS PLEASE 🙏🙏🙏🙏🙏🙏🙏🙏🙏🙏
+    # 1. Camera Capture
+    ret, frame = cap.read()  # Capture each frame from the camera
+    if not ret:
+        print("Failed to capture image")  # If frame capture fails, break the loop
+        break
+
+    # Shows the live video feed in a window (optional)
+    cv2.imshow("EpocCam Video Feed", frame)
+
+    key = cv2.waitKey(1)
+    if key == 48:  # ASCII value for '0' key
+        break
+    
 
     # 2. Warp image
-    warped_image = warp.warp(frame, h_mat, 700, 700)
+    warped_frame = warp(frame, h_mat, 700, 700)
+    cv2.imshow("Warped Cage", warped_frame)
+
+    print("the world is good here")
 
     # 3. Object Detection
-    # detected_bots = predictor.predict(image, show=False)
-    detected_bots = {} # TODO: This should be the output dictionary from Object Detection
+    detected_bots = predictor.predict(warped_frame, show=True)
+    # detected_bots = {} # TODO: This should be the output dictionary from Object Detection
 
     # 4. Corner Detection
     corner_detection.set_bots = detected_bots
-    detected_bots_with_data = corner_detection.corner_detection_main()
+    # detected_bots_with_data = corner_detection.corner_detection_main()
 
     # 5. Algorithm
-    # algorithm.ram_ram(detected_bots_with_data)
+    # motor_value = algorithm.ram_ram(detected_bots_with_data)
+    # print("left: ", motor_value["left"])
+    # print("right: ", motor_value["right"])
 
     # 6. Transmission
-
-    running = False
+    # Weapon is turned off here
