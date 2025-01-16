@@ -168,7 +168,7 @@ class OurModel(TemplateModel):
 
 class RoboflowModel(TemplateModel):
     def __init__(self):
-        self.model = get_model(model_id='nhrl-robots/6',
+        self.model = get_model(model_id='nhrl-robots/9',
                                api_key=ROBOFLOW_API_KEY)
 
     def predict(self, img, confidence_threshold=0.5, show=False):
@@ -281,9 +281,9 @@ class RoboflowModel(TemplateModel):
         #     )
 
         # Display the image with predictions
-        cv2.imshow("Predictions", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        #cv2.imshow("Predictions", img)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
 
     def train(self, batch, epoch, train_path, validation_path, save_path, save):
         return super().train(batch, epoch, train_path, validation_path, save_path, save)
@@ -486,7 +486,9 @@ class OnnxModel(TemplateModel):
 if __name__ == '__main__':
 
     print('starting testing with PT model')
-    predictor = YoloModel("100epoch11", "PT")
+    #predictor = YoloModel("100epoch11","PT")
+    predictor = RoboflowModel()
+    
 
     img = cv2.imread('12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg')
 
@@ -499,4 +501,4 @@ if __name__ == '__main__':
     elapsed = end_time - start_time
     print(f'elapsed time: {elapsed:.4f}')
 
-    predictor.show_predictions(img, bots)
+    #predictor.show_predictions(img, bots)
