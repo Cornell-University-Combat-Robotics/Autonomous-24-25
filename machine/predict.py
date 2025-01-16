@@ -7,7 +7,8 @@ from roboflow import Roboflow
 from inference import get_model
 import os
 from dotenv import load_dotenv
-from template_model import TemplateModel
+# from template_model import TemplateModel # to run in machine
+from machine.template_model import TemplateModel # to run in main
 from ultralytics import YOLO
 import onnxruntime as ort
 import pandas as pd
@@ -107,7 +108,7 @@ class OurModel(TemplateModel):
             # Add label text
             cv2.putText(
                 img, 'housebot',
-                (x_min, y_min - 10),  # Slightly above the top-left corner
+                (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
@@ -124,7 +125,7 @@ class OurModel(TemplateModel):
             # Add label text
             cv2.putText(
                 img, 'bot',
-                (x_min, y_min - 10),  # Slightly above the top-left corner
+                (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
@@ -147,15 +148,15 @@ class OurModel(TemplateModel):
         #     # Add label text
         #     cv2.putText(
         #         img, name,
-        #         (x_min, y_min - 10),  # Slightly above the top-left corner
+        #         (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
         #         cv2.FONT_HERSHEY_SIMPLEX,
         #         0.5, color, 2
         #     )
 
         # Display the image with predictions
-        cv2.imshow("Predictions", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        cv2.imshow("OurModel Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
     def train(self, batch, epoch, train_path, validation_path, save_path, save):
         return super().train(batch, epoch, train_path, validation_path, save_path, save)
@@ -235,7 +236,7 @@ class RoboflowModel(TemplateModel):
             # Add label text
             cv2.putText(
                 img, 'housebot',
-                (x_min, y_min - 10),  # Slightly above the top-left corner
+                (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
@@ -252,7 +253,7 @@ class RoboflowModel(TemplateModel):
             # Add label text
             cv2.putText(
                 img, 'bot',
-                (x_min, y_min - 10),  # Slightly above the top-left corner
+                (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
@@ -275,15 +276,15 @@ class RoboflowModel(TemplateModel):
         #     # Add label text
         #     cv2.putText(
         #         img, name,
-        #         (x_min, y_min - 10),  # Slightly above the top-left corner
+        #         (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
         #         cv2.FONT_HERSHEY_SIMPLEX,
         #         0.5, color, 2
         #     )
 
         # Display the image with predictions
-        #cv2.imshow("Predictions", img)
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
+        cv2.imshow("Roboflow Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
     def train(self, batch, epoch, train_path, validation_path, save_path, save):
         return super().train(batch, epoch, train_path, validation_path, save_path, save)
@@ -380,17 +381,18 @@ class YoloModel(TemplateModel):
                 # Draw the bounding box
                 cv2.rectangle(img, (int(x_min), int(y_min)),
                               (int(x_max), int(y_max)), color, 2)
-
+                
                 # Add label text
-                # cv2.putText(
-                #     img, label,
-                #     (x_min, y_min - 10),  # Slightly above the top-left corner
-                #     cv2.FONT_HERSHEY_SIMPLEX,
-                #     0.5, color, 2
-                # )
-        cv2.imshow("Predictions", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+                cv2.putText(
+                    img, label,
+                    (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, color, 2
+                )
+
+        cv2.imshow("YoloModel Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         return img
 
@@ -460,13 +462,13 @@ class OnnxModel(TemplateModel):
 
                 # Annotate with class and confidence
                 label = f"Class: {int(class_id)} Conf: {confidence:.2f}"
-                cv2.putText(image, label, (xmin, ymin - 10),
+                cv2.putText(image, label, (int(xmin), int(ymin - 10)),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
         # Display the result
         cv2.imshow('YOLO Detection', image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         # Display the image with predictions
         # cv2.imshow("Predictions", img)
