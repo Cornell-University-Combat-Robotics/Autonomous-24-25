@@ -12,23 +12,27 @@ class RobotCornerDetection:
     based on their unique colors and shapes.
     """
     
-    def __init__(self, selected_colors, display_image=True):
+    def __init__(self, selected_colors, display_final_image=False, display_possible_hueys=False):
         """
         Initializes the RobotCornerDetection class.
 
         Args:
-            bots (dict): A dictionary containing information about the bots,
-                        including bounding boxes and images. This is empty for
-                        now when initialized before the match. There is a
+            bots (list): A list of dictionary containing information about the 
+                        bots, including bounding boxes and images. This is empty 
+                        for now when initialized before the match. There is a
                         setter that will run during the match.
             selected_colors (list): Manually selected colors for front and back corners.
-            display_image (bool): Whether to display images during processing.
+            display_final_image (bool): Whether to display the final image with
+                        labeled left and right corners.
+            display_possible_hueys (bool): Whether to display all possible
+                        images of Huey.
         """
-        self.bots = {}
+        self.bots = []
         self.selected_colors = selected_colors
-        self.display_image = display_image
+        self.display_final_image = display_final_image
+        self.display_possible_hueys = display_possible_hueys
 
-    def set_bots(self, bots):
+    def set_bots(self, bots: list): # list of dictionaries
         self.bots = bots
 
     @staticmethod
@@ -115,6 +119,20 @@ class RobotCornerDetection:
         Returns:
             np.ndarray: The image identified as containing our robot.
         """
+        if self.display_possible_hueys:
+            window_width = 300
+            window_height = 300
+
+            for i, img in enumerate(bot_images):
+                if img is not None:
+                    resized_img = cv2.resize(img, (window_width, window_height))
+                    cv2.imshow(f"Bot Image {i + 1}", resized_img)
+                else:
+                    print(f"Image {i + 1} is None")
+            
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
         if bot_images and all(img is not None for img in bot_images):
             start_time = time.time()
             our_bot = self.find_our_bot(bot_images)
@@ -364,17 +382,24 @@ class RobotCornerDetection:
         Returns:
             dict: A dictionary containing details of the robot and enemy robots.
         """
-        bot_images = [bot["img"] for bot in self.bots.values()]
+        bot_images = [bot["img"] for bot in self.bots]
         image = self.detect_our_robot_main(bot_images)
+
+        cv2.imshow("Huey", image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         
         if image is not None:
             centroid_points = self.find_centroids(image)
+            print("centroid points: " + str(centroid_points))
+            print("end ----------")
             left_front, right_front = self.get_left_and_right_front_points(centroid_points)
+            # print("end ----------")
             orientation = self.compute_tangent_angle(left_front, right_front)
 
             # Find the identified bot (our robot)
             huey_bb = None
-            for _, bot_data in self.bots.items():
+            for bot_data in self.bots:
                 if bot_data["img"] is image:
                     huey_bb = bot_data["bb"]
                     break
@@ -387,8 +412,8 @@ class RobotCornerDetection:
 
             # Enemy bots are all except the identified bot
             enemy_bots = []
-            for bot_key, bot_data in self.bots.items():
-                if bot_data["img"] is not image and bot_key != "housebot":
+            for bot_data in self.bots:
+                if bot_data["img"] is not image:
                     enemy = {
                         "bb": bot_data["bb"],
                         "center": np.mean(bot_data["bb"], axis=0),
@@ -398,7 +423,7 @@ class RobotCornerDetection:
             result = {"huey": huey, "enemies": enemy_bots}
             pprint.pprint(result, sort_dicts=False, indent=2)
 
-            if self.display_image:
+            if self.display_final_image:
                 # Draw the left front corner
                 cv2.circle(
                     image,
@@ -439,11 +464,13 @@ class RobotCornerDetection:
 
                 # Display the image
                 cv2.imshow("Image with Left and Right Front Corners", image)
-                cv2.imwrite("image_with_front_corners.png", image)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
 
             return result
+        else:
+            print("Image doesn't exist")
+            return None
 
 
 if __name__ == "__main__":
@@ -454,13 +481,15 @@ if __name__ == "__main__":
     huey_image = cv2.imread(heuy_image_path)
     not_huey_image = cv2.imread(not_huey_image_path)
 
-    bots = {
-        "housebot": {"bb": [[0, 0], [1, 1]], "img": not_huey_image},
-        "bot1": {"bb": [[50, 50], [60, 60]], "img": not_huey_image},
-        "bot2": {"bb": [[150, 150], [160, 160]], "img": huey_image},
-        "bot3": {"bb": [[300, 150], [400, 180]], "img": not_huey_image}
-    }
+    housebot = {"bb": [[0, 0], [1, 1]], "img": not_huey_image}
+    bot1 = {"bb": [[50, 50], [60, 60]], "img": not_huey_image}
+    bot2 = {"bb": [[150, 150], [160, 160]], "img": huey_image}
+    bot3 = {"bb": [[300, 150], [400, 180]], "img": not_huey_image}
 
+    housebots = [housebot]
+    bots = [bot1, bot2, bot3]
+    all_bots = {"housebot": housebot, "bots": bots}
+    
     selected_colors = []
     try:
         with open(selected_colors_file, "r") as file:
@@ -472,6 +501,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error reading selected_colors.txt: {e}")
         exit(1)
-
-    corner_detection = RobotCornerDetection(bots, selected_colors)
-    corner_detection.corner_detection_main()
+    
+    corner_detection = RobotCornerDetection(selected_colors, True, False)
+    corner_detection.set_bots(all_bots["bots"])
+    result = corner_detection.corner_detection_main()
