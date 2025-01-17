@@ -27,13 +27,13 @@ point2_color = (0, 0, 255)  # Blue (Enemy)
 huey = {'center': [10, 10], 'orientation': 0.0}  # Huey's position and orientation (0 degrees = along x-axis)
 enemy = {'center': [width - 10, height - 10]}  # Enemy's position
 
-# Get bot data and send it to the algorithm
-def ram_ram(bots={'huey': {'bb': [], 'center': [], 'orientation': 0.0}, 'enemy': {'bb': [], 'center': []}}):
-    # Simulate the method receiving bots' data
-    print("Updating bots data:")
-    print(f"Huey: {bots['huey']}")
-    print(f"Enemy: {bots['enemy']}")
-    algo.ram_ram(bots)
+# # Get bot data and send it to the algorithm
+# def ram_ram(bots={'huey': {'bb': [], 'center': [], 'orientation': 0.0}, 'enemy': {'bb': [], 'center': []}}):
+#     # Simulate the method receiving bots' data
+#     print("Updating bots data:")
+#     print(f"Huey: {bots['huey']}")
+#     print(f"Enemy: {bots['enemy']}")
+#     algo.ram_ram(bots)
 
 # Normalize the angle to be between 0 and 360 degrees
 def normalize_angle(angle):
@@ -95,8 +95,9 @@ while running:
 
     # Movement speed for both bots
     speed_up = 5.0
-    huey_turn_speed = speed_up * huey_bot.predict_desired_turn(our_pos=np.array(huey['center']), our_orientation=fix_angle(huey['orientation']), enemy_pos=np.array(enemy['center']), enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60))
-    huey_speed = speed_up * huey_bot.predict_desired_speed(our_pos=np.array(huey['center']), our_orientation=fix_angle(huey['orientation']), enemy_pos=np.array(enemy['center']), enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60))
+    huey_turn_speed, huey_speed = (huey_bot.predict_desired_turn_and_speed(our_pos=np.array(huey['center']), our_orientation=fix_angle(huey['orientation']), enemy_pos=np.array(enemy['center']), enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60)))
+    huey_turn_speed = speed_up * huey_turn_speed
+    huey_speed = speed_up * huey_speed
     enemy_speed = speed_up
 
     old_pos = enemy['center']
@@ -146,7 +147,7 @@ while running:
             }
         }
         # Call the ram_ram method with the bots' data
-        ram_ram(bots=bots_data) 
+        # ram_ram(bots=bots_data) 
         last_called_time = current_time  # Update the last called time
 
     # Draw the points (Huey and Enemy)
