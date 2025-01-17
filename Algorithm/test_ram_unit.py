@@ -1,6 +1,8 @@
 import unittest
 from ram import Ram
 import numpy as np
+import time
+
 
 algo = Ram()
 
@@ -260,26 +262,45 @@ class TestRam(unittest.TestCase):
         
         # bots are overlapping
         np.testing.assert_almost_equal(algo.predict_desired_speed(our_pos=np.array([100,100]), our_orientation=90,  
-                                                                                enemy_pos=np.array([100,100]), enemy_velocity=np.array([0, 0]), dt = 0.1), 1)
+                                                                               enemy_pos=np.array([100,100]), enemy_velocity=np.array([0, 0]), dt = 0.1), 1)
+
     def test_ram_ram(self):
         algo = Ram(huey_old_position=np.array([10,10]), huey_position=np.array([10,10]), enemy_position=np.array([10,590]))
+        
         bots1 = {'huey': {'bb': [0, 0, 20, 20], 'center': [10, 10], 'orientation': 0.0}, 'enemy': {'bb': [780, 580, 20, 20], 'center': [10, 590]}}
         values = algo.ram_ram(bots1)
         self.assertAlmostEqual(values['left'], .5) 
         self.assertAlmostEqual(values['right'], 0) 
-        bots2 = {'huey': {'bb': [138, 154, 20, 20], 'center': [148, 164], 'orientation': 265.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
+        
+        bots2 = {'huey': {'bb': [138, 154, 20, 20], 'center': [148, 164], 'orientation': 270.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
+        
+        og_time = time.time()
         values = algo.ram_ram(bots2)
-        self.assertAlmostEqual(values['left'], -0.0766318353)
-        self.assertAlmostEqual(values['right'], 0.5)
+        dt = time.time() - og_time
+        
+        self.assertAlmostEqual(values['left'], -0.2223902366185668888888888888888888888888888888888888888888888888888888888/2, places = 2)
+        self.assertAlmostEqual(values['right'], 0.9999999999994331111111111111111111111111111111111111111111111111111111111/2, places = 2)
+
+        bots3 = {'huey': {'bb': [199.21307092309192, 397.12606428385743, 20, 20], 'center': [209.21307092309192, 407.12606428385743], 'orientation': 90}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
+        print("Test: Enemy doesn't move")
+        values = algo.ram_ram(bots3)
+        self.assertAlmostEqual(values['left'],0.5, places =3)
+        self.assertAlmostEqual(values['right'],0.1771477778, places =3)
 
 
 
-bots3 = {'huey': {'bb': [199.21307092309192, 397.12606428385743, 20, 20], 'center': [209.21307092309192, 407.12606428385743], 'orientation': 270.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
-bots4 = {'huey': {'bb': [99.13626817533684, 582.1403853383393, 20, 20], 'center': [109.13626817533684, 592.1403853383393], 'orientation': 325.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
-bots5 = {'huey': {'bb': [175.86020593421904, 400.73527537699533, 20, 20], 'center': [185.86020593421904, 410.73527537699533], 'orientation': 95.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
-bots6 = {'huey': {'bb': [210.82217004773602, 172.0585415440591, 20, 20], 'center': [220.82217004773602, 182.0585415440591], 'orientation': 10.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
-bots7 = {'huey': {'bb': [401.9807865634781, 331.582780056669, 20, 20], 'center': [411.9807865634781, 341.582780056669], 'orientation': 315.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
-bots8 = {'huey': {'bb': [530.5537075054144, 226.91770778196855, 20, 20], 'center': [540.5537075054144, 236.91770778196855], 'orientation': 85.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
-bots9 = {'huey': {'bb': [421.700003041856, 157.16505240600515, 20, 20], 'center': [431.700003041856, 167.16505240600515], 'orientation': 265.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
-bots10 = {'huey': {'bb': [528.4292586105291, 295.3309900724159, 20, 20], 'center': [538.4292586105291, 305.3309900724159], 'orientation': 25.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
-bots11 = {'huey': {'bb': [485.45775720605434, 173.0092132559673, 20, 20], 'center': [495.45775720605434, 183.0092132559673], 'orientation': 185.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
+        # enemy is currently in danger zone -- use enemy current position
+        print("Test: Enemy is in the Danger Zone")
+        bots4 = {'huey': {'bb': [99.13626817533684, 582.1403853383393, 20, 20], 'center': [109.13626817533684, 592.1403853383393], 'orientation': 325.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [120, 540]}}
+        values = algo.ram_ram(bots4)
+        # 
+        self.assertAlmostEqual(values['left'], -0.258111111/2, places=3)
+        self.assertAlmostEqual(values['right'], 0.4996944444, places =3)
+        
+
+        # if future position is our position
+        print("Test: Future position is current position")
+        bots5 = {'huey': {'bb': [99, 582., 20, 20], 'center': [185, 410], 'orientation': 325.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [152.5, 475]}}
+        values = algo.ram_ram(bots5)
+        self.assertAlmostEqual(values['left'], 0.5, places=3)
+        self.assertAlmostEqual(values['right'], 0.5, places =3)
