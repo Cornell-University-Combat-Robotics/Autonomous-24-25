@@ -124,14 +124,14 @@ class Ram():
         # left = (speed - turn)
         # right = (speed + turn)
         # if (left > 1) :
-        #   right -= left - 1;
+        #   right -= left - 1
         #   left = 1
         # if (right > 1) :
         #   left -= right - 1
         #   right = 1
 
         # print (f'Left: {self.left}, Right: {self.right}')
-        return {'left': self.left, 'right': self.right}
+        return {'left': self.left, 'right': self.right, 'speed' : speed, 'turn' : turn}
 
     ''' 
     calculate the velocity of the bot given the current and previous position
@@ -179,7 +179,7 @@ class Ram():
         # print("*****Our_pos: ",our_pos, " our_orientation: ", our_orientation, " enemy_pos: ", enemy_pos, "enemy_velocity: ", enemy_velocity, "dt: ", dt) 
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
         #print("enemy_future position: ", enemy_future_position)
-        our_pos2= np.copy(our_pos)  
+        our_pos2= np.copy(our_pos)
         if np.linalg.norm(enemy_pos - our_pos2) < Ram.DANGER_ZONE:
             #print("HIGHWAY TO THE DANGER ZONE")
             enemy_future_position = enemy_pos
@@ -284,4 +284,3 @@ class Ram():
         # print("speed: ", speed)
         # print("turn:", turn)
         return self.huey_move(speed, turn)
-    
