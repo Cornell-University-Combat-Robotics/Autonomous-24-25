@@ -117,21 +117,21 @@ class Ram():
     def huey_move(self, speed: float, turn: float):
         # print(f'Here: {speed} and {turn}')
         
-        self.left = ((speed - turn) / 2.0)
-        self.right = ((speed + turn) / 2.0)
+        #self.left = ((speed - turn) / 2.0)
+        #self.right = ((speed + turn) / 2.0)
 
         # DeCamp proposal for managing speed below
-        # left = (speed - turn)
-        # right = (speed + turn)
-        # if (left > 1) :
-        #   right -= left - 1;
-        #   left = 1
-        # if (right > 1) :
-        #   left -= right - 1
-        #   right = 1
+        left = (speed - turn)
+        right = (speed + turn)
+        if (left > 1) :
+          right -= left - 1
+          left = 1
+        if (right > 1) :
+          left -= right - 1
+          right = 1
 
         # print (f'Left: {self.left}, Right: {self.right}')
-        return {'left': self.left, 'right': self.right}
+        return {'left': left, 'right': right, 'speed' : speed, 'turn' : turn}
 
     ''' 
     calculate the velocity of the bot given the current and previous position
@@ -179,7 +179,7 @@ class Ram():
         # print("*****Our_pos: ",our_pos, " our_orientation: ", our_orientation, " enemy_pos: ", enemy_pos, "enemy_velocity: ", enemy_velocity, "dt: ", dt) 
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
         #print("enemy_future position: ", enemy_future_position)
-        our_pos2= np.copy(our_pos)  
+        our_pos2= np.copy(our_pos)
         if np.linalg.norm(enemy_pos - our_pos2) < Ram.DANGER_ZONE:
             #print("HIGHWAY TO THE DANGER ZONE")
             enemy_future_position = enemy_pos
@@ -284,39 +284,3 @@ class Ram():
         # print("speed: ", speed)
         # print("turn:", turn)
         return self.huey_move(speed, turn)
-    
-    ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
-    def ram_ram_raw(self, bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}}):
-        self.delta_t = time.time() - self.old_time # record delta time
-        self.old_time = time.time()
-        
-        
-        # get new position and heading values
-        self.huey_position = np.array(bots['huey'].get('center'))
-        self.huey_orientation = bots['huey'].get('orientation')
-        
-        self.enemy_position = np.array(bots['enemy'].get('center'))
-        enemy_velocity = self.calculate_velocity(self.enemy_position, self.enemy_previous_positions[-1], self.delta_t)
-        turn = self.predict_desired_turn(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
-                                         enemy_velocity= enemy_velocity, dt = self.delta_t)
-        speed = self.predict_desired_speed(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
-                                         enemy_velocity= enemy_velocity, dt = self.delta_t)
-        
-
-        if (Ram.TEST_MODE):
-            angle = self.predict_desired_orientation_angle(self.huey_position, self.huey_orientation, self.enemy_position, enemy_velocity, self.delta_t)	
-            direction = self.predict_enemy_position(self.enemy_position, enemy_velocity, self.delta_t) - self.huey_position
-
-            test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
-                                    enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
-                                    huey_velocity=self.calculate_velocity(self.huey_position, self.huey_old_position, self.delta_t),
-                                    enemy_old_pos=self.enemy_previous_positions, enemy_velocity=enemy_velocity, speed=speed, turn=turn,
-                                    left_speed=self.left, right_speed=self.right, angle = angle, direction = direction)
-            
-        self.huey_old_position = self.huey_position
-        # if the array for enemy_previous_positions is full, then pop the first one
-        self.enemy_previous_positions.append(self.enemy_position)
-        if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
-            self.enemy_previous_positions.pop(0)
-
-        return [speed, turn]
