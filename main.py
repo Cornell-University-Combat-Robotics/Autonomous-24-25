@@ -106,9 +106,9 @@ while running:
     # detected_bots = predictor.predict(image, show=False)
     detected_bots = {} # TODO: This should be the output dictionary from Object Detection
 
-    # 4. Corner Detection
-    corner_detection.set_bots = detected_bots
-    detected_bots_with_data = corner_detection.corner_detection_main()
+    # 4. Corner Detection # TODO: Change the formatting
+    # corner_detection.set_bots = [detected_bots]
+    # detected_bots_with_data = corner_detection.corner_detection_main()
 
     # 5. Algorithm
     # algorithm.ram_ram(detected_bots_with_data)
