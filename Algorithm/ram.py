@@ -169,23 +169,23 @@ class Ram():
         # print("*****Our_pos: ",our_pos, " our_orientation: ", our_orientation, " enemy_pos: ", enemy_pos, "enemy_velocity: ", enemy_velocity, "dt: ", dt) 
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
         #print("enemy_future position: ", enemy_future_position)
-        our_pos= np.copy(our_pos)
-        if np.linalg.norm(enemy_pos - our_pos) < Ram.DANGER_ZONE:
+        our_pos2= np.copy(our_pos)
+        if np.linalg.norm(enemy_pos - our_pos2) < Ram.DANGER_ZONE:
             #print("HIGHWAY TO THE DANGER ZONE")
             enemy_future_position = enemy_pos
-            if np.array_equal(enemy_pos, our_pos):
+            if np.array_equal(enemy_pos, our_pos2):
                 return 0
             
-        if(np.array_equal(our_pos,enemy_future_position)):
+        if(np.array_equal(our_pos2,enemy_future_position)):
             return 0
 
         #  return the angle in degrees
-        our_orientation = np.radians(our_orientation)
-        orientation = np.array([math.cos(our_orientation), math.sin(our_orientation)])
-        enemy_future_position = self.invert_y(enemy_future_position)
-        our_pos = self.invert_y(our_pos)
+        our_orientation2 = np.radians(our_orientation)
+        orientation = np.array([math.cos(our_orientation2), math.sin(our_orientation2)])
+        enemy_future_position2 = self.invert_y(enemy_future_position)
+        our_pos3 = self.invert_y(our_pos2)
         
-        direction = enemy_future_position - our_pos
+        direction = enemy_future_position2 - our_pos3
         # calculate the angle between the bot and the enemy
         # print("orientation: ", orientation)
         #print("enemy_future position: ", enemy_future_position)
