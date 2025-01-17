@@ -117,21 +117,21 @@ class Ram():
     def huey_move(self, speed: float, turn: float):
         # print(f'Here: {speed} and {turn}')
         
-        #self.left = ((speed - turn) / 2.0)
-        #self.right = ((speed + turn) / 2.0)
+        self.left = ((speed - turn) / 2.0)
+        self.right = ((speed + turn) / 2.0)
 
         # DeCamp proposal for managing speed below
-        left = (speed - turn)
-        right = (speed + turn)
-        if (left > 1) :
-          right -= left - 1
-          left = 1
-        if (right > 1) :
-          left -= right - 1
-          right = 1
+        # left = (speed - turn)
+        # right = (speed + turn)
+        # if (left > 1) :
+        #   right -= left - 1
+        #   left = 1
+        # if (right > 1) :
+        #   left -= right - 1
+        #   right = 1
 
         # print (f'Left: {self.left}, Right: {self.right}')
-        return {'left': left, 'right': right, 'speed' : speed, 'turn' : turn}
+        return {'left': self.left, 'right': self.right, 'speed' : speed, 'turn' : turn}
 
     ''' 
     calculate the velocity of the bot given the current and previous position
