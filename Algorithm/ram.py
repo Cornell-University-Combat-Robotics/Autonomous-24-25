@@ -156,8 +156,9 @@ class Ram():
     Precondition: np.array
     '''
     def invert_y(self, pos: np.array):
-        pos[1] = -pos[1]
-        return pos
+        pos2= np.copy(pos)
+        pos2[1] = -pos[1]
+        return pos2
     
     ''' 
     Returns the predicted desired orientation angle of the bot given all parameters, NOTE: the positive direction is counterclockwise
@@ -165,12 +166,12 @@ class Ram():
     '''
     def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         # print("start of predict desired orientation angle")
-        # print("*****Our_pos: ",our_pos, " our_orientation: ", our_orientation, " enemy_pos: ", enemy_pos, "enemy_velocity: ", enemy_velocity, "dt: ", dt)
+        # print("*****Our_pos: ",our_pos, " our_orientation: ", our_orientation, " enemy_pos: ", enemy_pos, "enemy_velocity: ", enemy_velocity, "dt: ", dt) 
         enemy_future_position = self.predict_enemy_position(enemy_pos, enemy_velocity, dt)
-        print("enemy_future position: ", enemy_future_position)
+        #print("enemy_future position: ", enemy_future_position)
         our_pos= np.copy(our_pos)
         if np.linalg.norm(enemy_pos - our_pos) < Ram.DANGER_ZONE:
-            print("HIGHWAY TO THE DANGER ZONE")
+            #print("HIGHWAY TO THE DANGER ZONE")
             enemy_future_position = enemy_pos
             if np.array_equal(enemy_pos, our_pos):
                 return 0
@@ -187,8 +188,8 @@ class Ram():
         direction = enemy_future_position - our_pos
         # calculate the angle between the bot and the enemy
         # print("orientation: ", orientation)
-        print("enemy_future position: ", enemy_future_position)
-        print("our_pos: ", our_pos )
+        #print("enemy_future position: ", enemy_future_position)
+        #print("our_pos: ", our_pos )
         # print("direction: ", direction)       
         ratio = np.dot(direction, orientation) / (np.linalg.norm(direction) * np.linalg.norm(orientation))
         #print("ratio: ", ratio)
@@ -198,7 +199,7 @@ class Ram():
             ratio = -1
         angle = np.degrees(np.arccos(ratio))
         sign = np.sign(np.cross(orientation, direction)) 
-        print("angle: ", angle)
+        #print("angle: ", angle)
         return sign*angle
 
     ''' predict the desired turn of the bot given the current position and velocity of the enemy '''
@@ -239,10 +240,10 @@ class Ram():
         
         self.enemy_position = np.array(bots['enemy'].get('center'))
         enemy_velocity = self.calculate_velocity(self.enemy_previous_positions[-1], self.enemy_position, self.delta_t)
-        print("enemy_position: ", self.enemy_position)
-        print("enemy_previous_positions: ", self.enemy_previous_positions)
-        print("delta_t: ", self.delta_t)
-        print("enemy_velocity: ", enemy_velocity)
+        #print("enemy_position: ", self.enemy_position)
+        #print("enemy_previous_positions: ", self.enemy_previous_positions)
+        #print("delta_t: ", self.delta_t)
+        #print("enemy_velocity: ", enemy_velocity)
         # print(f'Pre-Speed -- Position: {self.huey_position}, Orientation: {self.huey_orientation}, Enemy Position: {self.enemy_position}, Enemy Velocity: {enemy_velocity}, dt: {self.delta_t}')
         #speed = self.predict_desired_speed(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
         #                                 enemy_velocity= enemy_velocity, dt = self.delta_t)   
