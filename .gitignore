@@ -4,6 +4,7 @@ lib
 lib64
 pyvenv.cfg
 .env
+*.csv
 /camera_test/wired
 /camera_test/wireless
 /camera_test/comprision

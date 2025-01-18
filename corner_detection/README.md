@@ -14,7 +14,7 @@ factors.
 
 Functions in this file will be used in the main.py integration file.
 
-## test_images_in_folder.py
+## test_corner_detection.py
 
 Running this file will run the color picker and corner detection functionality 
 on all images in a given folder
@@ -27,7 +27,7 @@ corners in that order. Make sure the image path is correct
 on the specified image. Make sure the image path is correct
 
 ## Testing All Photos in a Given Folder
-1. Run `python3 test_images_in_folder.py` to run the cornerl detection 
+1. Run `python3 test_corner_detection.py` to run the cornerl detection 
 functionality on all images in a given folder. Make sure the folder path is
 correct
 

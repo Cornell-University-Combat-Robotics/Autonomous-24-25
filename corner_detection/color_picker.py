@@ -20,19 +20,33 @@ class ColorPicker:
         Returns:
             list: Selected colors for the robot, front corner, and back corner in HSV format.
         """
-        test_img = cv2.imread(image_path)
+        try:
+            test_img = cv2.imread(image_path)
+            if test_img is None:
+                raise FileNotFoundError(f"Image not found: {image_path}")
+        except Exception as e:
+            print(f"Error loading image: {e}")
+            return []
+
         selected_colors = []
         points = []
 
         def click_event(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN:
-                color = test_img[y, x]  # OpenCV reads as BGR
-                hsv_color = cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_BGR2HSV)[0][0]
-                selected_colors.append(hsv_color)
-                points.append([x, y])
-                print(f"Selected color (HSV): {hsv_color}")
-                print(f"Point added: {x}, {y}")
-                redraw_image()
+                if x < 0 or y < 0 or x >= test_img.shape[1] or y >= test_img.shape[0]:
+                    print(f"Clicked outside the image: ({x}, {y})")
+                    return
+
+                try:
+                    color = test_img[y, x]  # OpenCV reads as BGR
+                    hsv_color = cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_BGR2HSV)[0][0]
+                    selected_colors.append(hsv_color)
+                    points.append([x, y])
+                    print(f"Selected color (HSV): {hsv_color}")
+                    print(f"Point added: {x}, {y}")
+                    redraw_image()
+                except Exception as e:
+                    print(f"Error processing color at ({x}, {y}): {e}")
 
         def redraw_image():
             img_copy = test_img.copy()
@@ -77,17 +91,80 @@ class ColorPicker:
         print(f"Robot Point: {points[0]}")
         print(f"Front Corner Point: {points[1]}")
         print(f"Back Corner Point: {points[2]}")
-        
+
         cv2.destroyAllWindows()
         return selected_colors
+
+def save_colors_to_file(colors, output_file):
+    """
+    Saves the selected colors to a text file in HSV format.
+
+    Args:
+        colors (list): List of HSV colors to be saved.
+        output_file (str): Path to the output file.
+    """
+    try:
+        with open(output_file, "w") as file:
+            for color in colors:
+                file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
+        print(f"Selected colors have been saved to '{output_file}'.")
+    except FileNotFoundError:
+        print(f"Error: Output file path '{output_file}' does not exist.")
+    except Exception as e:
+        print(f"Error saving colors to file: {e}")
+
+def display_colors(selected_colors):
+    """
+    Displays the selected colors as small colored blocks in a window.
+
+    Args:
+        selected_colors (list): List of HSV colors.
+    """
+    if not selected_colors:
+        print("No colors selected to display.")
+        return
+    
+    try:
+        # Convert HSV colors to BGR and create a blank image to show them
+        bgr_colors = [cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_HSV2BGR)[0][0] for color in selected_colors]
+
+        height = 175
+        width = 175
+        img = np.zeros((height, width * len(bgr_colors), 3), dtype=np.uint8)
+
+        for idx, color in enumerate(bgr_colors):
+            img[:, idx * width:(idx + 1) * width] = color
+
+            label = ""
+            if idx == 0:
+                label = "Robot Color"
+            elif idx == 1:
+                label = "Front Corner"
+            elif idx == 2:
+                label = "Back Corner"
+
+            cv2.putText(img, label, (idx * width + 10, height - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+
+        cv2.imshow("Selected Colors", img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    except Exception as e:
+        print(f"Error displaying colors: {e}")
 
 if __name__ == "__main__":
     image_path = os.getcwd() + "/warped_images/east.png"
     output_file = "selected_colors.txt"
-    selected_colors = ColorPicker.pick_colors(image_path)
 
-    with open(output_file, "w") as file:
-        for color in selected_colors:
-            file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
-
-    print(f"Selected colors have been saved to '{output_file}'.")
+    # Validating the image path
+    if not os.path.exists(image_path):
+        print(f"Image file does not exist at path: {image_path}")
+    else:
+        try:
+            selected_colors = ColorPicker.pick_colors(image_path)
+            if selected_colors:
+                save_colors_to_file(selected_colors, output_file)
+                display_colors(selected_colors)
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
