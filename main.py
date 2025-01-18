@@ -19,8 +19,13 @@ from machine.predict import RoboflowModel
 
 # --------- TAKE A STARTING PHOTO ---------
 print("Press '0' to take a starting photo ...")
-cap = cv2.VideoCapture("vid_and_img_processing/trimmedBZ-nhrl_oct24_30lb-beeforce-ares-W-4-Cage-1-Overhead-High.mp4")
-# cap = cv2.VideoCapture("vid_and_img_processing/trimmedBZ-nhrl_sep24_fs-pikmin-gforce-4e7e-Cage-7-Overhead-High.mp4")
+# cap = cv2.VideoCapture(0)
+
+# --------- SAMPLE 3LB CAMS ---------
+# cap = cv2.VideoCapture("vid_and_img_processing/trimmedBZ-nhrl_dec24_fs-beebo-weeeeeeeeeeeeee-43c0-Cage-5-Overhead-High.mp4") # 2 bots
+# cap = cv2.VideoCapture("vid_and_img_processing/trimmedBZ-nhrl_sep24_fs-pikmin-gforce-4e7e-Cage-7-Overhead-High.mp4") # 2 bots
+# cap = cv2.VideoCapture("vid_and_img_processing/BZ-nhrl_dec24_fs-wreckcreation-onnamusha-4d90-Cage-5-Overhead-High.mp4") # 3 bots
+cap = cv2.VideoCapture("vid_and_img_processing/BZ-nhrl_mar24_3lb-chainsawkitty-redpanda-W-61-Cage-3-Overhead-High.mp4") # 4 bots
 
 while True:
     ret, frame = cap.read() # Capture each frame from the camera
@@ -43,7 +48,7 @@ cv2.destroyAllWindows()
 # ---------- BEFORE THE MATCH ----------
 
 # Homography Matrix
-frame = cv2.resize(frame, (0,0), fx=1, fy=1) # TODO: subject to change
+frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4) # TODO: subject to change
 h_mat = get_homography_mat(frame, 700, 700)
 warped_frame = warp(frame, h_mat, 700, 700)
 cv2.imshow("Warped Cage", warped_frame)
@@ -80,6 +85,7 @@ except Exception as e:
 corner_detection = RobotCornerDetection(selected_colors)
 
 # Defining ML Model Object
+# predictor = YoloModel("100epoch11","PT")
 predictor = RoboflowModel()
 
 # # Defining Ram Ram Algorithm Object
@@ -116,37 +122,52 @@ print("Proceeding with the rest of the program ...")
 
 # ---------- DURING THE MATCH ----------
 
+# 0. Set desired FPS
+frame_rate = 10
+prev = 0
+
 while True: # 🙏🙏🙏🙏🙏🙏🙏🙏🙏🙏 NO ONE CHANGE THIS PLEASE 🙏🙏🙏🙏🙏🙏🙏🙏🙏🙏
     # 1. Camera Capture
+    time_elapsed = time.time() - prev
     ret, frame = cap.read()  # Capture each frame from the camera
+
     if not ret:
-        print("Failed to capture image")  # If frame capture fails, break the loop
-        break
+            print("Failed to capture image")  # If frame capture fails, break the loop
+            break
+    if time_elapsed > 1.0/frame_rate:
+        prev = time.time()
+        # Shows the live video feed in a window (optional)
+        # cv2.imshow("EpocCam Video Feed", frame)
 
-    # Shows the live video feed in a window (optional)
-    # cv2.imshow("EpocCam Video Feed", frame)
+        key = cv2.waitKey(1)
+        if key == 48:  # ASCII value for '0' key
+            break
+        # # (Attempted) Actively adjust FPS
+        # elif key == (83 or 115) and key > 1: # ASCII for S, s -- SLOWS
+        #     frame_rate -= 1
+        #     print(f"FPS changed: frame_rate")
+        # elif key == (68 or 100) and key > 1: # ASCII for D, d -- ACCELERATES
+        #     frame_rate += 1
+        #     print(f"FPS changed: frame_rate")
 
-    key = cv2.waitKey(1)
-    if key == 48:  # ASCII value for '0' key
-        break
+        # 2. Warp image
+        frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4)
+        warped_frame = warp(frame, h_mat, 700, 700)
+        cv2.imshow("Warped Cage", warped_frame)
 
-    # 2. Warp image
-    warped_frame = warp(frame, h_mat, 700, 700)
-    cv2.imshow("Warped Cage", warped_frame)
+        print("the world is good here")
 
-    print("the world is good here")
-
-    # 3. Object Detection
-    detected_bots = predictor.predict(warped_frame, show=True)
-    predictor.show_predictions(warped_frame, detected_bots)
-    # detected_bots = {} # TODO: This should be the output dictionary from Object Detection
+        # 3. Object Detection
+        detected_bots = predictor.predict(warped_frame, show=True)
+        # predictor.show_predictions(warped_frame, detected_bots)
+        # detected_bots = {} # TODO: This should be the output dictionary from Object Detection
 
     # 4. Corner Detection # TODO: Change the formatting
     # corner_detection.set_bots = [detected_bots]
     # detected_bots_with_data = corner_detection.corner_detection_main()
 
-    # 5. Algorithm
-    # algorithm.ram_ram(detected_bots_with_data)
+        # 5. Algorithm
+        # algorithm.ram_ram(detected_bots_with_data)
 
-    # 6. Transmission
-    # Weapon is turned off here
+        # 6. Transmission
+        # Weapon is turned off here

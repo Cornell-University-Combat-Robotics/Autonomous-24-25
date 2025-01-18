@@ -216,7 +216,6 @@ class RoboflowModel(TemplateModel):
 
         if show:
             self.show_predictions(img, bots)
-
         return bots
 
     def show_predictions(self, img, predictions):
@@ -257,6 +256,8 @@ class RoboflowModel(TemplateModel):
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
+
+        print(f"\nDetected [{len(housebots)} housebots], [{len(bots)} bots]")
 
         # for name, data in predictions.items():
         #     # Extract bounding box coordinates and class details
