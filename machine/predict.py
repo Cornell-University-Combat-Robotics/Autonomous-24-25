@@ -16,7 +16,6 @@ import openvino as ov
 load_dotenv()
 
 ROBOFLOW_API_KEY = os.getenv('ROBOFLOW_API_KEY')
-
 DEBUG = False
 
 # I think this is broken... b/c of the model tho not the
@@ -167,7 +166,8 @@ class OurModel(TemplateModel):
 
 
 class RoboflowModel(TemplateModel):
-    def __init__(self):
+    def __init__(self):   
+        print("key"+ROBOFLOW_API_KEY)
         self.model = get_model(model_id='nhrl-robots/9',
                                api_key=ROBOFLOW_API_KEY)
 
@@ -281,7 +281,7 @@ class RoboflowModel(TemplateModel):
         #     )
 
         # Display the image with predictions
-        #cv2.imshow("Predictions", img)
+        cv2.imshow("Predictions", img)
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
 
@@ -502,4 +502,4 @@ if __name__ == '__main__':
     elapsed = end_time - start_time
     print(f'elapsed time: {elapsed:.4f}')
 
-    #predictor.show_predictions(img, bots)
+    predictor.show_predictions(img, bots)

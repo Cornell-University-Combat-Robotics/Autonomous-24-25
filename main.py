@@ -13,7 +13,7 @@ import time
 from warp_main import get_homography_mat, warp
 from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
-from machine.predict import YoloModel
+from machine.predict import RoboflowModel
 
 # --------- TAKE A STARTING PHOTO ---------
 print("Press '0' to take a starting photo ...")
@@ -39,7 +39,7 @@ cv2.destroyAllWindows()
 # ---------- BEFORE THE MATCH ----------
 
 # Homography Matrix
-# frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4) # TODO: subject to change
+frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4) # TODO: subject to change
 h_mat = get_homography_mat(frame, 700, 700)
 warped_frame = warp(frame, h_mat, 700, 700)
 cv2.imshow("Warped Cage", warped_frame)
@@ -73,10 +73,11 @@ except Exception as e:
     exit(1)
 
 # Defining Corner Detection Object
-corner_detection = RobotCornerDetection(selected_colors)
+corner_detection = RobotCornerDetection(selected_colors)      
 
 # Defining ML Model Object
-predictor = YoloModel("100epoch11", "PT")
+#predictor = YoloModel("100epoch11", "PT")
+predictor = RoboflowModel()
 
 # # Defining Ram Ram Algorithm Object
 # # TODO: need to define the following: huey_position, huey_orientation, enemy_position
@@ -129,6 +130,7 @@ while True: # 🙏🙏🙏🙏🙏🙏🙏🙏🙏🙏 NO ONE CHANGE THIS PLEASE
     
 
     # 2. Warp image
+    frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4)
     warped_frame = warp(frame, h_mat, 700, 700)
     cv2.imshow("Warped Cage", warped_frame)
 
@@ -140,7 +142,7 @@ while True: # 🙏🙏🙏🙏🙏🙏🙏🙏🙏🙏 NO ONE CHANGE THIS PLEASE
 
     # 4. Corner Detection
     corner_detection.set_bots = detected_bots
-    # detected_bots_with_data = corner_detection.corner_detection_main()
+    detected_bots_with_data = corner_detection.corner_detection_main()
 
     # 5. Algorithm
     # motor_value = algorithm.ram_ram(detected_bots_with_data)
