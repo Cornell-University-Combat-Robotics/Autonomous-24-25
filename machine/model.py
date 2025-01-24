@@ -10,9 +10,12 @@ class ConvNeuralNet(nn.Module):
         self.dropout = nn.Dropout(p=0.3)
 
         # Define convolutional layers
+        # Conv2d(in_channels out_channels, kernel_size, stride)
         self.conv1 = nn.Conv2d(3, 32, 3, 1)
         self.relu1 = nn.ReLU()
+        # MaxPool2d(kernel_size, stride)
         self.maxpool1 = nn.MaxPool2d(2, 2)
+        # BatchNorm2d(num_features)
         self.batchnorm1 = nn.BatchNorm2d(32)
         
         self.conv2 = nn.Conv2d(32, 32, 3, 1)
