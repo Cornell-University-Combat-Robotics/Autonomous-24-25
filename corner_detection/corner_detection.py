@@ -119,7 +119,7 @@ class RobotCornerDetection:
     
     def detect_our_robot_main(self, bot_images: list[np.ndarray]):
         """
-        Detects the image containing our robot between two given images.
+        Detects the image containing our robot between two or more given images.
 
         Args:
             bot1_image (np.ndarray): The first bot image.
