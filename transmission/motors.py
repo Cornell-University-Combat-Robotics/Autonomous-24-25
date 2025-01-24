@@ -43,6 +43,7 @@ class Motor():
         speed : float, optional
             speed to set the motor to. Default is 0
         """
+        self.zero_speed = speed
         self.speed = speed
         self.channel = channel
         self.ser = ser
@@ -65,6 +66,6 @@ class Motor():
 
     def stop(self, t=0):
         """Stops motor, then sleeps for [t] seconds"""
-        self.speed = 0
+        self.speed = self.zero_speed
         self.ser.send_data(self.channel, self.speed)
         time.sleep(t)
