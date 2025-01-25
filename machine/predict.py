@@ -349,7 +349,7 @@ class YoloModel(TemplateModel):
             # cv2.destroyAllWindows
 
             dict = {
-                "bb": [[x1, y1], [x2, y2]],
+                "bbox": [[x1, y1], [x2, y2]],
                 "center": [cx, cy],
                 "img": cropped_img
             }
@@ -368,8 +368,8 @@ class YoloModel(TemplateModel):
             for bot in bots:
 
                 # Extract bounding box coordinates and class details
-                x_min, y_min = bot['bb'][0]
-                x_max, y_max = bot['bb'][1]
+                x_min, y_min = bot['bbox'][0]
+                x_max, y_max = bot['bbox'][1]
 
                 # Choose color based on the class
                 if 'housebot' in label:
@@ -394,7 +394,7 @@ class YoloModel(TemplateModel):
 
         return img
 
-
+# TODO: Make sure that the internal bot dictionaries are all 'bbox'
 class OnnxModel(TemplateModel):
     def __init__(self):
         onnx_model_path = './models/best.onnx'
