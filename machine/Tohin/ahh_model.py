@@ -2,65 +2,57 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class ConvNeuralNet(nn.Module):
-    def __init__(self, num_classes=2, num_bots=3):
-        super(ConvNeuralNet, self).__init__()
-        self.model = nn.Sequential(
-          nn.Conv2d(1,20,5),
-          nn.ReLU(),
-          nn.Conv2d(20,64,5),
-          nn.ReLU()
-        )
+DEBUG = True
+
+if DEBUG:
+    print("hello world!")
+
+class TohinNeuralNet(nn.Module):
+    def __init__(self,num_classes,num_bots):
+        super(TohinNeuralNet, self).__init__()
         self.num_classes = num_classes
         self.num_objects = num_bots        
         self.dropout = nn.Dropout(p=0.5)
-
-        # Define convolutional layers
-        self.conv1 = nn.Conv2d(3, 32, 3, 1)
-        self.relu1 = nn.ReLU()
-        self.maxpool1 = nn.MaxPool2d(2, 2)
-        self.batchnorm1 = nn.BatchNorm2d(32)
         
-        self.conv2 = nn.Conv2d(32, 32, 3, 1)
+        self.conv1 = nn.Conv2d(3,32,3,1)
+        self.relu1 = nn.ReLU()
+        self.batchnorm1 = nn.BatchNorm2d(32)
+
+        self.maxpool1 = nn.MaxPool2d(3,2)
+
+        self.conv2 = nn.Conv2d(32,32,3,1)
         self.relu2 = nn.ReLU()
         self.batchnorm2 = nn.BatchNorm2d(32)
-        
-        self.conv3 = nn.Conv2d(32, 32, 3, 1)
+
+        self.maxpool2 = nn.MaxPool2d(3,2)
+
+        self.conv3 = nn.Conv2d(32,32,3,1)
         self.relu3 = nn.ReLU()
         self.batchnorm3 = nn.BatchNorm2d(32)
-        
-        self.conv4 = nn.Conv2d(32, 32, kernel_size=3, padding=1)
-        self.relu4 = nn.ReLU()
-        self.maxpool4 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.batchnorm4 = nn.BatchNorm2d(32)
-        
-        self.conv5 = nn.Conv2d(32, 32, kernel_size=3, padding=1)
-        self.relu5 = nn.ReLU()
-        self.batchnorm5 = nn.BatchNorm2d(32)
-        
-        self.conv6 = nn.Conv2d(32, 32, kernel_size=3, padding=1)
-        self.relu6 = nn.ReLU()
-        self.maxpool6 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.batchnorm6 = nn.BatchNorm2d(32)
-        
-        self.adaptive_pool = nn.AdaptiveAvgPool2d((4, 4))
-        self.flatten = nn.Flatten()
 
-        # Define fully connected layers for bounding boxes and class scores
-        self.fc = nn.Linear(32 * 4 * 4, 256)  # Adjust input features based on the output of conv layers
+        self.maxpool3 = nn.MaxPool2d(3,2)
+
+        self.conv4 = nn.Conv2d(32,64,3,1)
+        self.relu4 = nn.ReLU()
+        self.batchnorm4 = nn.BatchNorm2d(32)
+
+        self.maxpool4 = nn.MaxPool2d(3,2)
+
+        self.conv5 = nn.Conv2d(64,64,3,1)
+        self.relu5 = nn.ReLU()
+        self.batchnorm5 = nn.BatchNorm2d(64)
+
+        # Posibly adaptive
+        self.adaptive_pool = nn.AdaptiveMaxPool2d((4,4))
+
+        self.flatten = nn.Flatten()
+        self.fc1 = nn.Linear(64 * 4 * 4, 512)
         self.relu_fc = nn.ReLU()
 
-        self.bbox_output = nn.Linear(256, self.num_objects * 4)  # Predict bounding boxes
-        self.class_output = nn.Linear(256, self.num_objects * self.num_classes)
-        # Define output layers
-        # self.prob_output = nn.Conv2d(32, 1, kernel_size=3, padding=1)
-        # self.box_output = nn.Conv2d(32, 4, kernel_size=3, padding=1)
-        # self.class_output = nn.Conv2d(32, num_classes, kernel_size=3, padding=1)
+        self.bbox_output = nn.Linear(512, self.num_objects * 4)  # Predict bounding boxes
+        self.class_output = nn.Linear(512, self.num_objects * self.num_classes)
 
-    def forward(self, x, labels=None):
-        if isinstance(labels, list):
-            labels = labels[0]
-        # Forward pass through convolutional layers
+    def forward(self,x, labels):
         x = self.conv1(x)
         x = self.relu1(x)
         x = self.maxpool1(x)
@@ -69,11 +61,13 @@ class ConvNeuralNet(nn.Module):
 
         x = self.conv2(x)
         x = self.relu2(x)
+        x = self.maxpool2(x)
         x = self.batchnorm2(x)
         x = self.dropout(x)
 
         x = self.conv3(x)
         x = self.relu3(x)
+        x = self.maxpool3(x)
         x = self.batchnorm3(x)
         x = self.dropout(x)
 
@@ -87,13 +81,7 @@ class ConvNeuralNet(nn.Module):
         x = self.relu5(x)
         x = self.batchnorm5(x)
         x = self.dropout(x)
-        
-        x = self.conv6(x)
-        x = self.relu6(x)
-        x = self.maxpool6(x)
-        x = self.batchnorm6(x)
-        x = self.dropout(x)
-        
+
         x = self.adaptive_pool(x)
 
         # Flatten the output
@@ -103,9 +91,7 @@ class ConvNeuralNet(nn.Module):
         x = self.fc(x)
         x = self.relu_fc(x)
         
-        # prob_scores = self.prob_output(x)  # Shape: [batch_size, 1, height, width]
-        # prob_scores = prob_scores.view(-1)  # Flatten to [batch_size * height * width]
-        
+        #credit: ah_model.py
         bounding_boxes = self.bbox_output(x)  # Shape: [batch_size, 4, height, width]
         bbox_pred = bounding_boxes.view(-1, self.num_objects, 4)  # Shape: [batch_size, num_objects, 4]
         class_scores = self.class_output(x)  # Shape: [batch_size, num_classes, height, width]
@@ -166,3 +152,6 @@ class ConvNeuralNet(nn.Module):
             }
         class_probs = F.softmax(class_pred, dim=-1)
         return class_probs, bbox_pred
+
+
+
