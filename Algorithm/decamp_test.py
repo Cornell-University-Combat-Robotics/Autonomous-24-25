@@ -8,7 +8,7 @@ import numpy as np
 # Initialize pygame
 pygame.init()
 algo = Ram()
-DELAY = 34 # how often to get bot positions and orientations (milliseconds)
+DELAY = 100 # how often to get bot positions and orientations (milliseconds)
 
 # Set up window dimensions
 width, height = 243*3, 243*3
@@ -82,12 +82,12 @@ old_pos = enemy['center']
 
 bots_data = {
             'huey': {
-                'bb': [huey['center'][0] - 10, huey['center'][1] - 10, 20, 20],  # Example bounding box for huey
+                'bbox': [huey['center'][0] - 10, huey['center'][1] - 10, 20, 20],  # Example bounding box for huey
                 'center': huey['center'],
                 'orientation': fix_angle(huey['orientation'])
             },
             'enemy': {
-                'bb': [enemy['center'][0] - 10, enemy['center'][1] - 10, 20, 20],  # Example bounding box for enemy
+                'bbox': [enemy['center'][0] - 10, enemy['center'][1] - 10, 20, 20],  # Example bounding box for enemy
                 'center': enemy['center']
             }
     }
@@ -156,12 +156,12 @@ while running:
         # Prepare the data to pass to ram_ram
         bots_data = {
             'huey': {
-                'bb': [huey['center'][0] - 10, huey['center'][1] - 10, 20, 20],  # Example bounding box for huey
+                'bbox': [huey['center'][0] - 10, huey['center'][1] - 10, 20, 20],  # Example bounding box for huey
                 'center': huey['center'],
                 'orientation': fix_angle(huey['orientation'])
             },
             'enemy': {
-                'bb': [enemy['center'][0] - 10, enemy['center'][1] - 10, 20, 20],  # Example bounding box for enemy
+                'bbox': [enemy['center'][0] - 10, enemy['center'][1] - 10, 20, 20],  # Example bounding box for enemy
                 'center': enemy['center']
             }
         }
