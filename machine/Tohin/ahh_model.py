@@ -34,7 +34,7 @@ class TohinNeuralNet(nn.Module):
 
         self.conv4 = nn.Conv2d(32,64,3,1)
         self.relu4 = nn.ReLU()
-        self.batchnorm4 = nn.BatchNorm2d(32)
+        self.batchnorm4 = nn.BatchNorm2d(64)
 
         self.maxpool4 = nn.MaxPool2d(3,2)
 
@@ -88,7 +88,7 @@ class TohinNeuralNet(nn.Module):
         x = self.flatten(x)
 
         # Fully connected layers
-        x = self.fc(x)
+        x = self.fc1(x)
         x = self.relu_fc(x)
         
         #credit: ah_model.py
