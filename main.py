@@ -33,15 +33,15 @@ cap = cv2.VideoCapture(camera_number)
 if (cap.isOpened() == False):
     print("Error opening video file")
 
-while(cap.isOpened()):
+while (cap.isOpened()):
     ret, frame = cap.read()
 
     if ret == True:
         cv2.imshow('Frame', frame)
-        
+
         # Check for key press
         key = cv2.waitKey(1) & 0xFF
-        
+
         if key == ord('q'):  # Press 'q' to quit without capturing
             break
         elif key == ord('0'):  # Press '0' to capture the image and exit
@@ -58,7 +58,8 @@ while(cap.isOpened()):
 cv2.destroyAllWindows()
 
 # 3. Homography Matrix and 4. Display the warped image
-resized_image = cv2.resize(captured_image, (0,0), fx = resize_factor, fy = resize_factor) # NOTE: resized
+resized_image = cv2.resize(captured_image, (0, 0),
+                           fx=resize_factor, fy=resize_factor)  # NOTE: resized
 h_mat = get_homography_mat(resized_image, 700, 700)
 warped_frame = warp(resized_image, h_mat, 700, 700)
 cv2.imshow("Warped Cage", warped_frame)
@@ -115,20 +116,22 @@ print("Proceeding with the rest of the program ...")
 cap = cv2.VideoCapture(camera_number)
 if (cap.isOpened() == False):
     print("Error opening video file")
-    
-while(cap.isOpened()):
+
+while (cap.isOpened()):
     # 1. Camera Capture
     ret, frame = cap.read()
     if not ret:
-        print("Failed to capture image")  # If frame capture fails, break the loop
+        # If frame capture fails, break the loop
+        print("Failed to capture image")
         break
-        
+
     # Press Q on keyboard to exit
     if cv2.waitKey(25) & 0xFF == ord('q'):
         break
 
     # 2. Warp image
-    frame = cv2.resize(frame, (0,0), fx = resize_factor, fy = resize_factor)
+    frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
+    # Can you test outputting a smaller image to OD from warp and see how it affects runtime/consistency of detections -Aaron
     warped_frame = warp(frame, h_mat, 700, 700)
     cv2.imshow("Warped Cage", warped_frame)
 
@@ -139,7 +142,6 @@ while(cap.isOpened()):
     # corner_detection.set_bots = [detected_bots]
     # detected_bots_with_data = corner_detection.corner_detection_main()
 
-        
 
-cap.release() # Release the camera object
-cv2.destroyAllWindows() # Destroy all cv2 windows
+cap.release()  # Release the camera object
+cv2.destroyAllWindows()  # Destroy all cv2 windows
