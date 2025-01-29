@@ -8,6 +8,8 @@
 import cv2
 import os
 import numpy as np
+import time
+import timeit
 
 from warp_main import get_homography_mat, warp
 from corner_detection.color_picker import ColorPicker
@@ -18,14 +20,66 @@ from corner_detection.corner_detection import RobotCornerDetection
 
 # ---------- BEFORE THE MATCH ----------
 
-# Homography Matrix
-frame = cv2.imread('arena.png')
-frame = cv2.resize(frame, (0,0), fx=0.4, fy=0.4)
-h_mat = get_homography_mat(frame, 700, 700)
-warped_frame = warp(frame, h_mat, 700, 700)
-cv2.imshow("Warped Cage", warped_frame)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+"""
+
+1. Start the video (camera = 0)
+2. Capture the initial image (resize if needed)
+3. Using the initial image, plot four corners of arena (clockwise from top left)
+4. Display the warped initial image
+5. Using the initial image, select colors (body, front corner, back corner)
+6. Wait until start match
+
+"""
+
+
+@profile
+def main():
+    # 0. Set resize, camera numbers
+
+    resize_factor = 0.4
+    camera_number = 0
+
+    # 1. Start the video and 2. Capture initial frame)
+
+    cap = cv2.VideoCapture(camera_number)
+
+    if (cap.isOpened() == False):
+        print("Error opening video file")
+
+    while (cap.isOpened()):
+        ret, frame = cap.read()
+
+        if ret == True:
+            cv2.imshow('Frame', frame)
+
+            # Check for key press
+            key = cv2.waitKey(1) & 0xFF
+
+            if key == ord('q'):  # Press 'q' to quit without capturing
+                break
+            elif key == ord('0'):  # Press '0' to capture the image and exit
+                captured_image = frame.copy()  # Store the captured frame
+                cv2.imwrite("captured_image.png",
+                            captured_image)  # Save the image
+                # cv2.imshow('Captured Image', captured_image)
+                # print("Press any key to continue...")
+                # cv2.waitKey(0)
+                break
+        else:
+            print("Failed to read frame")
+            break
+
+    cv2.destroyAllWindows()
+
+    # 3. Homography Matrix and 4. Display the warped image
+    resized_image = cv2.resize(captured_image, (0, 0),
+                               fx=resize_factor, fy=resize_factor)  # NOTE: resized
+    h_mat = get_homography_mat(resized_image, 700, 700)
+    warped_frame = warp(resized_image, h_mat, 700, 700)
+    cv2.imshow("Warped Cage", warped_frame)
+    cv2.imwrite("warped_frame.png", warped_frame)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 # ColorPicker: Manually picking colors for the robot, front and back colors
 image_path = os.getcwd() + "/corner_detection/warped_images/east.png" # TODO: This should use the same image for the homography
@@ -89,15 +143,29 @@ while True:
 cv2.destroyAllWindows()
 print("Proceeding with the rest of the program ...")
 
-# ---------- DURING THE MATCH ----------
+    # ------------------------------------------------------------------------------
 
-running = True
-while running:
-    # 1. Capture image from video feed
-    # ret, frame = cap.read()
-    # if not ret:  # If a frame cannot be captured
-    #     break
-    image = cv2.imread('arena.png') # TODO: This should be the image taken from the camera
+    cap = cv2.VideoCapture(camera_number)
+    if (cap.isOpened() == False):
+        print("Error opening video file")
+
+    times = []
+
+    while (cap.isOpened()):
+
+        t1 = timeit.default_timer()
+        # 1. Camera Capture
+        ret, frame = cap.read()
+        if not ret:
+            # If frame capture fails, break the loop
+            print("Failed to capture image")
+            break
+
+        # NOTE: These exit key lines take ~27 ms per iteration, handle with Ctrl+C instead -Aaron
+        # Press Q on keyboard to exit
+        # if cv2.waitKey(25) & 0xFF == ord('q'):
+        #     print("exit")
+        #     break
 
     # 2. Warp image
     warped_image = warp.warp(frame, h_mat, 700, 700)
