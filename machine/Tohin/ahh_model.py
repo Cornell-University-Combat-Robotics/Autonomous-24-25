@@ -52,7 +52,7 @@ class TohinNeuralNet(nn.Module):
         self.bbox_output = nn.Linear(512, self.num_objects * 4)  # Predict bounding boxes
         self.class_output = nn.Linear(512, self.num_objects * self.num_classes)
 
-    def forward(self,x, labels):
+    def forward(self,x, labels=None):
         x = self.conv1(x)
         x = self.relu1(x)
         x = self.maxpool1(x)
