@@ -18,6 +18,7 @@ pygame.display.set_caption("Control Points")
 # Define point colors
 point1_color = (255, 0, 0)  # Red (Huey)
 point2_color = (0, 0, 255)  # Blue (Enemy)
+point3_color = (0, 0, 0)    # Black (Arrow)
 
 # Starting coordinates for the two points
 # huey = {'center': [width // 4, height // 2], 'orientation': 0.0}  # Huey's position and orientation (0 degrees = along x-axis)
@@ -93,6 +94,18 @@ bots_data = {
     }
 
 while running:
+    if (math.dist([enemy['center'][0], enemy['center'][1]], [huey['center'][0], huey['center'][1]]) < 0.203*300):
+        keys = pygame.key.get_pressed()
+        while not keys[pygame.K_SPACE]:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+            time.sleep(0.01)
+            keys = pygame.key.get_pressed()
+            
+        huey = {'center': [10, 10], 'orientation': 0.0}  # Huey's position and orientation (0 degrees = along x-axis)
+        enemy = {'center': [width - 10, height - 10]}  # Enemy's position
+
     huey_bot = Ram(huey_old_position=huey['center'], huey_orientation=huey['orientation'], enemy_position=enemy['center'])
 
     screen.fill((255, 255, 255))  # Clear screen with white background
@@ -171,18 +184,29 @@ while running:
 
     # Draw the bots (Huey and Enemy)
     # width, length of huey bot : 8 in, 9.375 in
+    diagonal = 0.1565197716182 * 300
+    theta = 49.52
+    phi = 40.48
+
+    huey_coords =  [(diagonal * math.cos(math.radians(fix_angle(theta - huey['orientation']))) + huey['center'][0],      diagonal * math.sin(math.radians(fix_angle(theta - huey['orientation']))) + huey['center'][1]),
+               (diagonal * math.cos(math.radians(fix_angle(theta + 2*phi - huey['orientation']))) + huey['center'][0],   diagonal * math.sin(math.radians(fix_angle(theta + 2*phi - huey['orientation']))) + huey['center'][1]), 
+               (diagonal * math.cos(math.radians(fix_angle(3*theta + 2*phi - huey['orientation']))) + huey['center'][0], diagonal * math.sin(math.radians(fix_angle(3*theta + 2*phi - huey['orientation']))) + huey['center'][1]), 
+               (diagonal * math.cos(math.radians(fix_angle(3*theta + 4*phi - huey['orientation']))) + huey['center'][0], diagonal * math.sin(math.radians(fix_angle(3*theta + 4*phi - huey['orientation']))) + huey['center'][1])]
+
+    enemy_coords =  [(diagonal * math.cos(math.radians(fix_angle(45))) + enemy['center'][0], diagonal * math.sin(math.radians(fix_angle(45))) + enemy['center'][1]),
+               (diagonal * math.cos(math.radians(fix_angle(135))) + enemy['center'][0],   diagonal * math.sin(math.radians(fix_angle(135))) + enemy['center'][1]), 
+               (diagonal * math.cos(math.radians(fix_angle(225))) + enemy['center'][0], diagonal * math.sin(math.radians(fix_angle(225))) + enemy['center'][1]), 
+               (diagonal * math.cos(math.radians(fix_angle(315))) + enemy['center'][0], diagonal * math.sin(math.radians(fix_angle(315))) + enemy['center'][1])]
     
-    huey_rect = pygame.Rect(int(huey['center'][0]), int(huey['center'][1]), 60.96, 71.4375)
-    enemy_rect = pygame.Rect(int(enemy['center'][0]), int(enemy['center'][1]), 50, 50)
-    
-    pygame.draw.rect(screen, point1_color, huey_rect, 5)  # Draw huey (red)
-    pygame.draw.rect(screen, point2_color, enemy_rect, 5)  # Draw enemy (blue)
+    #pygame.draw.rect(screen, point1_color, huey_rect, 5)  # Draw huey (red)
+    pygame.draw.polygon(screen, point1_color, huey_coords)
+    pygame.draw.polygon(screen, point2_color, enemy_coords)  # Draw enemy (blue)
 
     #pygame.draw.circle(screen, point2_color, (int(huey['center'][0]), int(huey['center'][1])), 10)  # Draw enemy (blue)
     #pygame.draw.circle(screen, point2_color, (int(enemy['center'][0]), int(enemy['center'][1])), 10)  # Draw enemy (blue)
 
     # Draw the arrow indicating Huey's orientation
-    draw_arrow(screen, point1_color, (int(huey['center'][0]), int(huey['center'][1])), huey['orientation'])
+    draw_arrow(screen, point3_color, (int(huey['center'][0]), int(huey['center'][1])), huey['orientation'])
 
     # Draw a line between huey and enemy
     pygame.draw.line(screen, (0, 0, 0), huey['center'], enemy['center'], 1)
