@@ -8,7 +8,7 @@ if DEBUG:
     print("hello world!")
 
 class TohinNeuralNet(nn.Module):
-    def __init__(self,num_classes,num_bots):
+    def __init__(self,num_classes=2,num_bots=3):
         super(TohinNeuralNet, self).__init__()
         self.num_classes = num_classes
         self.num_objects = num_bots        
