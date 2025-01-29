@@ -2,6 +2,7 @@ import cv2
 import os
 import numpy as np
 import time
+import timeit
 
 from warp_main import get_homography_mat, warp
 from corner_detection.color_picker import ColorPicker
@@ -121,8 +122,11 @@ def main():
     if (cap.isOpened() == False):
         print("Error opening video file")
 
+    times = []
+
     while (cap.isOpened()):
-        t1 = time.time()
+
+        t1 = timeit.default_timer()
         # 1. Camera Capture
         ret, frame = cap.read()
         if not ret:
@@ -130,14 +134,15 @@ def main():
             print("Failed to capture image")
             break
 
-        # NOTE: These exit key lines take ~27 ms per iteration, use Ctrl+C instead -Aaron
+        # NOTE: These exit key lines take ~27 ms per iteration, handle with Ctrl+C instead -Aaron
         # Press Q on keyboard to exit
         # if cv2.waitKey(25) & 0xFF == ord('q'):
         #     print("exit")
         #     break
 
         # 2. Warp image
-        frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
+        frame = cv2.resize(
+            frame, (0, 0), fx=resize_factor, fy=resize_factor)
         # Can you test outputting a smaller image to OD from warp and see how it affects runtime/consistency of detections -Aaron
         warped_frame = warp(frame, h_mat, 700, 700)
         cv2.imshow("Warped Cage", warped_frame)
@@ -145,7 +150,12 @@ def main():
         # 3. Object Detection
         detected_bots = predictor.predict(warped_frame, show=True)
 
-        print(time.time() - t1)
+        # Debug timing info
+        times.append(round(1000 * (timeit.default_timer() - t1), 4))
+        if len(times) > 500:
+            nptime = np.asarray(times)
+            np.save('looptimes.npy', nptime)
+            break
 
         # 4. Corner Detection # TODO: Change the formatting
         # corner_detection.set_bots = [detected_bots]
@@ -156,4 +166,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # Run using 'kernprof -l -v --unit 1e-3 main.py' for debugging
     main()
