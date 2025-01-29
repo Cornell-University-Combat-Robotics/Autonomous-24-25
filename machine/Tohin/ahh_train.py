@@ -239,7 +239,7 @@ def train(model, num_epochs=10, learning_rate=0.0005):
     print("end training")
 
 def main():
-    newModel = model.ConvNeuralNet()
+    newModel = model.TohinNeuralNet()
     # newModel = fasterrcnn_resnet50_fpn(pretrained=True)
     print("made model")
     # roboflow_download()
