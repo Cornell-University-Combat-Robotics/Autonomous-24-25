@@ -151,11 +151,11 @@ def main():
         detected_bots = predictor.predict(warped_frame, show=True)
 
         # Debug timing info
-        times.append(round(1000 * (timeit.default_timer() - t1), 4))
-        if len(times) > 500:
-            nptime = np.asarray(times)
-            np.save('looptimes.npy', nptime)
-            break
+        # times.append(round(1000 * (timeit.default_timer() - t1), 4))
+        # if len(times) > 500:
+        #     nptime = np.asarray(times)
+        #     np.save('looptimes.npy', nptime)
+        #     break
 
         # 4. Corner Detection # TODO: Change the formatting
         # corner_detection.set_bots = [detected_bots]
