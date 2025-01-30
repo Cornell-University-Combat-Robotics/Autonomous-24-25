@@ -1,10 +1,3 @@
-# Image Pipeline for Machine Learning Applications Process
-# 1. Image Capture/Loading: Collect image and load onto laptop.
-# 2. Image Preprocessing: Resize, normalize, and prepare the image for ML models, yada, yada....
-# 3. Model Inference: Pass the processed image to a trained ML model.
-# 4. Corner Detection: Pass robot images to corner detection to find orientation and positions.
-# 4. Post-processing: Extract the model's output into RAMPLAN(Algorithm).
-
 import cv2
 import os
 import numpy as np
@@ -14,9 +7,7 @@ import timeit
 from warp_main import get_homography_mat, warp
 from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
-
-# Capture video feed from camera using OpenCV
-# cap = cv2.VideoCapture(1)
+from machine.predict import RoboflowModel
 
 # ---------- BEFORE THE MATCH ----------
 
@@ -32,16 +23,18 @@ from corner_detection.corner_detection import RobotCornerDetection
 """
 
 
-@profile
+# @profile
 def main():
     # 0. Set resize, camera numbers
 
     resize_factor = 0.4
-    camera_number = 0
+    camera_number = "vid_and_img_processing/trimmedBZ-nhrl_sep24_fs-pikmin-gforce-4e7e-Cage-7-Overhead-High.mp4"
+    # camera_number = 1 # NOTE: camera_number = 1 for Desktop camera
 
     # 1. Start the video and 2. Capture initial frame)
 
     cap = cv2.VideoCapture(camera_number)
+    captured_image = None
 
     if (cap.isOpened() == False):
         print("Error opening video file")
@@ -81,67 +74,52 @@ def main():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-# ColorPicker: Manually picking colors for the robot, front and back colors
-image_path = os.getcwd() + "/corner_detection/warped_images/east.png" # TODO: This should use the same image for the homography
-output_file = "selected_colors.txt"
-selected_colors = ColorPicker.pick_colors(image_path)
+    # 5. ColorPicker: Manually picking colors for the robot, front and back colors
+    image_path = os.getcwd() + "/warped_frame.png"
+    output_file = "selected_colors.txt"
+    selected_colors = ColorPicker.pick_colors(image_path)
 
-with open(output_file, "w") as file:
-    for color in selected_colors:
-        file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
+    with open(output_file, "w") as file:
+        for color in selected_colors:
+            file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
 
-print(f"Selected colors have been saved to '{output_file}'.")
+    print(f"Selected colors have been saved to '{output_file}'.")
 
-# Reading the HSV values for robot color, front and back corners from a text file
-selected_colors = []
-selected_colors_file = os.getcwd() + "/selected_colors.txt"
-try:
-    with open(selected_colors_file, "r") as file:
-        for line in file:
-            hsv = list(map(int, line.strip().split(", ")))
-            selected_colors.append(hsv)
-    if len(selected_colors) != 3:
-        raise ValueError("The file must contain exactly 3 HSV values.")
-except Exception as e:
-    print(f"Error reading selected_colors.txt: {e}")
-    exit(1)
+    # Reading the HSV values for robot color, front and back corners from a text file
+    selected_colors = []
+    selected_colors_file = os.getcwd() + "/selected_colors.txt"
+    try:
+        with open(selected_colors_file, "r") as file:
+            for line in file:
+                hsv = list(map(int, line.strip().split(", ")))
+                selected_colors.append(hsv)
+        if len(selected_colors) != 3:
+            raise ValueError("The file must contain exactly 3 HSV values.")
+    except Exception as e:
+        print(f"Error reading selected_colors.txt: {e}")
+        exit(1)
 
-# Defining Corner Detection Object
-corner_detection = RobotCornerDetection(selected_colors)
+    # Defining Corner Detection Object
+    corner_detection = RobotCornerDetection(selected_colors)
 
-# Defining ML Model Object
-# predictor = OnnxModel() # TODO: This needs to be pushed/merged before uncommenting
+    # Defining Roboflow Machine Learning Model Object
+    predictor = RoboflowModel()
 
-# Defining Ram Ram Algorithm Object
-# TODO: need to define the following: huey_position, huey_orientation, enemy_position
-# algorithm = Ram() # TODO: This needs to be pushed/merged before uncommenting
+    cv2.destroyAllWindows()
 
-# ---------- WAITING FOR MATCH TO START ----------
+    # 6. Wait until the match starts, fix FPS setting
+    is_original_fps = False # Set True for running straight
+    frame_rate = 10
+    prev = 0
 
-# Press '1' to start the match screen
-image = 255 * np.ones((500, 500, 3), np.uint8)
-overlay_image = cv2.imread('actually.png')
-overlay_image = cv2.resize(overlay_image, (300, 300))
-overlay_x = (image.shape[1] - overlay_image.shape[1]) // 2  # Horizontal center
-overlay_y = (image.shape[0] - overlay_image.shape[0]) // 2  # Vertical center
-image[overlay_y:overlay_y + overlay_image.shape[0], overlay_x:overlay_x + overlay_image.shape[1]] = overlay_image
-font = cv2.FONT_HERSHEY_SIMPLEX
-text = "Press '1' to start the match"
-text_size = cv2.getTextSize(text, font, 1, 2)[0]
-text_x = (image.shape[1] - text_size[0]) // 2  # Center the text horizontally
-text_y = (image.shape[0] + text_size[1]) // 2  # Center the text vertically
-cv2.putText(image, text, (text_x, text_y), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
-cv2.imshow("Press '1' to start...", image)
+    while True:
+        user_input = input("Type 'start' to begin: ").strip().lower()
+        if user_input == "start":
+            break
+        else:
+            print("Invalid input. Please type 'start' to proceed.")
 
-# Wait for '1' key press to start
-print("Press '1' to start ...")
-while True:
-    key = cv2.waitKey(1)
-    if key == 49:  # ASCII value for '1' key
-        break
-
-cv2.destroyAllWindows()
-print("Proceeding with the rest of the program ...")
+    print("Proceeding with the rest of the program ...")
 
     # ------------------------------------------------------------------------------
 
@@ -154,33 +132,56 @@ print("Proceeding with the rest of the program ...")
     while (cap.isOpened()):
 
         t1 = timeit.default_timer()
+
         # 1. Camera Capture
+        time_elapsed = time.time() - prev
         ret, frame = cap.read()
         if not ret:
             # If frame capture fails, break the loop
             print("Failed to capture image")
             break
 
-        # NOTE: These exit key lines take ~27 ms per iteration, handle with Ctrl+C instead -Aaron
+        # NOTE: These exit key lines take ~15 ms per iteration, handle with Ctrl+C instead -Aaron
         # Press Q on keyboard to exit
-        # if cv2.waitKey(25) & 0xFF == ord('q'):
-        #     print("exit")
-        #     break
+        if cv2.waitKey(1) & 0xFF == ord('q'): # DO NOT CHANGE THE cv2.waitKey(1)
+            print("exit")
+            break
 
-    # 2. Warp image
-    warped_image = warp.warp(frame, h_mat, 700, 700)
+        # 2. Warp image
+        if is_original_fps or time_elapsed > 1.0/frame_rate:
+            prev = time.time()
+            frame = cv2.resize(
+                frame, (0, 0), fx=resize_factor, fy=resize_factor)
+            # Can you test outputting a smaller image to OD from warp and see how it affects runtime/consistency of detections -Aaron
+            warped_frame = warp(frame, h_mat, 700, 700)
+            cv2.imshow("Warped Cage", warped_frame)
 
-    # 3. Object Detection
-    # detected_bots = predictor.predict(image, show=False)
-    detected_bots = {} # TODO: This should be the output dictionary from Object Detection
+            # 3. Object Detection
+            detected_bots = predictor.predict(warped_frame, show=True)
 
-    # 4. Corner Detection # TODO: Change the formatting
-    # corner_detection.set_bots = [detected_bots]
-    # detected_bots_with_data = corner_detection.corner_detection_main()
+            # Debug timing info
+            # times.append(round(1000 * (timeit.default_timer() - t1), 4))
+            # if len(times) > 500:
+            #     nptime = np.asarray(times)
+            #     np.save('looptimes.npy', nptime)
+            #     break
 
-    # 5. Algorithm
-    # algorithm.ram_ram(detected_bots_with_data)
+            # 4. Corner Detection # TODO: Change the formatting
+            corner_detection.set_bots(detected_bots["bots"])
+            # detected_bots_with_data = corner_detection.corner_detection_main()
 
-    # 6. Transmission
+    cap.release()  # Release the camera object
+    cv2.destroyAllWindows()  # Destroy all cv2 windows
 
-    running = False
+
+if __name__ == "__main__":
+    # Run using 'kernprof -l -v --unit 1e-3 main.py' for debugging
+    main()
+
+
+"""
+
+1. frame skipping
+2. flags for testing mode and production mode
+
+"""

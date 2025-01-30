@@ -119,7 +119,7 @@ class RobotCornerDetection:
     
     def detect_our_robot_main(self, bot_images: list[np.ndarray]):
         """
-        Detects the image containing our robot between two given images.
+        Detects the image containing our robot between two or more given images.
 
         Args:
             bot1_image (np.ndarray): The first bot image.
@@ -352,23 +352,39 @@ class RobotCornerDetection:
             red_points = points[0]
             blue_points = points[1]
 
-            # Ensure there are exactly two red points and at least one blue point
-            if len(red_points) != 2 or len(blue_points) == 0:
-                raise ValueError("Expected exactly 2 red points and at least 1 blue point.")
+            print("red_points: " + str(red_points))
+            print("blue_points: " + str(blue_points))
+
+            total_points = len(red_points) + len(blue_points)
+
+            # Ensure there 3 or 4 detected red and blue points
+            if total_points < 3 or total_points > 4:
+                raise ValueError("Expected exactly 3 or 4 points")
 
             all_points = red_points + blue_points
             center = np.mean(all_points, axis=0)
             print("center: " + str(center))
 
+            # ------ works until here -------
+
             vector1 = np.array(red_points[0]) - center
             vector2 = np.array(red_points[1]) - center
+
+            print(f"Vector 1 (before y adjustment): {vector1}")
+            print(f"Vector 2 (before y adjustment): {vector2}")
 
             # We do this because in code, positive y is downward and we want to make it upward
             vector1[1] = -vector1[1]
             vector2[1] = -vector2[1]
 
+            print(f"Vector 1 (after y adjustment): {vector1}")
+            print(f"Vector 2 (after y adjustment): {vector2}")
+
             theta1 = math.atan2(vector1[1], vector1[0])
             theta2 = math.atan2(vector2[1], vector2[0])
+            
+            print(f"Theta 1 (radians): {theta1}")
+            print(f"Theta 2 (radians): {theta2}")
 
             theta1_deg = (
                 math.degrees(theta1)
@@ -381,8 +397,8 @@ class RobotCornerDetection:
                 else math.degrees(theta2) + 360
             )
 
-            print("theta1_deg: " + str(theta1_deg))
-            print("theta2_deg: " + str(theta2_deg))
+            print(f"Theta 1 (degrees): {theta1_deg}")
+            print(f"Theta 2 (degrees): {theta2_deg}")
 
             # Determine which red point is the top right front corner
             if theta2_deg - theta1_deg > 235:
@@ -419,14 +435,33 @@ class RobotCornerDetection:
         try:
             bot_images = [bot["img"] for bot in self.bots]
             image = self.detect_our_robot_main(bot_images)
+            alpha = 2.0 # constrast
+            beta = 0 # brightness
+            image = cv2.addWeighted(image, alpha, np.zeros(image.shape, image.dtype), 0, beta)
 
             if image is not None:
+                # if self.display_possible_hueys:
+                #     cv2.imshow("Huey", image)
+                #     cv2.waitKey(0)
+                #     cv2.destroyAllWindows()
+
                 cv2.imshow("Huey", image)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
 
                 centroid_points = self.find_centroids(image)
                 print("centroid points: " + str(centroid_points))
+
+                # TODO: plot the centroid points on the image
+
+                # Draw centroids on the image
+                # for (x, y) in centroid_points:
+                #     cv2.circle(image, (int(x), int(y)), radius=5, color=(0, 0, 255), thickness=-1)  # Red dot
+
+                # # Display the image with centroids
+                # cv2.imshow("Image with Centroids", image)
+                # cv2.waitKey(0)
+                # cv2.destroyAllWindows()
 
                 left_front, right_front = self.get_left_and_right_front_points(centroid_points)
                 orientation = self.compute_tangent_angle(left_front, right_front)
