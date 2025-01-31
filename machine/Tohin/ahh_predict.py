@@ -19,7 +19,7 @@ ROBOFLOW_API_KEY = os.getenv('ROBOFLOW_API_KEY')
 
 DEBUG = False
 
-# I think this is broken... b/c of the model tho not the
+# CD INTO TOHIN, THEN RUN
 
 
 class AhhModel(TemplateModel):
@@ -33,25 +33,39 @@ class AhhModel(TemplateModel):
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
 
-    def predict(self, img, confidence_threshold=0.1, show=False):
+    def predict(self, img, confidence_threshold=0.5, show=False):
         # Preprocess image via the transformation
         img_tensor = self.transform(img).unsqueeze(0)
 
         # Run model inference
         with torch.no_grad():
             output = self.model(img_tensor)
-
+    
         bots = {}
         bots['bots'] = []
         bots['housebot'] = []
-        confidences, bboxes, _ = output
+        print(output)
+        confidences, bboxes = output
         height, width, _ = img.shape
 
+        print(f"height = {height}")
+        print(f"width = {width}")
+
         robots = 1
+        print(f"confidences = {confidences}")
+        confidences = confidences[0]
+        bboxes = bboxes[0]
         for i in range(len(confidences)):
             confidence, bbox = confidences[i], bboxes[i]
 
             # Determine class label
+            print(f"confidence[0] = {confidence[0]}")
+            print(f"confidence[1] = {confidence[1]}")
+            print(f"bbox[0] = {bbox[0]}")
+            print(f"bbox[1] = {bbox[1]}")
+            print(f"bbox[2] = {bbox[2]}")
+            print(f"bbox[3] = {bbox[3]}")
+
             class_label = 0 if confidence[0] > confidence[1] else 1
 
             # Only add to dictionary if confidence is above threshold
@@ -59,10 +73,10 @@ class AhhModel(TemplateModel):
                 continue
 
             # Extract center x, center y, box width, and box height
-            center_x = int(bbox[0] * width)
-            center_y = int(bbox[1] * height)
-            box_width = int(bbox[2] * width)
-            box_height = int(bbox[3] * height)
+            center_x = int(bbox[0]*6)
+            center_y = int(bbox[1]*6)
+            box_width = int(bbox[2])
+            box_height = int(bbox[3])
 
             # Calculate bounding box corners
             x_min = center_x - box_width // 2
@@ -92,13 +106,14 @@ class AhhModel(TemplateModel):
 
     def show_predictions(self, img, predictions):
         # Display housebot
+        print(f"predictions = {predictions}")
         housebots = predictions['housebot']
         bots = predictions['bots']
 
         color = (0, 0, 255)
         for housebot in housebots:
-            x_min, y_min = housebot['bbox'][0]
-            x_max, y_max = housebot['bbox'][1]
+            x_min, y_min = housebot['bb'][0]
+            x_max, y_max = housebot['bb'][1]
             center_x, center_y = housebot['center']
 
             # Draw the bounding box
@@ -114,8 +129,10 @@ class AhhModel(TemplateModel):
 
         color = (0, 255, 0)  # Green for bots
         for bot in bots:
-            x_min, y_min = bot['bbox'][0]
-            x_max, y_max = bot['bbox'][1]
+            x_min, y_min = bot['bb'][0]
+            x_max, y_max = bot['bb'][1]
+            print(f"x_min,y_min = {x_min, y_min}")
+            print(f"x_max,y_max = {x_max, y_max}")
             center_x, center_y = bot['center']
 
             # Draw the bounding box
@@ -171,10 +188,11 @@ if __name__ == '__main__':
     #predictor = YoloModel("100epoch11","PT")
     predictor = AhhModel()
 
-    IMG_PATH = "data/NHRL/train/images/Image_1730856973534605_jpg.rf.6d0cf48455926ac8ff0586e67c4a937d.jpg"
+    IMG_PATH = "data/NHRL/test/images/2242_png.rf.e3285eb24831c586a0bfa92f70110a6e.jpg"
+    IMG_PATH1 = "data/NHRL/test/images/1416_png.rf.e96e59268b7fd89b02f25fc75ca41635.jpg"
     
 
-    img = cv2.imread(IMG_PATH)
+    img = cv2.imread(IMG_PATH1)
 
     #cv2.imshow("Original image", img)
     #cv2.waitKey(0)
@@ -185,4 +203,4 @@ if __name__ == '__main__':
     elapsed = end_time - start_time
     print(f'elapsed time: {elapsed:.4f}')
 
-    predictor.show_predictions(img, bots)
+    
