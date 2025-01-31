@@ -8,6 +8,7 @@ from warp_main import get_homography_mat, warp
 from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
 from machine.predict import RoboflowModel
+from Algorithm.ram import Ram
 
 # ---------- BEFORE THE MATCH ----------
 
@@ -27,12 +28,13 @@ from machine.predict import RoboflowModel
 def main():
     # 0. Set resize, camera numbers
 
-    resize_factor = 0.4
-    camera_number = 0
+    resize_factor = 1
+    camera_number = "crude_rot_huey.mp4" # Originally 0
 
     # 1. Start the video and 2. Capture initial frame)
 
     cap = cv2.VideoCapture(camera_number)
+    captured_image = None
 
     if (cap.isOpened() == False):
         print("Error opening video file")
@@ -101,8 +103,10 @@ def main():
     corner_detection = RobotCornerDetection(selected_colors)
 
     # Defining Roboflow Machine Learning Model Object
-
     predictor = RoboflowModel()
+
+    # Defining Ram Ram Algorithm Object
+    algorithm = Ram()
 
     cv2.destroyAllWindows()
 
@@ -122,11 +126,7 @@ def main():
     if (cap.isOpened() == False):
         print("Error opening video file")
 
-    times = []
-
     while (cap.isOpened()):
-
-        t1 = timeit.default_timer()
         # 1. Camera Capture
         ret, frame = cap.read()
         if not ret:
@@ -134,11 +134,11 @@ def main():
             print("Failed to capture image")
             break
 
-        # NOTE: These exit key lines take ~27 ms per iteration, handle with Ctrl+C instead -Aaron
+        # NOTE: These exit key lines take ~15 ms per iteration, handle with Ctrl+C instead -Aaron
         # Press Q on keyboard to exit
-        # if cv2.waitKey(25) & 0xFF == ord('q'):
-        #     print("exit")
-        #     break
+        if cv2.waitKey(1) & 0xFF == ord('q'): # DO NOT CHANGE THE cv2.waitKey(1)
+            print("exit")
+            break
 
         # 2. Warp image
         frame = cv2.resize(
@@ -158,8 +158,15 @@ def main():
         #     break
 
         # 4. Corner Detection # TODO: Change the formatting
-        # corner_detection.set_bots = [detected_bots]
-        # detected_bots_with_data = corner_detection.corner_detection_main()
+        corner_detection.set_bots(detected_bots["bots"])
+        detected_bots_with_data = corner_detection.corner_detection_main()
+
+        print("detected_bots_with_data: " + str(detected_bots_with_data))
+        
+        detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
+
+        move_dictionary = algorithm.ram_ram(detected_bots_with_data)
+        print("move_dictionary: " + str(move_dictionary))
 
     cap.release()  # Release the camera object
     cv2.destroyAllWindows()  # Destroy all cv2 windows

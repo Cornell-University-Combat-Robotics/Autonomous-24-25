@@ -2,7 +2,7 @@ import math
 import time
 import os
 import numpy as np
-import test_ram_csv as test_ram_csv
+import Algorithm.test_ram_csv as test_ram_csv
 
 class Ram():
     """
@@ -53,7 +53,7 @@ class Ram():
     predict_desired_speed(our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float)
         predicts the desired speed of the bot given the current position and velocity of the enemy
 
-    ram_ram(bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}})
+    ram_ram(bots = {'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}})
         main method for the ram ram algorithm that turns to face the enemy and charge towards it
     """
     # ----------------------------- CONSTANTS -----------------------------
@@ -84,7 +84,8 @@ class Ram():
     enemy_position : np.array
         the initial position of the enemy
     '''
-    def __init__(self, huey_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])), huey_old_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])),
+    def __init__(self, huey_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])), 
+                 huey_old_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])),
                  huey_orientation=45, enemy_position = np.array([0, 0]))-> None:
         # ----------------------------- INIT ----------------------------- 
         # initialize the position and orientation of huey
@@ -239,7 +240,7 @@ class Ram():
 
 
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
-    def ram_ram(self, bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}}):
+    def ram_ram(self, bots = {'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}}):
         self.delta_t = time.time() - self.old_time # record delta time
         self.old_time = time.time()
         
