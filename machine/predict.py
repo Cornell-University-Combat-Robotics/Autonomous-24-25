@@ -197,10 +197,10 @@ class RoboflowModel(TemplateModel):
 
                 p['center'] = [x, y]
 
-                x_min = int(x - box_width / 2)
-                y_min = int(y - box_height / 2)
-                x_max = int(x + box_width / 2)
-                y_max = int(y + box_height / 2)
+                x_min = int(x - box_width / 2) - 20
+                y_min = int(y - box_height / 2) - 20
+                x_max = int(x + box_width / 2) + 20
+                y_max = int(y + box_height / 2) + 20
 
                 # Extract bounding box
                 screenshot = img[y_min:y_max, x_min:x_max]
