@@ -18,8 +18,8 @@ void setup()
   Serial.begin(9600); // Initialize serial communication at 9600 baud rate
 
   // TODO: set to default
-  ppm[0] = 1500;
-  ppm[1] = 1500;
+  ppm[0] = default_servo_value;
+  ppm[1] = default_servo_value;
   // start for loop at i=0
   for (int i = 2; i < chanel_number; i++)
   {
@@ -57,7 +57,7 @@ void loop()
       // val is in the range of [-1, 1]
       double val = input.substring(spaceIndex + 1).toDouble();
 
-      ppm[channel] = 1500 + (val * 500);
+      ppm[channel] = default_servo_value + (val * 500);
     }
   }
 }

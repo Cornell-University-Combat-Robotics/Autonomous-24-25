@@ -7,13 +7,21 @@ import serial.tools.list_ports
 
 ser = Serial()
 
-right_motor = Motor(ser, speed=0, channel=0)
-left_motor = Motor(ser, speed=0, channel=1)
+right_motor = Motor(ser, speed=0, channel=1)
+left_motor = Motor(ser, speed=0, channel=3)
 
+left_motor.move(speed=-0.5)
+time.sleep(1.7)
+left_motor.move(speed=-0.25)
+time.sleep(.2)
+left_motor.move(speed=-0.15)
+time.sleep(.1)
+left_motor.move(speed=0.15)
+time.sleep(.1)
+left_motor.move(speed=0.25)
+time.sleep(.2)
 left_motor.move(speed=0.5)
-right_motor.move(speed=0.5)
-
-time.sleep(2)
+time.sleep(1.7)
 
 left_motor.stop()
 right_motor.stop()
