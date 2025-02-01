@@ -25,8 +25,8 @@ def roboflow_download(dataset_name, save_dir="data"): #delete data dir if you ne
     roboflow_api_key = os.getenv("ROBOFLOW_API_KEY")
     rf = Roboflow(api_key=roboflow_api_key)
     project = rf.workspace("crc-autonomous").project("nhrl-robots")
-    version = project.version(5)
-    version.download("yolov8", location=os.path.join(save_dir, dataset_name))
+    version = project.version(9)
+    version.download("yolov11", location=os.path.join(save_dir, dataset_name))
 
 class Data(Dataset):
     """Custom PyTorch Dataset class that downloads data from Roboflow if not available locally."""

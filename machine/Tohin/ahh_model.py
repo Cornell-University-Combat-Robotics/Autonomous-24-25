@@ -12,7 +12,6 @@ class TohinNeuralNet(nn.Module):
         super(TohinNeuralNet, self).__init__()
         self.num_classes = num_classes
         self.num_objects = num_bots        
-        self.dropout = nn.Dropout(p=0.5)
         
         self.conv1 = nn.Conv2d(3,32,3,1)
         self.relu1 = nn.ReLU()
@@ -57,30 +56,28 @@ class TohinNeuralNet(nn.Module):
         x = self.relu1(x)
         x = self.maxpool1(x)
         x = self.batchnorm1(x)
-        x = self.dropout(x)
+
 
         x = self.conv2(x)
         x = self.relu2(x)
         x = self.maxpool2(x)
         x = self.batchnorm2(x)
-        x = self.dropout(x)
+
 
         x = self.conv3(x)
         x = self.relu3(x)
         x = self.maxpool3(x)
         x = self.batchnorm3(x)
-        x = self.dropout(x)
 
         x = self.conv4(x)
         x = self.relu4(x)
         x = self.maxpool4(x)
         x = self.batchnorm4(x)
-        x = self.dropout(x)
 
         x = self.conv5(x)
         x = self.relu5(x)
         x = self.batchnorm5(x)
-        x = self.dropout(x)
+
 
         x = self.adaptive_pool(x)
 
