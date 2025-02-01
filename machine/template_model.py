@@ -29,8 +29,8 @@ class TemplateModel:
         Returns:
           dict: A dictionary conatining information about predicted objects in the input image. See example below.
             {
-              "bots": [{"bb":[[top_left_x:int, top_left_y:int],[bottom_right_x:int, bottom_right_y:int]], "center":[center_x:int, center_y:int], "img":np.ndarry}, {...}]
-              "housebots": [{"bb":[[top_left_x:int, top_left_y:int],[bottom_right_x:int, bottom_right_y:int]], "center":[center_x:int, center_y:int], "img":np.ndarry}]
+              "bots": [{"bbox":[[top_left_x:int, top_left_y:int],[bottom_right_x:int, bottom_right_y:int]], "center":[center_x:int, center_y:int], "img":np.ndarry}, {...}]
+              "housebots": [{"bbox":[[top_left_x:int, top_left_y:int],[bottom_right_x:int, bottom_right_y:int]], "center":[center_x:int, center_y:int], "img":np.ndarry}]
             }
         """
         raise "Not implemented in subclass"
