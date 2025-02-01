@@ -2,7 +2,7 @@
 import pygame
 import math
 import time
-from ram import Ram
+from Algorithm.ram import Ram
 import numpy as np
 
 # Initialize pygame

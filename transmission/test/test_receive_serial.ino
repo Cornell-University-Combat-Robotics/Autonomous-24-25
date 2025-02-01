@@ -19,8 +19,8 @@ void setup()
 {
   Serial.begin(9600); // Initialize serial communication at 9600 baud rate
 
-  ppm[0] = 1500 + (defaultSteering * 500);
-  ppm[1] = 1500 + (defaultThrottle * 500);
+  ppm[0] = default_servo_value + (defaultSteering * 500);
+  ppm[1] = default_servo_value + (defaultThrottle * 500);
 
   for (int i = 2; i < chanel_number; i++)
   {
@@ -58,8 +58,8 @@ void loop()
       double speed = input.substring(0, spaceIndex).toDouble();
       double throttle = input.substring(spaceIndex + 1).toDouble();
 
-      ppm[0] = 1500 + (speed * 500);
-      ppm[1] = 1500 + (throttle * 500);
+      ppm[0] = default_servo_value + (speed * 500);
+      ppm[1] = default_servo_value + (throttle * 500);
     }
   }
 }
