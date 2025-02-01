@@ -2,38 +2,27 @@
 import pygame
 import math
 import time
-from ram import Ram
+from Algorithm.ram import Ram
 import numpy as np
 
 # Initialize pygame
 pygame.init()
 algo = Ram()
-DELAY = 1000 # how often to get bot positions and orientations (milliseconds)
+DELAY = 100 # how often to get bot positions and orientations (milliseconds)
 
 # Set up window dimensions
-width, height = 800, 600
+width, height = 243*3, 243*3
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Control Points")
 
 # Define point colors
 point1_color = (255, 0, 0)  # Red (Huey)
 point2_color = (0, 0, 255)  # Blue (Enemy)
-
-# Starting coordinates for the two points
-# huey = {'center': [width // 4, height // 2], 'orientation': 0.0}  # Huey's position and orientation (0 degrees = along x-axis)
-# enemy = {'center': [3 * width // 4, height // 2]}  # Enemy's position
+point3_color = (0, 0, 0)    # Black (Arrow)
 
 # Intialize Huey and Enemy's positions at the corners of the screen
 huey = {'center': [10, 10], 'orientation': 0.0}  # Huey's position and orientation (0 degrees = along x-axis)
 enemy = {'center': [width - 10, height - 10]}  # Enemy's position
-
-# # Get bot data and send it to the algorithm
-# def ram_ram(bots={'huey': {'bb': [], 'center': [], 'orientation': 0.0}, 'enemy': {'bb': [], 'center': []}}):
-#     # Simulate the method receiving bots' data
-#     print("Updating bots data:")
-#     print(f"Huey: {bots['huey']}")
-#     print(f"Enemy: {bots['enemy']}")
-#     algo.ram_ram(bots)
 
 # Normalize the angle to be between 0 and 360 degrees
 def normalize_angle(angle):
@@ -80,7 +69,31 @@ last_called_time = pygame.time.get_ticks()  # Time of last method call (in milli
 
 old_pos = enemy['center']
 
+bots_data = {
+            'huey': {
+                'bbox': [huey['center'][0] - 10, huey['center'][1] - 10, 20, 20],  # Example bounding box for huey
+                'center': huey['center'],
+                'orientation': fix_angle(huey['orientation'])
+            },
+            'enemy': {
+                'bbox': [enemy['center'][0] - 10, enemy['center'][1] - 10, 20, 20],  # Example bounding box for enemy
+                'center': enemy['center']
+            }
+    }
+
 while running:
+    if (math.dist([enemy['center'][0], enemy['center'][1]], [huey['center'][0], huey['center'][1]]) < 0.203*300):
+        keys = pygame.key.get_pressed()
+        while not keys[pygame.K_SPACE]:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+            time.sleep(0.01)
+            keys = pygame.key.get_pressed()
+            
+        huey = {'center': [10, 10], 'orientation': 0.0}  # Huey's position and orientation (0 degrees = along x-axis)
+        enemy = {'center': [width - 10, height - 10]}  # Enemy's position
+
     huey_bot = Ram(huey_old_position=huey['center'], huey_orientation=huey['orientation'], enemy_position=enemy['center'])
 
     screen.fill((255, 255, 255))  # Clear screen with white background
@@ -94,11 +107,20 @@ while running:
     keys = pygame.key.get_pressed()
 
     # Movement speed for both bots
-    speed_up = 5.0
-    huey_turn_speed, huey_speed = (huey_bot.predict_desired_turn_and_speed(our_pos=np.array(huey['center']), our_orientation=fix_angle(huey['orientation']), enemy_pos=np.array(enemy['center']), enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60)))
-    huey_turn_speed = speed_up * huey_turn_speed
-    huey_speed = speed_up * huey_speed
-    enemy_speed = speed_up
+    # 300 pixels per meter
+    # Robot wheelbase is 7.5 in (0.1905 m) (from half wheel to half wheel)
+    huey_move_output = huey_bot.ram_ram(bots_data)
+
+    # things to account for: power, friction
+    
+    huey_current_speed = 2.2 # (pixels moved in this frame)
+
+    enemy_current_speed = 5 # (enemy pixles moved in this frame)
+    wheel_base = 0.1905
+
+    # turn speed = leftwheel speed - rightwheel speed / base width
+    huey_turn_speed = ((huey_move_output['right'] - huey_move_output['left']) * (huey_current_speed)) / (wheel_base) # max huey speed
+    huey_speed = ((huey_move_output['left'] + huey_move_output['right']) * (huey_current_speed)) / 2.0 # max huey speed
 
     old_pos = enemy['center']
 
@@ -107,17 +129,17 @@ while running:
     fixed_angle = fix_angle(huey['orientation'])
     huey['center'][0] += huey_speed * math.cos(math.radians(fix_angle(huey['orientation'])))
     huey['center'][1] -= huey_speed * math.sin(math.radians(fix_angle(huey['orientation'])))
-    huey_y_change = -1 * huey_speed * math.sin(math.radians(fix_angle(huey['orientation'])))
+    #huey_y_change = -1 * huey_speed * math.sin(math.radians(fix_angle(huey['orientation'])))
 
     # Control enemy with arrow keys
     if keys[pygame.K_LEFT]:  # Move left
-        enemy['center'][0] -= enemy_speed
-    if keys[pygame.K_RIGHT]:  # Move right
-        enemy['center'][0] += enemy_speed
-    if keys[pygame.K_UP]:  # Move up
-        enemy['center'][1] -= enemy_speed
-    if keys[pygame.K_DOWN]:  # Move down
-        enemy['center'][1] += enemy_speed
+        enemy['center'][0] -= enemy_current_speed
+    elif keys[pygame.K_RIGHT]:  # Move right
+        enemy['center'][0] += enemy_current_speed
+    elif keys[pygame.K_UP]:  # Move up
+        enemy['center'][1] -= enemy_current_speed
+    elif keys[pygame.K_DOWN]:  # Move down
+        enemy['center'][1] += enemy_current_speed
 
     # Ensure huey stays within screen bounds
     if huey['center'][0] < 0: huey['center'][0] = 0
@@ -137,12 +159,12 @@ while running:
         # Prepare the data to pass to ram_ram
         bots_data = {
             'huey': {
-                'bb': [huey['center'][0] - 10, huey['center'][1] - 10, 20, 20],  # Example bounding box for huey
+                'bbox': [huey['center'][0] - 10, huey['center'][1] - 10, 20, 20],  # Example bounding box for huey
                 'center': huey['center'],
                 'orientation': fix_angle(huey['orientation'])
             },
             'enemy': {
-                'bb': [enemy['center'][0] - 10, enemy['center'][1] - 10, 20, 20],  # Example bounding box for enemy
+                'bbox': [enemy['center'][0] - 10, enemy['center'][1] - 10, 20, 20],  # Example bounding box for enemy
                 'center': enemy['center']
             }
         }
@@ -150,39 +172,42 @@ while running:
         # ram_ram(bots=bots_data) 
         last_called_time = current_time  # Update the last called time
 
-    # Draw the points (Huey and Enemy)
-    pygame.draw.circle(screen, point1_color, (int(huey['center'][0]), int(huey['center'][1])), 10)  # Draw huey (red)
-    pygame.draw.circle(screen, point2_color, (int(enemy['center'][0]), int(enemy['center'][1])), 10)  # Draw enemy (blue)
+    # Draw the bots (Huey and Enemy)
+    # width, length of huey bot : 8 in, 9.375 in
+    diagonal = 0.1565197716182 * 300
+    theta = 49.52
+    phi = 40.48
+
+    huey_coords =  [(diagonal * math.cos(math.radians(fix_angle(theta - huey['orientation']))) + huey['center'][0],      diagonal * math.sin(math.radians(fix_angle(theta - huey['orientation']))) + huey['center'][1]),
+               (diagonal * math.cos(math.radians(fix_angle(theta + 2*phi - huey['orientation']))) + huey['center'][0],   diagonal * math.sin(math.radians(fix_angle(theta + 2*phi - huey['orientation']))) + huey['center'][1]), 
+               (diagonal * math.cos(math.radians(fix_angle(3*theta + 2*phi - huey['orientation']))) + huey['center'][0], diagonal * math.sin(math.radians(fix_angle(3*theta + 2*phi - huey['orientation']))) + huey['center'][1]), 
+               (diagonal * math.cos(math.radians(fix_angle(3*theta + 4*phi - huey['orientation']))) + huey['center'][0], diagonal * math.sin(math.radians(fix_angle(3*theta + 4*phi - huey['orientation']))) + huey['center'][1])]
+
+    enemy_coords =  [(diagonal * math.cos(math.radians(fix_angle(45))) + enemy['center'][0], diagonal * math.sin(math.radians(fix_angle(45))) + enemy['center'][1]),
+               (diagonal * math.cos(math.radians(fix_angle(135))) + enemy['center'][0],   diagonal * math.sin(math.radians(fix_angle(135))) + enemy['center'][1]), 
+               (diagonal * math.cos(math.radians(fix_angle(225))) + enemy['center'][0], diagonal * math.sin(math.radians(fix_angle(225))) + enemy['center'][1]), 
+               (diagonal * math.cos(math.radians(fix_angle(315))) + enemy['center'][0], diagonal * math.sin(math.radians(fix_angle(315))) + enemy['center'][1])]
+    
+    #pygame.draw.rect(screen, point1_color, huey_rect, 5)  # Draw huey (red)
+    pygame.draw.polygon(screen, point1_color, huey_coords)
+    pygame.draw.polygon(screen, point2_color, enemy_coords)  # Draw enemy (blue)
+
+    #pygame.draw.circle(screen, point2_color, (int(huey['center'][0]), int(huey['center'][1])), 10)  # Draw enemy (blue)
+    #pygame.draw.circle(screen, point2_color, (int(enemy['center'][0]), int(enemy['center'][1])), 10)  # Draw enemy (blue)
 
     # Draw the arrow indicating Huey's orientation
-    draw_arrow(screen, point1_color, (int(huey['center'][0]), int(huey['center'][1])), huey['orientation'])
+    draw_arrow(screen, point3_color, (int(huey['center'][0]), int(huey['center'][1])), huey['orientation'])
 
     # Draw a line between huey and enemy
-    pygame.draw.line(screen, (0, 0, 0), huey['center'], enemy['center'], 2)
-
-    # Display the orientation of huey
-    font = pygame.font.SysFont(None, 36)
-    angle_text = font.render(f"Huey Orientation: {fix_angle(huey['orientation']):.2f}°", True, (0, 0, 0))
-    screen.blit(angle_text, (10, 10))
-    speed_text = font.render(f"Huey Speed: {huey_speed/5.0:.2f}", True, (0, 0, 0))
-    screen.blit(speed_text, (10, 50))
-    turn_text = font.render(f"Huey Turn: {huey_turn_speed/5.0:.2f}°", True, (0, 0, 0))
-    screen.blit(turn_text, (10, 90))
-    desired_angle = huey_bot.predict_desired_orientation_angle(our_pos=np.array(huey['center']), our_orientation=fix_angle(huey['orientation']), enemy_pos=np.array(enemy['center']), enemy_velocity=huey_bot.calculate_velocity(curr_pos=np.array(enemy['center']), old_pos=np.array(old_pos), dt=(1.0/60)),dt=(1.0/60))
-    desired_angle_text = font.render(f"Huey Desired Angle: {desired_angle:.2f}", True, (0, 0, 0))
-    screen.blit(desired_angle_text, (10, 130))
-    x_text = font.render(f"Huey X Position: {huey['center'][0]:.2f}", True, (0, 0, 0))
-    screen.blit(x_text, (10, 170))
-    y_text = font.render(f"Huey Y Position: {huey['center'][1]:.2f}", True, (0, 0, 0))
-    screen.blit(y_text, (10, 210))
-    y_change_text = font.render(f"Huey Y Position Change: {huey_y_change:.2f}", True, (0, 0, 0))
-    screen.blit(y_change_text, (10, 250))
+    pygame.draw.line(screen, (0, 0, 0), huey['center'], enemy['center'], 1)
 
     # Update the window
     pygame.display.flip()
 
     # Cap the frame rate to 60 FPS
     pygame.time.Clock().tick(60)
+
+    time.sleep(0.01)
 
 # Quit pygame
 try:

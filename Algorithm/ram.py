@@ -2,7 +2,7 @@ import math
 import time
 import os
 import numpy as np
-import test_ram_csv as test_ram_csv
+import Algorithm.test_ram_csv as test_ram_csv
 
 class Ram():
     """
@@ -53,7 +53,7 @@ class Ram():
     predict_desired_speed(our_pos: np.array, our_orientation: np.array, enemy_pos: np.array, enemy_velocity: float, dt: float)
         predicts the desired speed of the bot given the current position and velocity of the enemy
 
-    ram_ram(bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}})
+    ram_ram(bots = {'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}})
         main method for the ram ram algorithm that turns to face the enemy and charge towards it
     """
     # ----------------------------- CONSTANTS -----------------------------
@@ -117,21 +117,21 @@ class Ram():
     def huey_move(self, speed: float, turn: float):
         # print(f'Here: {speed} and {turn}')
         
-        self.left = ((speed - turn) / 2.0)
-        self.right = ((speed + turn) / 2.0)
+        #self.left = ((speed - turn) / 2.0)
+        #self.right = ((speed + turn) / 2.0)
 
         # DeCamp proposal for managing speed below
-        # left = (speed - turn)
-        # right = (speed + turn)
-        # if (left > 1) :
-        #   right -= left - 1
-        #   left = 1
-        # if (right > 1) :
-        #   left -= right - 1
-        #   right = 1
+         left = (speed - turn)
+         right = (speed + turn)
+         if (left > 1) :
+           right -= left - 1
+           left = 1
+         if (right > 1) :
+           left -= right - 1
+           right = 1
 
         # print (f'Left: {self.left}, Right: {self.right}')
-        return {'left': self.left, 'right': self.right, 'speed' : speed, 'turn' : turn}
+         return {'left': left, 'right': right, 'speed' : speed, 'turn' : turn}
 
     ''' 
     calculate the velocity of the bot given the current and previous position
@@ -236,10 +236,8 @@ class Ram():
         return angle * (Ram.MAX_TURN / 180.0), 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0))
 
 
-
-
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
-    def ram_ram(self, bots = {'huey': {'bb': list, 'center': list, 'orientation': float}, 'enemy': {'bb': list, 'center': list}}):
+    def ram_ram(self, bots = {'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}}):
         self.delta_t = time.time() - self.old_time # record delta time
         self.old_time = time.time()
         
