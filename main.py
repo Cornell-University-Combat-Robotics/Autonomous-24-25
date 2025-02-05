@@ -1,8 +1,9 @@
 import cv2
 import os
 import numpy as np
+import matplotlib.pyplot as plt
+import math
 import time
-import timeit
 
 from warp_main import get_homography_mat, warp
 from corner_detection.color_picker import ColorPicker
@@ -30,19 +31,19 @@ def main():
 
     resize_factor = 1
     camera_number = "crude_rot_huey.mp4" # Originally 0
+    # camera_number = "huey_duet_demo.mp4"
 
     # 1. Start the video and 2. Capture initial frame)
-
     cap = cv2.VideoCapture(camera_number)
     captured_image = None
 
     if (cap.isOpened() == False):
-        print("Error opening video file")
+        print("Error opening video file" + "\n")
 
     while (cap.isOpened()):
         ret, frame = cap.read()
 
-        if ret == True:
+        if ret and frame is not None:
             cv2.imshow('Frame', frame)
 
             # Check for key press
@@ -59,7 +60,7 @@ def main():
                 # cv2.waitKey(0)
                 break
         else:
-            print("Failed to read frame")
+            print("Failed to read frame" + "\n")
             break
 
     cv2.destroyAllWindows()
@@ -83,7 +84,7 @@ def main():
         for color in selected_colors:
             file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
 
-    print(f"Selected colors have been saved to '{output_file}'.")
+    print(f"Selected colors have been saved to '{output_file}'." + "\n")
 
     # Reading the HSV values for robot color, front and back corners from a text file
     selected_colors = []
@@ -96,7 +97,7 @@ def main():
         if len(selected_colors) != 3:
             raise ValueError("The file must contain exactly 3 HSV values.")
     except Exception as e:
-        print(f"Error reading selected_colors.txt: {e}")
+        print(f"Error reading selected_colors.txt: {e}" + "\n")
         exit(1)
 
     # Defining Corner Detection Object
@@ -106,7 +107,7 @@ def main():
     predictor = RoboflowModel()
 
     # Defining Ram Ram Algorithm Object
-    algorithm = Ram()
+    algorithm = Ram() # TODO: initialize?
 
     cv2.destroyAllWindows()
 
@@ -116,61 +117,103 @@ def main():
         if user_input == "start":
             break
         else:
-            print("Invalid input. Please type 'start' to proceed.")
+            print("Invalid input. Please type 'start' to proceed." + "\n")
 
-    print("Proceeding with the rest of the program ...")
+    print("Proceeding with the rest of the program ..." + "\n")
 
     # ------------------------------------------------------------------------------
 
     cap = cv2.VideoCapture(camera_number)
     if (cap.isOpened() == False):
-        print("Error opening video file")
+        print("Error opening video file" + "\n")
 
     while (cap.isOpened()):
         # 1. Camera Capture
         ret, frame = cap.read()
         if not ret:
             # If frame capture fails, break the loop
-            print("Failed to capture image")
+            print("Failed to capture image" + "\n")
             break
 
-        # NOTE: These exit key lines take ~15 ms per iteration, handle with Ctrl+C instead -Aaron
         # Press Q on keyboard to exit
-        if cv2.waitKey(1) & 0xFF == ord('q'): # DO NOT CHANGE THE cv2.waitKey(1)
-            print("exit")
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            print("exit" + "\n")
             break
 
         # 2. Warp image
-        frame = cv2.resize(
-            frame, (0, 0), fx=resize_factor, fy=resize_factor)
-        # Can you test outputting a smaller image to OD from warp and see how it affects runtime/consistency of detections -Aaron
+        frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
         warped_frame = warp(frame, h_mat, 700, 700)
         cv2.imshow("Warped Cage", warped_frame)
+        cv2.imwrite("warped_cage.png", warped_frame)
 
         # 3. Object Detection
         detected_bots = predictor.predict(warped_frame, show=True)
 
-        # Debug timing info
-        # times.append(round(1000 * (timeit.default_timer() - t1), 4))
-        # if len(times) > 500:
-        #     nptime = np.asarray(times)
-        #     np.save('looptimes.npy', nptime)
-        #     break
-
-        # 4. Corner Detection # TODO: Change the formatting
+        # 4. Corner Detection
         corner_detection.set_bots(detected_bots["bots"])
         detected_bots_with_data = corner_detection.corner_detection_main()
 
-        print("detected_bots_with_data: " + str(detected_bots_with_data))
+        print("detected_bots_with_data: " + str(detected_bots_with_data) + "\n")
         
-        detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
+        # If bots are detected, run Algorithm
+        if detected_bots_with_data != {"huey": {}, "enemy": {}}:
+            detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
+            
+            # 5. Algorithm                                                                    
+            move_dictionary = algorithm.ram_ram(detected_bots_with_data)
+            print("move_dictionary: " + str(move_dictionary) + "\n")
 
-        move_dictionary = algorithm.ram_ram(detected_bots_with_data)
-        print("move_dictionary: " + str(move_dictionary))
+            display_angles(detected_bots_with_data, move_dictionary)
+        else:
+            print("......")
+
+            # if we dont detect us, dont run algorithm
+            # if we dont detect enemy, ???
 
     cap.release()  # Release the camera object
     cv2.destroyAllWindows()  # Destroy all cv2 windows
 
+def display_angles(detected_bots_with_data, move_dictionary):
+    # arrow_image = cv2.imread(os.getcwd() + "/warped_cage.png")
+
+    vectorImage = plt.imread(os.getcwd() + "/warped_cage.png")
+    _, ax = plt.subplots()
+    ax.imshow(vectorImage)
+    
+    # red line
+    orientation = detected_bots_with_data["huey"]["orientation"] # orientation in degrees
+    dx = np.cos(math.pi / 180 * orientation)
+    dy = np.sin(math.pi / 180 * orientation)
+
+    # start_x = detected_bots_with_data["huey"]["center"][0]
+    # start_y = detected_bots_with_data["huey"]["center"][1]
+
+    # end_point = (start_x + 300*dx, start_y + 300*dy)
+
+    # cv2.arrowedLine(arrow_image, (start_x, start_y), end_point, (255, 0, 0), 2)
+    ax.quiver(detected_bots_with_data["huey"]["center"][0], detected_bots_with_data["huey"]["center"][1], dx, dy, scale=0.5, color="red")
+    
+    # blue line, where we want to 
+    turn = move_dictionary["turn"] # angle in degrees / 180
+    new_orientation = orientation + (turn * 180) # NEW ORIENTATION IN DEGREES
+    dx = np.cos(math.pi * new_orientation / 180)
+    dy = np.sin(math.pi * new_orientation / 180)
+    
+    # end_point = (start_x + 300*dx, start_y + 300*dy)
+
+    # cv2.arrowedLine(arrow_image, (start_x, start_y), end_point, (0, 255, 0), 2)
+
+    ax.quiver(detected_bots_with_data["huey"]["center"][0], detected_bots_with_data["huey"]["center"][1], dx, dy, scale=0.5, color="blue")
+
+    plt.title("Current & Predicted Orientation")
+    # plt.close('all') 
+    plt.show()
+
+    # ----------------------------------------
+
+    # cv2.imshow(vectorImage)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     # Run using 'kernprof -l -v --unit 1e-3 main.py' for debugging

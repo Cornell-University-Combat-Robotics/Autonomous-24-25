@@ -284,8 +284,8 @@ class RoboflowModel(TemplateModel):
 
         # Display the image with predictions
         cv2.imshow("Roboflow Predictions", img)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     def train(self, batch, epoch, train_path, validation_path, save_path, save):
         return super().train(batch, epoch, train_path, validation_path, save_path, save)
