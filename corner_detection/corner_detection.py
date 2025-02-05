@@ -106,10 +106,13 @@ class RobotCornerDetection:
                     continue
 
                 color_pixel_count = self.find_bot_color_pixels(image, bot_color_hsv)
-                if color_pixel_count > max_color_pixels:
+                if color_pixel_count > max_color_pixels and color_pixel_count > 200: # TODO
                     max_color_pixels = color_pixel_count
                     our_bot_image = image
-
+            
+            if our_bot_image is None:
+                print("Huey is not found")
+                
             return our_bot_image
         
         except Exception as e:
@@ -417,7 +420,7 @@ class RobotCornerDetection:
             
             if image is not None:
                 cv2.imshow("Huey", image)
-                cv2.waitKey(0)
+                cv2.waitKey(1)
                 cv2.destroyAllWindows()
 
                 centroid_points = self.find_centroids(image)
@@ -498,7 +501,7 @@ class RobotCornerDetection:
                 return result
             else:
                 print("Image doesn't exist")
-                return None
+                return {"huey": {}, "enemy": {}}
 
         except Exception as e:
             print(f"Unexpected error in corner_detection_main: {e}")
@@ -506,16 +509,16 @@ class RobotCornerDetection:
 
 
 if __name__ == "__main__":
-    heuy_image_path = os.getcwd() + "/warped_images/east_4.png"
+    huey_image_path = os.getcwd() + "/warped_images/east_4.png"
     not_huey_image_path = os.getcwd() + "/warped_images/east_4_not_huey.png"
     selected_colors_file = os.getcwd() + "/selected_colors.txt"
     
     try:
-        huey_image = cv2.imread(heuy_image_path)
+        huey_image = cv2.imread(huey_image_path)
         not_huey_image = cv2.imread(not_huey_image_path)
         
         if huey_image is None:
-            raise ValueError(f"Failed to load image at path: {heuy_image_path}")
+            raise ValueError(f"Failed to load image at path: {huey_image_path}")
         if not_huey_image is None:
             raise ValueError(f"Failed to load image at path: {not_huey_image_path}")
     
