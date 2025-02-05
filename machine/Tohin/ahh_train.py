@@ -59,6 +59,7 @@ class Data(Dataset):
             for line in f.readlines():
                 parts = line.strip().split()
                 class_index = int(parts[0])
+                x_center, y_center, width, height *= 600
                 x_center, y_center, width, height = map(float, parts[1:])
 
                 x_min = x_center - width / 2

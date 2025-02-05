@@ -12,6 +12,7 @@ from ultralytics import YOLO
 import onnxruntime as ort
 import pandas as pd
 import openvino as ov
+from ahh_colab_architechture import TohinNeuralNet
 
 load_dotenv()
 
@@ -23,10 +24,22 @@ DEBUG = False
 
 
 class AhhModel(TemplateModel):
-    def __init__(self, model_path="models/ahhmodel.pth"):
+    def __init__(self, model_path="models/ahhhmodel.pth"):
         # Load the model once during initialization
-        self.model = torch.load(model_path)
-        # Set to evaluation mode, so that we won't train new params
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        
+        # Load the model
+        try:
+            self.model = torch.load(model_path, map_location=self.device)
+        except Exception as e:
+            print(f"Failed to load model directly: {e}")
+            try:
+                # Try loading state dict instead
+                state_dict = torch.load(model_path, map_location=self.device)
+                self.model = TohinNeuralNet()  # Create a new instance of the model
+                self.model.load_state_dict(state_dict)
+            except Exception as e:
+                raise Exception(f"Failed to load model: {e}")
         self.model.eval()
         self.transform = transforms.Compose([
             transforms.ToTensor(),
@@ -73,8 +86,8 @@ class AhhModel(TemplateModel):
                 continue
 
             # Extract center x, center y, box width, and box height
-            center_x = int(bbox[0]*6)
-            center_y = int(bbox[1]*6)
+            center_x = int(bbox[0])
+            center_y = int(bbox[1])
             box_width = int(bbox[2])
             box_height = int(bbox[3])
 
@@ -185,14 +198,14 @@ class AhhModel(TemplateModel):
 if __name__ == '__main__':
 
     print('starting testing with PT model')
-    #predictor = YoloModel("100epoch11","PT")
     predictor = AhhModel()
 
-    IMG_PATH = "data/NHRL/test/images/2242_png.rf.e3285eb24831c586a0bfa92f70110a6e.jpg"
+    IMG_PATH = "2242_png.rf.e3285eb24831c586a0bfa92f70110a6e.jpg"
     IMG_PATH1 = "data/NHRL/test/images/1416_png.rf.e96e59268b7fd89b02f25fc75ca41635.jpg"
-    
+    IMG_PATH2 = "data/NHRL/train/images/0_png.rf.232a178fe443e307f95e69d6d0330fc3.jpg"
+    ROTATED_PATH = "rotated1.jpg"
 
-    img = cv2.imread(IMG_PATH1)
+    img = cv2.imread(ROTATED_PATH)
 
     #cv2.imshow("Original image", img)
     #cv2.waitKey(0)

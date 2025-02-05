@@ -11,8 +11,8 @@ class TohinNeuralNet(nn.Module):
     def __init__(self,num_classes=2,num_bots=3):
         super(TohinNeuralNet, self).__init__()
         self.num_classes = num_classes
-        self.num_objects = num_bots        
-        
+        self.num_objects = num_bots
+
         self.conv1 = nn.Conv2d(3,32,3,1)
         self.relu1 = nn.ReLU()
         self.batchnorm1 = nn.BatchNorm2d(32)
@@ -87,7 +87,7 @@ class TohinNeuralNet(nn.Module):
         # Fully connected layers
         x = self.fc1(x)
         x = self.relu_fc(x)
-        
+
         #credit: ah_model.py
         bounding_boxes = self.bbox_output(x)  # Shape: [batch_size, 4, height, width]
         bbox_pred = bounding_boxes.view(-1, self.num_objects, 4)  # Shape: [batch_size, num_objects, 4]
@@ -149,6 +149,3 @@ class TohinNeuralNet(nn.Module):
             }
         class_probs = F.softmax(class_pred, dim=-1)
         return class_probs, bbox_pred
-
-
-
