@@ -419,9 +419,9 @@ class RobotCornerDetection:
             image = self.detect_our_robot_main(bot_images)
             
             if image is not None:
-                cv2.imshow("Huey", image)
-                cv2.waitKey(1)
-                cv2.destroyAllWindows()
+                # cv2.imshow("Huey", image)
+                # cv2.waitKey(1)
+                # cv2.destroyAllWindows()
 
                 centroid_points = self.find_centroids(image)
                 print("centroid points: " + str(centroid_points))
@@ -501,7 +501,7 @@ class RobotCornerDetection:
                 return result
             else:
                 print("Image doesn't exist")
-                return {"huey": {}, "enemy": {}}
+                return {"huey": {}, "enemy": []}
 
         except Exception as e:
             print(f"Unexpected error in corner_detection_main: {e}")
