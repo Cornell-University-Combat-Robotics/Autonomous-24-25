@@ -32,6 +32,10 @@ data/warped_vid_frames
 /machine/data
 /machine/saved_models
 test_results
+captured_image.png
+selected_colors.txt
+warped_cage.png
+warped_frame.png
 
 # vid_and_img_processing
 /vid_and_img_processing/data/input_img/*.png
