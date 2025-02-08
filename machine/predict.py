@@ -492,8 +492,8 @@ if __name__ == '__main__':
     #predictor = YoloModel("100epoch11","PT")
     predictor = RoboflowModel()
     
-
-    img = cv2.imread('12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg')
+    img_path = os.getcwd() + "/main_files/12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg"
+    img = cv2.imread(img_path)
 
     # cv2.imshow("Original image", img)
     # cv2.waitKey(0)
