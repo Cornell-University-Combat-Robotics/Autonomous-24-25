@@ -60,6 +60,14 @@ def get_homography_mat(frame, output_w=1200, output_h=1200):
     dest_pts = [[0, 0], [output_w, 0], [output_w, output_h], [0, output_h]]
     matrix, status = cv2.findHomography(np.array(corners), np.array(dest_pts))
     cv2.destroyAllWindows()
+
+    # Saving the homography matrix in a txt file
+    output_file = "homography_matrix.txt"
+    with open(output_file, "w") as file:
+        for row in matrix:
+            file.write(" ".join(map(str, row)) + "\n")
+    print(f"Homography matrix has been saved to '{output_file}'.")
+
     return matrix
 
 """

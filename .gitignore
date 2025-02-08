@@ -25,6 +25,8 @@ data/input_video
 data/warped_vid_frames
 *.pyc
 *.mp4
+!/main_files/test_videos/
+!/main_files/test_videos/*.mp4
 /image_flattening/image_flattening/
 /machine/data
 /image_flattening/data
@@ -32,10 +34,13 @@ data/warped_vid_frames
 /machine/data
 /machine/saved_models
 test_results
-captured_image.png
-selected_colors.txt
-warped_cage.png
-warped_frame.png
+/main_files/captured_image.png
+/main_files/selected_colors.txt
+/main_files/warped_cage.png
+/main_files/warped_frame.png
+/main_files/resized_image.png
+/main_files/homography_matrix.txt
+/main_files/12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg
 
 # vid_and_img_processing
 /vid_and_img_processing/data/input_img/*.png
