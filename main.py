@@ -29,9 +29,9 @@ resize_factor = 0.8
 
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
-# camera_number = test_videos_folder + "/huey_demo2.mp4"
+camera_number = test_videos_folder + "/huey_demo2.mp4"
 # camera_number = test_videos_folder + "/huey_demo3.mp4"
-camera_number = test_videos_folder + "/only_huey_demo.mp4"
+# camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 
 frame_rate = 8
@@ -87,7 +87,7 @@ def main():
 
         # 5. ColorPicker: Manually picking colors for the robot, front and back colors
         image_path = folder + "/warped_frame.png"
-        output_file = "selected_colors.txt"
+        output_file = folder + "/selected_colors.txt"
         selected_colors = ColorPicker.pick_colors(image_path)
         with open(output_file, "w") as file:
             for color in selected_colors:
