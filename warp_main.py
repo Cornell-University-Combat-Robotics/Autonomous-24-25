@@ -1,3 +1,4 @@
+import os
 import cv2
 import numpy as np
 
@@ -17,6 +18,8 @@ Returns:
 
 As a change from the original get_homography_mat, does NOT resize the input image.
 """
+folder = os.getcwd() + "/main_files"
+
 def get_homography_mat(frame, output_w=1200, output_h=1200):
     corners = []
 
@@ -62,7 +65,7 @@ def get_homography_mat(frame, output_w=1200, output_h=1200):
     cv2.destroyAllWindows()
 
     # Saving the homography matrix in a txt file
-    output_file = "homography_matrix.txt"
+    output_file = folder + "/homography_matrix.txt"
     with open(output_file, "w") as file:
         for row in matrix:
             file.write(" ".join(map(str, row)) + "\n")

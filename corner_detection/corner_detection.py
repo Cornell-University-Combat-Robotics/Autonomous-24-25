@@ -188,7 +188,7 @@ class RobotCornerDetection:
                 # TODO: this value is subject to change based on dimensions of our video & resize_factor
                 # Compute moments for each contour
                 M = cv2.moments(contour)
-                if M["m00"] != 0:
+                if M["m00"] != 0 and len(centroids) < 2:
                     # Calculate the centroid (center of the dot)
                     cx = int(M["m10"] / M["m00"])
                     cy = int(M["m01"] / M["m00"])
