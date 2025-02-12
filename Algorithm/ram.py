@@ -234,6 +234,10 @@ class Ram():
         # print("Turn: ",  angle * (Ram.MAX_TURN / 180.0))
         # print("Speed: ", 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0)))
         return angle * (Ram.MAX_TURN / 180.0), 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0))
+    
+    """ check that robot is not about to hit a wall """
+    def check_wall(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, buffer_zone: int):
+        pass
 
 
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
