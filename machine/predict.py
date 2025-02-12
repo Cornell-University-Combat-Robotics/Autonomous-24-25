@@ -181,12 +181,15 @@ class RoboflowModel(TemplateModel):
 
         preds = out[0].predictions
 
+        housebot_candidates = []
+
         robots = 1
         for pred in preds:
             if pred.confidence > confidence_threshold:
                 p = {}
                 if pred.class_id == 0:
                     name = 'housebot'
+                    housebot_candidates.append(pred)
                 elif pred.class_id == 1:
                     name = 'bots'
 
@@ -212,7 +215,23 @@ class RoboflowModel(TemplateModel):
                 p['bbox'] = [[x_min, y_min], [x_max, y_max]]
                 p['img'] = screenshot
 
-                bots[name].append(p)
+                if name == 'bots':
+                    bots[name].append(p)
+
+        # Select the most confident housebot
+        if housebot_candidates:
+            best_housebot = max(housebot_candidates, key=lambda pred: pred.confidence)
+
+            # Process the most confident housebot
+            x, y, box_width, box_height = best_housebot.x, best_housebot.y, best_housebot.width, best_housebot.height
+            p = {
+                'center': [x, y],
+                'bbox': [[int(x - box_width / 2) - 20, int(y - box_height / 2) - 20],
+                        [int(x + box_width / 2) + 20, int(y + box_height / 2) + 20]],
+                'img': img[int(y - box_height / 2) - 20:int(y + box_height / 2) + 20,
+                        int(x - box_width / 2) - 20:int(x + box_width / 2) + 20]
+            }
+            bots['housebot'].append(p)
 
         if show:
             self.show_predictions(img, bots)
@@ -223,7 +242,7 @@ class RoboflowModel(TemplateModel):
         housebots = predictions['housebot']
         bots = predictions['bots']
 
-        color = (0, 0, 255)
+        color = (0, 0, 255) # Red for housebots
         for housebot in housebots:
             x_min, y_min = housebot['bbox'][0]
             x_max, y_max = housebot['bbox'][1]
@@ -240,7 +259,7 @@ class RoboflowModel(TemplateModel):
                 0.5, color, 2
             )
 
-        color = (0, 255, 0)  # Green for bots
+        color = (255, 255, 255) # White for bots
         for bot in bots:
             x_min, y_min = bot['bbox'][0]
             x_max, y_max = bot['bbox'][1]

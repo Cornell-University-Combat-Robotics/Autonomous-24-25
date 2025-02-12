@@ -180,6 +180,7 @@ class RobotCornerDetection:
             list: Centroids of the detected contours.
         """
         contours = self.get_contours_per_color(side, hsv_image)
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
         centroids = []
         for contour in contours:
             # Filter out small contours based on area

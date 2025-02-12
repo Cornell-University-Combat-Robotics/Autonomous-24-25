@@ -16,7 +16,7 @@ from warp_main import get_homography_mat, warp
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True to redo warp and color picking bot color, front and back corners
-WARP_AND_COLOR_PICKING = False
+WARP_AND_COLOR_PICKING = True
 IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
@@ -28,11 +28,13 @@ test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
 
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
-# camera_number = test_videos_folder + "/huey_duet_demo.mp4"
-camera_number = test_videos_folder + "/huey_demo2.mp4"
+camera_number = test_videos_folder + "/huey_duet_demo.mp4"
+# camera_number = test_videos_folder + "/huey_demo2.mp4"
 # camera_number = test_videos_folder + "/huey_demo3.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
+# camera_number = test_videos_folder + "/green_huey_demo.mp4"
+# camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 
 frame_rate = 8
 
