@@ -102,7 +102,8 @@ class Ram():
         # initialize the enemy position array
         self.enemy_previous_positions = []
         self.enemy_previous_positions.append(self.enemy_position)
-
+        
+        self.enemy_previous_positions_velocity = []
         self.enemy_future_positions = []
 
         # old time
@@ -277,10 +278,14 @@ class Ram():
             if(len(self.enemy_previous_positions) >= 3):
                 direction = self.get_future_pos(self.enemy_previous_positions, self.enemy_position) - self.huey_position
 
+                old_future = self.predict_enemy_position(self.enemy_position, enemy_velocity, self.delta_t)
+                self.enemy_previous_positions_velocity.append(old_future)
+
             else:
                 direction = self.predict_enemy_position(self.enemy_position, enemy_velocity, self.delta_t) - self.huey_position
-            
-            self.enemy_future_positions.append(direction) 
+                self.enemy_previous_positions_velocity.append(direction + self.huey_position)
+
+            self.enemy_future_positions.append(direction + self.huey_position) 
 
 
             test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
@@ -293,9 +298,9 @@ class Ram():
         # if the array for enemy_previous_positions is full, then pop the first one
         self.enemy_previous_positions.append(self.enemy_position) # store last 10 enemy positions
 
-        if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
-            self.enemy_previous_positions.pop(0)
-        print(self.enemy_previous_positions)
+        # if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
+        #     self.enemy_previous_positions.pop(0)
+        # print(self.enemy_previous_positions)
 
         # print("speed: ", speed)
         # print("turn:", turn)
@@ -315,11 +320,20 @@ class Ram():
         prev_pos_2 = enemy_previous_positions[-2]   
         
         old_vel = self.calculate_velocity(prev_pos_2, prev_pos_1, self.delta_t)
+        print("Velocity 1: " + str(old_vel))
         cur_vel = self.calculate_velocity(prev_pos_1, cur_pos, self.delta_t)
+        print("Velocity 2: " + str(cur_vel))
+        print("Previous Positions: " + str(prev_pos_1) + ", " + str(prev_pos_2))
+    
         accel = self.acceleration(old_vel, cur_vel, self.delta_t) 
+        print("Acceleration: " + str(accel))
         
         displacement = (0.5) * accel * (self.delta_t)*(self.delta_t) + cur_vel * self.delta_t
 
         # print("DISPLACEMENT: " + str(cur_pos + displacement))
         # return np.array([cur_pos[0] + displacement, cur_pos[1] - displacement])
-        return cur_pos[1] + displacement
+        
+        
+        # return np.array([cur_pos[0] + displacement, cur_pos[1]-displacement], dtype=np.float)
+        print("Predicted Pos: " + str((cur_pos + displacement)[0]) + ", " + str((cur_pos + displacement)[1]))
+        return cur_pos + displacement
