@@ -2,7 +2,7 @@
 import pygame
 import math
 import time
-from Algorithm.ram import Ram
+from ram import Ram
 
 # Initialize pygame
 pygame.init()
@@ -27,7 +27,7 @@ huey = {'center': [10, 10], 'orientation': 0.0}  # Huey's position and orientati
 enemy = {'center': [width - 10, height - 10]}  # Enemy's position
 
 # Movement speed for both bots
-speed = 5
+speed = 10
 turn_speed = 5  # Degrees per turn for Huey
 
 # Get bot data and send it to the algorithm
