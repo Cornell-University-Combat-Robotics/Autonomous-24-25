@@ -84,7 +84,8 @@ class Ram():
     enemy_position : np.array
         the initial position of the enemy
     '''
-    def __init__(self, huey_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])), huey_old_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])),
+    def __init__(self, huey_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])), 
+                 huey_old_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])),
                  huey_orientation=45, enemy_position = np.array([0, 0]))-> None:
         # ----------------------------- INIT ----------------------------- 
         # initialize the position and orientation of huey
