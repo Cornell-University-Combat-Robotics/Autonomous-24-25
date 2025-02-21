@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from line_profiler import profile
 
-from Algorithm.ram import Ram
+from Algorithm.ram_copy import Ram #ensure 
 from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
 from machine.predict import RoboflowModel
@@ -16,7 +16,7 @@ from warp_main import get_homography_mat, warp
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True to redo warp and color picking bot color, front and back corners
-WARP_AND_COLOR_PICKING = True
+WARP_AND_COLOR_PICKING = False
 IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
@@ -28,12 +28,12 @@ test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
 
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
-camera_number = test_videos_folder + "/huey_duet_demo.mp4"
+# camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
 # camera_number = test_videos_folder + "/huey_demo3.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
-# camera_number = test_videos_folder + "/green_huey_demo.mp4"
+camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 
 frame_rate = 8
@@ -192,23 +192,19 @@ def main():
             if detected_bots_with_data and detected_bots_with_data["huey"]:
                 if detected_bots_with_data["enemy"]:
                     # 13. Algorithm
-                    detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][
-                        0
-                    ]
-                    move_dictionary = algorithm.ram_ram(detected_bots_with_data)
+                    detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
+                    move_dictionary, enemy_future_dictionary = algorithm.ram_ram(detected_bots_with_data)
                     print("move_dictionary: " + str(move_dictionary) + "\n")
-                    display_angles(
-                        detected_bots_with_data, move_dictionary, warped_frame
-                    )
+                    display_angles(detected_bots_with_data, move_dictionary, enemy_future_dictionary, warped_frame)
 
                     # 14. Transmission
                     if IS_TRANSMITTING:
                         speed_motor_group.move(move_dictionary["speed"])
                         turn_motor_group.move(move_dictionary["turn"])
                 else:
-                    display_angles(detected_bots_with_data, None, warped_frame)
+                    display_angles(detected_bots_with_data, None, enemy_future_dictionary, warped_frame)
             else:
-                display_angles(None, None, warped_frame)
+                display_angles(None, None, None, warped_frame)
 
     cap.release() # Release the camera object
     cv2.destroyAllWindows() # Destroy all cv2 windows
@@ -222,7 +218,7 @@ def main():
             print("Algorithm cleanup failed")
 
 
-def display_angles(detected_bots_with_data, move_dictionary, image):
+def display_angles(detected_bots_with_data, move_dictionary, enemy_future_dictionary, image):
     # Blue line: Huey's Current Orientation
     if detected_bots_with_data and detected_bots_with_data["huey"]["orientation"]:
         orientation_degrees = detected_bots_with_data["huey"]["orientation"]
@@ -249,6 +245,18 @@ def display_angles(detected_bots_with_data, move_dictionary, image):
 
         end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
         cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
+
+    # Plot enemy future position 
+    print(enemy_future_dictionary)
+    if enemy_future_dictionary and len(enemy_future_dictionary) > 0 and detected_bots_with_data["enemy"] and len(detected_bots_with_data["enemy"]) != 0:
+        print("yippee")
+        enemy_x = int(detected_bots_with_data["enemy"]["center"][0])
+        enemy_y = int(detected_bots_with_data["enemy"]["center"][1])
+
+        future_pos_x = int(enemy_future_dictionary[len(enemy_future_dictionary) - 1][0])
+        future_pos_y = -1 * int(enemy_future_dictionary[len(enemy_future_dictionary) - 1][1])
+
+        cv2.arrowedLine(image, (enemy_x, enemy_y), (future_pos_x, future_pos_y), (0, 255, 0), 2)
 
     cv2.imshow("Battle with Predictions", image)
     cv2.waitKey(1)
