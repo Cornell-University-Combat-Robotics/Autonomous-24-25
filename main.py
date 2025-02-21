@@ -187,19 +187,15 @@ def main():
             # 12. Corner Detection
             corner_detection.set_bots(detected_bots["bots"])
             detected_bots_with_data = corner_detection.corner_detection_main()
-            print("detected_bots_with_data: " + str(detected_bots_with_data) + "\n")
+            print("detected_bots_with_data: " + str(detected_bots_with_data))
 
             if detected_bots_with_data and detected_bots_with_data["huey"]:
                 if detected_bots_with_data["enemy"]:
                     # 13. Algorithm
-                    detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][
-                        0
-                    ]
+                    detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
                     move_dictionary = algorithm.ram_ram(detected_bots_with_data)
-                    print("move_dictionary: " + str(move_dictionary) + "\n")
-                    display_angles(
-                        detected_bots_with_data, move_dictionary, warped_frame
-                    )
+                    print("move_dictionary: " + str(move_dictionary))
+                    display_angles(detected_bots_with_data, move_dictionary, warped_frame)
 
                     # 14. Transmission
                     if IS_TRANSMITTING:
@@ -238,17 +234,17 @@ def display_angles(detected_bots_with_data, move_dictionary, image):
         end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
         cv2.arrowedLine(image, (start_x, start_y), end_point, (255, 0, 0), 2)
 
-    # Red line, where we want to face
-    if move_dictionary and move_dictionary["turn"]:
-        turn = move_dictionary["turn"]  # angle in degrees / 180
-        new_orientation_degrees = orientation_degrees + (turn * 180)
-        
-        # Components of predicted turn
-        dx = np.cos(math.pi * new_orientation_degrees / 180)
-        dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
+        # Red line, where we want to face
+        if move_dictionary and move_dictionary["turn"]:
+            turn = move_dictionary["turn"]  # angle in degrees / 180
+            new_orientation_degrees = orientation_degrees + (turn * 180)
+            
+            # Components of predicted turn
+            dx = np.cos(math.pi * new_orientation_degrees / 180)
+            dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
 
-        end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
-        cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
+            end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
+            cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
 
     cv2.imshow("Battle with Predictions", image)
     cv2.waitKey(1)

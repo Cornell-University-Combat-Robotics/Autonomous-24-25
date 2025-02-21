@@ -150,12 +150,7 @@ class RobotCornerDetection:
                 cv2.destroyAllWindows()
 
             if bot_images and all(img is not None for img in bot_images):
-                start_time = time.time()
                 our_bot = self.find_our_bot(bot_images)
-                end_time = time.time()
-                print(
-                    f"Code execution time (detect_our_robot_main): {end_time - start_time} seconds"
-                )
                 return our_bot
             else:
                 print("No valid bot images found.")
@@ -361,7 +356,7 @@ class RobotCornerDetection:
 
             all_points = red_points + blue_points
             center = np.mean(all_points, axis=0)
-            print("center: " + str(center))
+            # print("center: " + str(center))
 
             vector1 = np.array(red_points[0]) - center
             vector2 = np.array(red_points[1]) - center
@@ -425,7 +420,7 @@ class RobotCornerDetection:
                 # cv2.destroyAllWindows()
 
                 centroid_points = self.find_centroids(image)
-                print("centroid points: " + str(centroid_points))
+                # print("centroid points: " + str(centroid_points))
 
                 left_front, right_front = self.get_left_and_right_front_points(centroid_points)
                 orientation = self.compute_tangent_angle(left_front, right_front)
