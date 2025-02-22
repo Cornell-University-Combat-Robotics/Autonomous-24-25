@@ -103,7 +103,7 @@ class Ram():
         self.enemy_previous_positions = []
         self.enemy_previous_positions.append(self.enemy_position)
         
-        self.enemy_previous_positions_velocity = []
+        self.enemy_future_position_velocity = []
         self.enemy_future_positions = []
 
         # old time
@@ -124,17 +124,17 @@ class Ram():
         #self.right = ((speed + turn) / 2.0)
 
         # DeCamp proposal for managing speed below
-         left = (speed - turn)
-         right = (speed + turn)
-         if (left > 1) :
-           right -= left - 1
-           left = 1
-         if (right > 1) :
-           left -= right - 1
-           right = 1
+        left = (speed - turn)
+        right = (speed + turn)
+        if (left > 1) :
+            right -= left - 1
+            left = 1
+        if (right > 1) :
+            left -= right - 1
+            right = 1
 
         # print (f'Left: {self.left}, Right: {self.right}')
-         return {'left': left, 'right': right, 'speed' : speed, 'turn' : turn}
+        return {'left': left, 'right': right, 'speed' : speed, 'turn' : turn}
 
     ''' 
     calculate the velocity of the bot given the current and previous position
@@ -279,14 +279,13 @@ class Ram():
                 direction = self.get_future_pos(self.enemy_previous_positions, self.enemy_position) - self.huey_position
 
                 old_future = self.predict_enemy_position(self.enemy_position, enemy_velocity, self.delta_t)
-                self.enemy_previous_positions_velocity.append(old_future)
+                self.enemy_future_position_velocity.append(old_future)
 
             else:
                 direction = self.predict_enemy_position(self.enemy_position, enemy_velocity, self.delta_t) - self.huey_position
-                self.enemy_previous_positions_velocity.append(direction + self.huey_position)
+                self.enemy_future_position_velocity.append(direction + self.huey_position)
 
-            self.enemy_future_positions.append(direction + self.huey_position) 
-
+            self.enemy_future_positions.append(direction + self.huey_position)
 
             test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
                                     enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
@@ -317,7 +316,7 @@ class Ram():
         '''
         cur_pos = enemy_position
         prev_pos_1 = enemy_previous_positions[-1]
-        prev_pos_2 = enemy_previous_positions[-2]   
+        prev_pos_2 = enemy_previous_positions[-2]
         
         old_vel = self.calculate_velocity(prev_pos_2, prev_pos_1, self.delta_t)
         print("Velocity 1: " + str(old_vel))
@@ -328,7 +327,7 @@ class Ram():
         accel = self.acceleration(old_vel, cur_vel, self.delta_t) 
         print("Acceleration: " + str(accel))
         
-        displacement = (0.5) * accel * (self.delta_t)*(self.delta_t) + cur_vel * self.delta_t
+        displacement = (0.5) * accel * (self.delta_t) * (self.delta_t) + cur_vel * self.delta_t
 
         # print("DISPLACEMENT: " + str(cur_pos + displacement))
         # return np.array([cur_pos[0] + displacement, cur_pos[1] - displacement])
