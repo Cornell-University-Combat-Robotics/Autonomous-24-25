@@ -184,6 +184,7 @@ class RoboflowModel(TemplateModel):
         housebot_candidates = []
 
         robots = 1
+        max_confidence = 0
         for pred in preds:
             if pred.confidence > confidence_threshold:
                 p = {}
@@ -216,7 +217,11 @@ class RoboflowModel(TemplateModel):
                 p['img'] = screenshot
 
                 if name == 'bots':
-                    bots[name].append(p)
+                    if pred.confidence > max_confidence:
+                        max_confidence = pred.confidence
+                        bots[name].insert(0, p)
+                    else:
+                        bots[name].append(p)
 
         # Select the most confident housebot
         if housebot_candidates:

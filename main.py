@@ -16,7 +16,7 @@ from warp_main import get_homography_mat, warp
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True to redo warp and color picking bot color, front and back corners
-WARP_AND_COLOR_PICKING = True
+WARP_AND_COLOR_PICKING = False
 IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
@@ -29,8 +29,9 @@ resize_factor = 0.8
 
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
-camera_number = test_videos_folder + "/huey_demo2.mp4"
-# camera_number = test_videos_folder + "/huey_demo3.mp4"
+# camera_number = test_videos_folder + "/huey_demo2.mp4"
+camera_number = test_videos_folder + "/huey_demo3.mp4"
+# camera_number = test_videos_folder + "/huey_demo3.2.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
@@ -195,19 +196,31 @@ def main():
                     detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
                     move_dictionary, enemy_future_list = algorithm.ram_ram(detected_bots_with_data)
                     # print("move_dictionary: " + str(move_dictionary) + "\n")
-                    display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, algorithm.enemy_previous_positions_velocity, warped_frame)
+                    display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
 
                     # 14. Transmission
                     if IS_TRANSMITTING:
                         speed_motor_group.move(move_dictionary["speed"])
                         turn_motor_group.move(move_dictionary["turn"])
                 else:
-                    display_angles(detected_bots_with_data, None, enemy_future_list, algorithm.enemy_previous_positions_velocity, warped_frame)
+                    display_angles(detected_bots_with_data, None, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
             else:
                 display_angles(None, None, None, None, warped_frame)
 
+        vel_loss, accel_loss = 0, 0
+    # TODO: Why does this loss.
+    for i in range(1, len(algorithm.enemy_previous_positions)):
+        vel_diff_x = (algorithm.enemy_future_position_velocity[i-1][0] - algorithm.enemy_previous_positions[i][0])
+        vel_diff_y = (algorithm.enemy_future_position_velocity[i-1][1] - algorithm.enemy_previous_positions[i][1])
+        vel_loss += vel_diff_x ** 2 + vel_diff_y ** 2
+        accel_loss += (algorithm.enemy_future_positions[i-1][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i-1][1] - algorithm.enemy_previous_positions[i][1]) ** 2
+
+    print("Velocity Loss: " + str(vel_loss))
+    print("Acceleration Loss: " + str(accel_loss))
+
     cap.release() # Release the camera object
     cv2.destroyAllWindows() # Destroy all cv2 windows
+    print("Video capture finished successfully!")
 
     # TEST THE ACCURACY OF EACH via "L2 loss"
 
@@ -220,7 +233,7 @@ def main():
             print("Algorithm cleanup failed")
 
 
-def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, enemy_previous_positions_velocity, image):
+def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, enemy_future_position_velocity, image):
     # Blue line: Huey's Current Orientation
     if detected_bots_with_data and detected_bots_with_data["huey"]["orientation"]:
         orientation_degrees = detected_bots_with_data["huey"]["orientation"]
@@ -260,14 +273,15 @@ def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, 
         
         print("future_pos_x: " + str(future_pos_x) + ", future_pos_y" + str(future_pos_y))
 
+        # Green line, enemy future pos from accel. & velocity
         cv2.arrowedLine(image, (enemy_x, enemy_y), (future_pos_x, future_pos_y), (0, 255, 0), 2)
 
-        if enemy_previous_positions_velocity and len(enemy_previous_positions_velocity) > 0:
-            velocity_pos_x = int(enemy_previous_positions_velocity[len(enemy_previous_positions_velocity) - 1][0])
-            velocity_pos_y = int(enemy_previous_positions_velocity[len(enemy_previous_positions_velocity) - 1][1])
+        # Yellow line, enemy future pos from just velocity
+        if enemy_future_position_velocity and len(enemy_future_position_velocity) > 0:
+            velocity_pos_x = int(enemy_future_position_velocity[len(enemy_future_position_velocity) - 1][0])
+            velocity_pos_y = int(enemy_future_position_velocity[len(enemy_future_position_velocity) - 1][1])
             cv2.arrowedLine(image, (enemy_x, enemy_y), (velocity_pos_x, velocity_pos_y), (0, 255, 255), 2)
         
-
     cv2.imshow("Battle with Predictions", image)
     cv2.waitKey(1)
 
