@@ -2,7 +2,7 @@ import math
 import time
 import os
 import numpy as np
-import Algorithm.test_ram_csv as test_ram_csv
+import test_ram_csv as test_ram_csv
 
 class Ram():
     """
@@ -67,7 +67,7 @@ class Ram():
     MIN_TURN = 0 # between 0 and 1
     ARENA_WIDTH = 1200 # in pixels
     BATTLE_MODE = False # this is true when the match actually has begun and will cause the motors to move
-    TEST_MODE = False # saves values to CSV file
+    TEST_MODE = True # saves values to CSV file
 
     '''
     Constructor for the Ram class that initializes the position and orientation of the bot, the motors, the enemy position, 
@@ -142,7 +142,7 @@ class Ram():
     def calculate_velocity(self, old_pos: np.array, curr_pos: np.array, dt: float):
         if (dt == 0.0):
             return np.array([0.0, 0.0])
-        return (curr_pos - old_pos) / dt
+        return (curr_pos - old_pos) 
 
     ''' 
     calculate the acceleration of the bot given the current and previous velocity. Returns 0 if dt is 0 
@@ -159,7 +159,12 @@ class Ram():
     '''
     def predict_enemy_position(self, enemy_position: np.array, enemy_velocity: np.array, dt: float):
         # print("enemy_velocity: ", dt* enemy_velocity)
-        return enemy_position + dt * enemy_velocity
+        predicted_position = enemy_position + enemy_velocity
+        self.check_wall(predicted_position, 729)
+
+
+        return predicted_position
+
     
     
     '''
@@ -235,6 +240,31 @@ class Ram():
         # print("Turn: ",  angle * (Ram.MAX_TURN / 180.0))
         # print("Speed: ", 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0)))
         return angle * (Ram.MAX_TURN / 180.0), 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0))
+    
+    """ if enemy robot predicted position is outside of arena, move it inside. """
+    def check_wall(self, predicted_position: np.array, arena_width = ARENA_WIDTH):
+        flag = False
+        if(predicted_position[0]>arena_width):
+            predicted_position[0] = 1200
+            flag = True
+        if(predicted_position[0]<0):
+            predicted_position[0] = 0
+            flag = True
+        if(predicted_position[1]>arena_width):
+            predicted_position[1] = 1200
+            flag = True
+        if(predicted_position[1]<0):
+            predicted_position[1] = 0
+            flag = True
+        if(self.TEST_MODE and flag):
+            print("moved that jon")
+        
+
+        
+
+    
+    
+
 
 
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
