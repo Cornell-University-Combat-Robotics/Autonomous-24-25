@@ -19,9 +19,8 @@ ROBOFLOW_API_KEY = os.getenv('ROBOFLOW_API_KEY')
 
 DEBUG = False
 
-# I think this is broken... b/c of the model tho not the
 
-
+'''test a homemade pytorch model'''
 class OurModel(TemplateModel):
     def __init__(self, model_path="models/model_20241113_000141.pth"):
         # Load the model once during initialization
@@ -165,13 +164,54 @@ class OurModel(TemplateModel):
 
 # No clue if this works
 
+'''
+A class for handling robot detection using the Roboflow API.
+This model specifically detects and classifies 'housebot' and 'bots' in images.
 
+attribute model: Roboflow model instance configured with specific model ID and API key
+'''
 class RoboflowModel(TemplateModel):
+    '''
+    A class for handling robot detection using the Roboflow API.
+    This model specifically detects and classifies 'housebot' and 'bots' in images.
+
+    attribute model: Roboflow model instance configured with specific model ID and API key
+    '''
+
+    
     def __init__(self):
+        '''initialize roboflow model. model_id = roboflow model id'''
         self.model = get_model(model_id='nhrl-robots/9',
                                api_key=ROBOFLOW_API_KEY)
+        
+
 
     def predict(self, img, confidence_threshold=0.5, show=False):
+        '''
+        makes predictions on input image (img)
+
+        returns
+                {
+                    'housebot': [
+                        {
+                            'center': [x, y],           
+                            'bbox': [[x_min, y_min],    
+                                   [x_max, y_max]],
+                            'img': numpy.ndarray       
+                        },
+                        ...
+                    ],
+                    'bots': [
+                        {
+                            'center': [x, y],
+                            'bbox': [[x_min, y_min],
+                                   [x_max, y_max]],
+                            'img': numpy.ndarray
+                        },
+                        ...
+                    ]
+                }
+        '''
         out = self.model.infer(img)
 
         bots = {}
@@ -219,6 +259,7 @@ class RoboflowModel(TemplateModel):
         return bots
 
     def show_predictions(self, img, predictions):
+        '''draws bounding boxes on image'''
         # Display housebot
         housebots = predictions['housebot']
         bots = predictions['bots']
@@ -396,6 +437,7 @@ class YoloModel(TemplateModel):
 
 # TODO: Make sure that the internal bot dictionaries are all 'bbox'
 class OnnxModel(TemplateModel):
+    
     def __init__(self):
         onnx_model_path = './models/best.onnx'
         session = ort.InferenceSession(onnx_model_path)
