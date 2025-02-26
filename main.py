@@ -20,7 +20,7 @@ WARP_AND_COLOR_PICKING = False
 IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
-IS_ORIGINAL_FPS = True
+IS_ORIGINAL_FPS = False
 
 folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
@@ -30,12 +30,12 @@ resize_factor = 0.8
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
-camera_number = test_videos_folder + "/huey_demo3.mp4"
+# camera_number = test_videos_folder + "/huey_demo3.mp4"
 # camera_number = test_videos_folder + "/huey_demo3.2.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
-# camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
+camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 
 frame_rate = 8
 
@@ -207,16 +207,32 @@ def main():
             else:
                 display_angles(None, None, None, None, warped_frame)
 
-        vel_loss, accel_loss = 0, 0
+    print("Starting loss:")
+
+    vel_loss, accel_loss = 0, 0
     # TODO: Why does this loss.
-    for i in range(1, len(algorithm.enemy_previous_positions)):
-        vel_diff_x = (algorithm.enemy_future_position_velocity[i-1][0] - algorithm.enemy_previous_positions[i][0])
-        vel_diff_y = (algorithm.enemy_future_position_velocity[i-1][1] - algorithm.enemy_previous_positions[i][1])
-        vel_loss += vel_diff_x ** 2 + vel_diff_y ** 2
-        accel_loss += (algorithm.enemy_future_positions[i-1][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i-1][1] - algorithm.enemy_previous_positions[i][1]) ** 2
+    for i in range(len(algorithm.enemy_previous_positions)-1):
+        # NOTE: We only append to enemy_future_positions at len(enemy_previous_positions) >= 3
+        # NOTE: We append to enemy_future_position_velocity immediately
+        vel_diff_x = (algorithm.enemy_future_position_velocity[i][0] - algorithm.enemy_previous_positions[i][0])
+        vel_diff_y = (algorithm.enemy_future_position_velocity[i][1] - algorithm.enemy_previous_positions[i][1])
+        vel_loss += math.sqrt(vel_diff_x**2 + vel_diff_y**2)
+        accel_loss += math.sqrt((algorithm.enemy_future_positions[i][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i][1] - algorithm.enemy_previous_positions[i][1]) ** 2)
+
+    print("======================================================")
+
+    print(f"Velocities: {algorithm.enemy_future_position_velocity[10:15]}")
+    print("------------------------------------------")
+    print(f"Accelerations: {algorithm.enemy_future_positions[10:15]}")
+    print("------------------------------------------")
+    print(f"Corresponding positions: {algorithm.enemy_previous_positions[11:16]}")
+
+    print("======================================================")
 
     print("Velocity Loss: " + str(vel_loss))
     print("Acceleration Loss: " + str(accel_loss))
+
+    print("======================================================")
 
     cap.release() # Release the camera object
     cv2.destroyAllWindows() # Destroy all cv2 windows

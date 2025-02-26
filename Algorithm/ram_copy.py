@@ -275,6 +275,9 @@ class Ram():
         if (Ram.TEST_MODE):
             angle = self.predict_desired_orientation_angle(self.huey_position, self.huey_orientation, self.enemy_position, enemy_velocity, self.delta_t)	
             
+            if(len(self.enemy_previous_positions)==1):
+                print(f"First position: {self.enemy_previous_positions}")
+
             if(len(self.enemy_previous_positions) >= 3):
                 direction = self.get_future_pos(self.enemy_previous_positions, self.enemy_position) - self.huey_position
 
@@ -286,6 +289,10 @@ class Ram():
                 self.enemy_future_position_velocity.append(direction + self.huey_position)
 
             self.enemy_future_positions.append(direction + self.huey_position)
+
+            
+            if(len(self.enemy_previous_positions)==1):
+                print(f"First vel: {self.enemy_future_position_velocity}; first accel: {self.enemy_future_positions}")
 
             test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
                                     enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
