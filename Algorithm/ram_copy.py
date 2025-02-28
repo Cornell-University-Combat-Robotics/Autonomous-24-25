@@ -180,6 +180,9 @@ class Ram():
     def predict_desired_orientation_angle(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         # print("start of predict desired orientation angle")
         # print("*****Our_pos: ",our_pos, " our_orientation: ", our_orientation, " enemy_pos: ", enemy_pos, "enemy_velocity: ", enemy_velocity, "dt: ", dt) 
+        
+        #New Algo Idea: run velocity as future prediction if velocity changes signs (above some threshold of change) otherwise make future prediction the same as current position
+        
         if(len(self.enemy_previous_positions) >= 3):
             enemy_future_position = self.get_future_pos(self.enemy_previous_positions, self.enemy_position)
 

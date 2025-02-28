@@ -16,16 +16,18 @@ from warp_main import get_homography_mat, warp
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True to redo warp and color picking bot color, front and back corners
-WARP_AND_COLOR_PICKING = False
+WARP_AND_COLOR_PICKING = True
 IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
-IS_ORIGINAL_FPS = False
+IS_ORIGINAL_FPS = True
 
 folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
 
 resize_factor = 0.8
+
+# TODO: test on real NHRL video
 
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
@@ -34,8 +36,8 @@ resize_factor = 0.8
 # camera_number = test_videos_folder + "/huey_demo3.2.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
-# camera_number = test_videos_folder + "/green_huey_demo.mp4"
-camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
+camera_number = test_videos_folder + "/green_huey_demo.mp4"
+# camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 
 frame_rate = 8
 
@@ -211,14 +213,25 @@ def main():
 
     vel_loss, accel_loss = 0, 0
     # TODO: Why does this loss.
-    for i in range(len(algorithm.enemy_previous_positions)-1):
+    velocity_loss_sum = 0
+    position_loss_sum = 0
+    prev_position_loss = 0
+
+    for i in range(1,len(algorithm.enemy_previous_positions)-1):
         # NOTE: We only append to enemy_future_positions at len(enemy_previous_positions) >= 3
         # NOTE: We append to enemy_future_position_velocity immediately
-        vel_diff_x = (algorithm.enemy_future_position_velocity[i][0] - algorithm.enemy_previous_positions[i][0])
-        vel_diff_y = (algorithm.enemy_future_position_velocity[i][1] - algorithm.enemy_previous_positions[i][1])
-        vel_loss += math.sqrt(vel_diff_x**2 + vel_diff_y**2)
-        accel_loss += math.sqrt((algorithm.enemy_future_positions[i][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i][1] - algorithm.enemy_previous_positions[i][1]) ** 2)
-
+        velocity_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_position_velocity[i])
+        calculated_position_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_previous_positions[i-1])
+        if calculated_position_loss == 0:
+            position_loss_sum += prev_position_loss
+        else:
+            position_loss_sum += calculated_position_loss
+        prev_position_loss = calculated_position_loss
+            
+        # accel_loss += math.sqrt((algorithm.enemy_future_positions[i][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i][1] - algorithm.enemy_previous_positions[i][1]) ** 2)
+    
+    average_vel_percentage_loss = velocity_loss_sum/(len(algorithm.enemy_previous_positions)-1)
+    average_pos_percentage_loss = position_loss_sum/(len(algorithm.enemy_previous_positions)-1)
     print("======================================================")
 
     print(f"Velocities: {algorithm.enemy_future_position_velocity[10:15]}")
@@ -229,8 +242,9 @@ def main():
 
     print("======================================================")
 
-    print("Velocity Loss: " + str(vel_loss))
-    print("Acceleration Loss: " + str(accel_loss))
+    print("Velocity Loss: " + str(average_vel_percentage_loss))
+    print("Position Loss: " + str(average_pos_percentage_loss))
+    # print("Acceleration Loss: " + str(accel_loss))
 
     print("======================================================")
 
@@ -248,6 +262,15 @@ def main():
         except:
             print("Algorithm cleanup failed")
 
+def position_loss(cur_pos, predicted_pos):
+    # percentage loss
+    # TODO: catch when cur_pos is (0,0)
+    if (cur_pos[0] != 0 and cur_pos[1] != 0):
+        pos_diff_x = (predicted_pos[0] - cur_pos[0])/cur_pos[0]
+        pos_diff_y = (predicted_pos[1] - cur_pos[1])/cur_pos[1]
+    else:
+        return 0
+    return math.sqrt(pos_diff_x**2 + pos_diff_y**2)
 
 def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, enemy_future_position_velocity, image):
     # Blue line: Huey's Current Orientation
@@ -280,7 +303,6 @@ def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, 
     # Plot enemy future position 
     print(enemy_future_list)
     if enemy_future_list and len(enemy_future_list) > 0 and detected_bots_with_data["enemy"] and len(detected_bots_with_data["enemy"]) != 0:
-
         enemy_x = int(detected_bots_with_data["enemy"]["center"][0])
         enemy_y = int(detected_bots_with_data["enemy"]["center"][1])
 
