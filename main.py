@@ -20,6 +20,9 @@ from warp_main import get_homography_mat, warp
 WARP_AND_COLOR_PICKING = True
 IS_TRANSMITTING = False
 
+# True to display angles for each iteration
+DISPLAY_ANGLES = False
+
 # Set True to process every single frame the camera captures
 IS_ORIGINAL_FPS = False
 
@@ -35,8 +38,8 @@ resize_factor = 0.8
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
-# camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
-camera_number = test_videos_folder + "/warped_no_huey.mp4"
+camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
+# camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = 0
 
 frame_rate = 20
@@ -169,6 +172,7 @@ def main():
     while cap.isOpened():
         # 9. Camera Capture
         time_elapsed = time.time() - prev
+        print(time_elapsed)
         ret, frame = cap.read()
         if not ret:
             # If frame capture fails, break the loop
@@ -186,7 +190,7 @@ def main():
             frame = cv2.resize(
                 frame, (0, 0), fx=resize_factor, fy=resize_factor)
             warped_frame = warp(frame, h_mat, 700, 700)
-            cv2.imwrite(folder + "/warped_cage.png", warped_frame)
+            # cv2.imwrite(folder + "/warped_cage.png", warped_frame) This was taking ~7 ms per iteration - Aaron
 
             # 11. Object Detection
             detected_bots = predictor.predict(
@@ -197,24 +201,28 @@ def main():
             detected_bots_with_data = corner_detection.corner_detection_main()
             print("detected_bots_with_data: " + str(detected_bots_with_data))
 
-            if detected_bots_with_data and detected_bots_with_data["huey"]:
-                if detected_bots_with_data["enemy"]:
-                    # 13. Algorithm
-                    detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
-                    move_dictionary = algorithm.ram_ram(
-                        detected_bots_with_data)
-                    print("move_dictionary: " + str(move_dictionary))
-                    display_angles(detected_bots_with_data,
-                                   move_dictionary, warped_frame)
+            if DISPLAY_ANGLES:
+                if detected_bots_with_data and detected_bots_with_data["huey"]:
+                    if detected_bots_with_data["enemy"]:
+                        # 13. Algorithm
+                        detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
+                        move_dictionary = algorithm.ram_ram(
+                            detected_bots_with_data)
+                        print("move_dictionary: " + str(move_dictionary))
+                        display_angles(detected_bots_with_data,
+                                       move_dictionary, warped_frame)
 
-                    # 14. Transmission
-                    if IS_TRANSMITTING:
-                        speed_motor_group.move(move_dictionary["speed"])
-                        turn_motor_group.move(move_dictionary["turn"])
+                        # 14. Transmission
+                        if IS_TRANSMITTING:
+                            speed_motor_group.move(move_dictionary["speed"])
+                            turn_motor_group.move(move_dictionary["turn"])
+                    else:
+                        display_angles(detected_bots_with_data,
+                                       None, warped_frame)
                 else:
-                    display_angles(detected_bots_with_data, None, warped_frame)
+                    display_angles(None, None, warped_frame)
             else:
-                display_angles(None, None, warped_frame)
+                cv2.imshow("Bounding boxes (no angles)", warped_frame)
 
     cap.release()  # Release the camera object
     cv2.destroyAllWindows()  # Destroy all cv2 windows
