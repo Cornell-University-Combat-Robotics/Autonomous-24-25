@@ -38,6 +38,8 @@ resize_factor = 0.8
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
+# camera_number = test_videos_folder + "/not_huey_test.mp4"
+camera_number = test_videos_folder + "/real_gruey_naked.mp4"
 
 frame_rate = 8
 
@@ -208,7 +210,7 @@ def main():
                     display_angles(detected_bots_with_data, None, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
             else:
                 display_angles(None, None, None, None, warped_frame)
-
+            display_angles(None, None, None, None, warped_frame)
     print("Starting loss:")
 
     vel_loss, accel_loss = 0, 0
@@ -216,12 +218,15 @@ def main():
     velocity_loss_sum = 0
     position_loss_sum = 0
     prev_position_loss = 0
+    accel_loss_sum = 0
+    num_enemies_pos = len(algorithm.enemy_previous_positions)-1
 
-    for i in range(1,len(algorithm.enemy_previous_positions)-1):
+    for i in range(1,num_enemies_pos):
         # NOTE: We only append to enemy_future_positions at len(enemy_previous_positions) >= 3
         # NOTE: We append to enemy_future_position_velocity immediately
         velocity_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_position_velocity[i])
         calculated_position_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_previous_positions[i-1])
+        accel_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_positions[i])
         if calculated_position_loss == 0:
             position_loss_sum += prev_position_loss
         else:
@@ -230,8 +235,15 @@ def main():
             
         # accel_loss += math.sqrt((algorithm.enemy_future_positions[i][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i][1] - algorithm.enemy_previous_positions[i][1]) ** 2)
     
-    average_vel_percentage_loss = velocity_loss_sum/(len(algorithm.enemy_previous_positions)-1)
-    average_pos_percentage_loss = position_loss_sum/(len(algorithm.enemy_previous_positions)-1)
+    if (num_enemies_pos > 0):
+        average_vel_percentage_loss = velocity_loss_sum/num_enemies_pos
+        average_pos_percentage_loss = position_loss_sum/num_enemies_pos
+        average_accel_percentage_loss = accel_loss_sum/num_enemies_pos
+    else:
+        average_vel_percentage_loss = 0
+        average_pos_percentage_loss = 0
+        average_accel_percentage_loss = 0
+        
     print("======================================================")
 
     print(f"Velocities: {algorithm.enemy_future_position_velocity[10:15]}")
@@ -244,7 +256,7 @@ def main():
 
     print("Velocity Loss: " + str(average_vel_percentage_loss))
     print("Position Loss: " + str(average_pos_percentage_loss))
-    # print("Acceleration Loss: " + str(accel_loss))
+    print("Acceleration Loss: " + str(average_accel_percentage_loss))
 
     print("======================================================")
 
@@ -288,20 +300,21 @@ def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, 
         end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
         cv2.arrowedLine(image, (start_x, start_y), end_point, (255, 0, 0), 2)
 
-    # Red line, where we want to face
-    if move_dictionary and move_dictionary["turn"]:
-        turn = move_dictionary["turn"]  # angle in degrees / 180
-        new_orientation_degrees = orientation_degrees + (turn * 180)
-        
-        # Components of predicted turn
-        dx = np.cos(math.pi * new_orientation_degrees / 180)
-        dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
+        # Red line, where we want to face
+        if move_dictionary and move_dictionary["turn"]:
+            turn = move_dictionary["turn"]  # angle in degrees / 180
+            new_orientation_degrees = orientation_degrees + (turn * 180)
+            
+            # Components of predicted turn
+            dx = np.cos(math.pi * new_orientation_degrees / 180)
+            dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
 
-        end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
-        cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
+            end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
+            # cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
 
     # Plot enemy future position 
     print(enemy_future_list)
+
     if enemy_future_list and len(enemy_future_list) > 0 and detected_bots_with_data["enemy"] and len(detected_bots_with_data["enemy"]) != 0:
         enemy_x = int(detected_bots_with_data["enemy"]["center"][0])
         enemy_y = int(detected_bots_with_data["enemy"]["center"][1])
