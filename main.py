@@ -1,93 +1,124 @@
-import cv2
+import math
 import os
-import numpy as np
 import time
-import timeit
+import cv2
+import numpy as np
+from line_profiler import profile
 
-from warp_main import get_homography_mat, warp
+# from Algorithm.ram_copy import Ram #ensure 
 from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
 from machine.predict import RoboflowModel
+# from transmission.motors import Motor
+# from transmission.serial_conn import Serial
+from warp_main import get_homography_mat, warp
 
-# ---------- BEFORE THE MATCH ----------
+# ------------------------------ GLOBAL VARIABLES ------------------------------
 
-"""
+# Set True to redo warp and color picking bot color, front and back corners
+WARP_AND_COLOR_PICKING = True
+IS_TRANSMITTING = False
 
-1. Start the video (camera = 0)
-2. Capture the initial image (resize if needed)
-3. Using the initial image, plot four corners of arena (clockwise from top left)
-4. Display the warped initial image
-5. Using the initial image, select colors (body, front corner, back corner)
-6. Wait until start match
+# Set True to process every single frame the camera captures
+IS_ORIGINAL_FPS = False
 
-"""
+folder = os.getcwd() + "/main_files"
+test_videos_folder = folder + "/test_videos"
 
+resize_factor = 0.8
 
-# @profile
+# TODO: test on real NHRL video
+
+# camera_number = test_videos_folder + "/crude_rot_huey.mp4"
+# camera_number = test_videos_folder + "/huey_duet_demo.mp4"
+# camera_number = test_videos_folder + "/huey_demo2.mp4"
+# camera_number = test_videos_folder + "/huey_demo3.mp4"
+# camera_number = test_videos_folder + "/huey_demo3.2.mp4"
+# camera_number = test_videos_folder + "/only_huey_demo.mp4"
+# camera_number = test_videos_folder + "/only_enemy_demo.mp4"
+# camera_number = test_videos_folder + "/green_huey_demo.mp4"
+# camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
+# camera_number = test_videos_folder + "/trimmedBZ-nhrl_sep24_fs-pikmin-gforce-4e7e-Cage-7-Overhead-High.mp4"
+camera_number = test_videos_folder + "/not_huey_test.mp4"
+# camera_number = test_videos_folder + "/real_gruey_naked.mp4"
+
+frame_rate = 8
+
+if IS_TRANSMITTING:
+    speed_motor_channel = 3
+    turn_motor_channel = 1
+
+# ------------------------------ BEFORE THE MATCH ------------------------------
+
+@profile
 def main():
-    # 0. Set resize, camera numbers
-
-    resize_factor = 0.4
-    camera_number = "vid_and_img_processing/trimmedBZ-nhrl_sep24_fs-pikmin-gforce-4e7e-Cage-7-Overhead-High.mp4"
-    # camera_number = 1 # NOTE: camera_number = 1 for Desktop camera
-
-    # 1. Start the video and 2. Capture initial frame)
-
+    # 1. Start the video and 2. Capture initial frame
     cap = cv2.VideoCapture(camera_number)
     captured_image = None
 
-    if (cap.isOpened() == False):
-        print("Error opening video file")
+    if cap.isOpened() == False:
+        print("Error opening video file" + "\n")
 
-    while (cap.isOpened()):
+    while cap.isOpened():
         ret, frame = cap.read()
 
-        if ret == True:
-            cv2.imshow('Frame', frame)
+        if ret and frame is not None:
+            cv2.imshow("Frame", frame)
 
             # Check for key press
             key = cv2.waitKey(1) & 0xFF
 
-            if key == ord('q'):  # Press 'q' to quit without capturing
+            if key == ord("q"):  # Press 'q' to quit without capturing
                 break
-            elif key == ord('0'):  # Press '0' to capture the image and exit
+            elif key == ord("0"):  # Press '0' to capture the image and exit
                 captured_image = frame.copy()  # Store the captured frame
-                cv2.imwrite("captured_image.png",
-                            captured_image)  # Save the image
-                # cv2.imshow('Captured Image', captured_image)
-                # print("Press any key to continue...")
-                # cv2.waitKey(0)
+                cv2.imwrite(
+                    folder + "/captured_image.png", captured_image
+                )  # Save the image
                 break
         else:
-            print("Failed to read frame")
+            print("Failed to read frame" + "\n")
             break
 
     cv2.destroyAllWindows()
 
-    # 3. Homography Matrix and 4. Display the warped image
-    resized_image = cv2.resize(captured_image, (0, 0),
-                               fx=resize_factor, fy=resize_factor)  # NOTE: resized
-    h_mat = get_homography_mat(resized_image, 700, 700)
-    warped_frame = warp(resized_image, h_mat, 700, 700)
-    cv2.imshow("Warped Cage", warped_frame)
-    cv2.imwrite("warped_frame.png", warped_frame)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # 3. Homography Matrix and 4. Display the warped image if flag is True
+    if WARP_AND_COLOR_PICKING:
+        resized_image = cv2.resize(captured_image, (0, 0), fx=resize_factor, fy=resize_factor)
+        cv2.imwrite(folder + "/resized_image.png", resized_image)
+        h_mat = get_homography_mat(resized_image, 700, 700)
+        warped_frame = warp(resized_image, h_mat, 700, 700)
+        cv2.imshow("Warped Cage", warped_frame)
+        cv2.imwrite(folder + "/warped_frame.png", warped_frame)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
-    # 5. ColorPicker: Manually picking colors for the robot, front and back colors
-    image_path = os.getcwd() + "/warped_frame.png"
-    output_file = "selected_colors.txt"
-    selected_colors = ColorPicker.pick_colors(image_path)
-
-    with open(output_file, "w") as file:
-        for color in selected_colors:
-            file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
-
-    print(f"Selected colors have been saved to '{output_file}'.")
+        # 5. ColorPicker: Manually picking colors for the robot, front and back colors
+        image_path = folder + "/warped_frame.png"
+        output_file = folder + "/selected_colors.txt"
+        selected_colors = ColorPicker.pick_colors(image_path)
+        with open(output_file, "w") as file:
+            for color in selected_colors:
+                file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
+        print(f"Selected colors have been saved to '{output_file}'." + "\n")
+    else:
+        h_mat = []
+        homography_matrix_file = folder + "/homography_matrix.txt"
+        try:
+            with open(homography_matrix_file, "r") as file:
+                for line in file:
+                    row = list(map(float, line.strip().split(" ")))
+                    h_mat.append(row)
+            if len(h_mat) != 3 or len(h_mat[0]) != 3:
+                raise ValueError("The file must represent a 3 x 3 matrix.")
+            h_mat = np.array(h_mat, dtype=np.float32)
+        except Exception as e:
+            print(f"Error reading homography_matrix.txt: {e}" + "\n")
+            exit(1)
 
     # Reading the HSV values for robot color, front and back corners from a text file
     selected_colors = []
-    selected_colors_file = os.getcwd() + "/selected_colors.txt"
+    selected_colors_file = folder + "/selected_colors.txt"
     try:
         with open(selected_colors_file, "r") as file:
             for line in file:
@@ -96,92 +127,217 @@ def main():
         if len(selected_colors) != 3:
             raise ValueError("The file must contain exactly 3 HSV values.")
     except Exception as e:
-        print(f"Error reading selected_colors.txt: {e}")
+        print(f"Error reading selected_colors.txt: {e}" + "\n")
         exit(1)
 
-    # Defining Corner Detection Object
-    corner_detection = RobotCornerDetection(selected_colors)
-
     # Defining Roboflow Machine Learning Model Object
-    predictor = RoboflowModel()
+    # predictor = RoboflowModel()
+
+    # Defining Corner Detection Object
+    # corner_detection = RobotCornerDetection(selected_colors, False, False)
+
+    # Defining Ram Ram Algorithm Object
+    # algorithm = Ram()
+
+    # if IS_TRANSMITTING:
+    #     # Defining Transmission Object
+    #     ser = Serial()
+    #     speed_motor_group = Motor(ser=ser, channel=speed_motor_channel)
+    #     turn_motor_group = Motor(ser=ser, channel=turn_motor_channel)
 
     cv2.destroyAllWindows()
 
-    # 6. Wait until the match starts, fix FPS setting
-    is_original_fps = False # Set True for running straight
-    frame_rate = 10
+    # 6. Set FPS
     prev = 0
 
+    # 7. Wait for match to start
     while True:
         user_input = input("Type 'start' to begin: ").strip().lower()
         if user_input == "start":
             break
         else:
-            print("Invalid input. Please type 'start' to proceed.")
+            print("Invalid input. Please type 'start' to proceed." + "\n")
+    print("Proceeding with the rest of the program ..." + "\n")
 
-    print("Proceeding with the rest of the program ...")
+    # --------------------------------------------------------------------------
 
-    # ------------------------------------------------------------------------------
-
+    # 8. Match begins
     cap = cv2.VideoCapture(camera_number)
-    if (cap.isOpened() == False):
-        print("Error opening video file")
+    if cap.isOpened() == False:
+        print("Error opening video file" + "\n")
 
-    times = []
-
-    while (cap.isOpened()):
-
-        t1 = timeit.default_timer()
-
-        # 1. Camera Capture
+    while cap.isOpened():
+        # 9. Camera Capture
         time_elapsed = time.time() - prev
         ret, frame = cap.read()
         if not ret:
             # If frame capture fails, break the loop
-            print("Failed to capture image")
+            print("Failed to capture image" + "\n")
             break
 
-        # NOTE: These exit key lines take ~15 ms per iteration, handle with Ctrl+C instead -Aaron
         # Press Q on keyboard to exit
-        if cv2.waitKey(1) & 0xFF == ord('q'): # DO NOT CHANGE THE cv2.waitKey(1)
-            print("exit")
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            print("exit" + "\n")
             break
 
-        # 2. Warp image
-        if is_original_fps or time_elapsed > 1.0/frame_rate:
+        # 10. Warp image
+        if IS_ORIGINAL_FPS or time_elapsed > 1.0 / frame_rate:
             prev = time.time()
-            frame = cv2.resize(
-                frame, (0, 0), fx=resize_factor, fy=resize_factor)
-            # Can you test outputting a smaller image to OD from warp and see how it affects runtime/consistency of detections -Aaron
+            frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
             warped_frame = warp(frame, h_mat, 700, 700)
-            cv2.imshow("Warped Cage", warped_frame)
+            cv2.imwrite(folder + "/warped_cage.png", warped_frame)
 
-            # 3. Object Detection
-            detected_bots = predictor.predict(warped_frame, show=True)
+            # 11. Object Detection
+            # detected_bots = predictor.predict(warped_frame, show=True)
 
-            # Debug timing info
-            # times.append(round(1000 * (timeit.default_timer() - t1), 4))
-            # if len(times) > 500:
-            #     nptime = np.asarray(times)
-            #     np.save('looptimes.npy', nptime)
-            #     break
-
-            # 4. Corner Detection # TODO: Change the formatting
-            corner_detection.set_bots(detected_bots["bots"])
+            # 12. Corner Detection
+            # corner_detection.set_bots(detected_bots["bots"])
             # detected_bots_with_data = corner_detection.corner_detection_main()
+            # print("detected_bots_with_data: " + str(detected_bots_with_data) + "\n")
 
-    cap.release()  # Release the camera object
-    cv2.destroyAllWindows()  # Destroy all cv2 windows
+            # if detected_bots_with_data and detected_bots_with_data["huey"]:
+            # #     if detected_bots_with_data["enemy"]:
+            # #         # 13. Algorithm
+            # #         detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
+            # #         move_dictionary, enemy_future_list = algorithm.ram_ram(detected_bots_with_data)
+            # #         # print("move_dictionary: " + str(move_dictionary) + "\n")
+            # #         display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
+
+            # #         # 14. Transmission
+            # #         if IS_TRANSMITTING:
+            # #             speed_motor_group.move(move_dictionary["speed"])
+            # #             turn_motor_group.move(move_dictionary["turn"])
+            # #     else:
+            # #         display_angles(detected_bots_with_data, None, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
+            # # else:
+            #     display_angles(None, None, None, None, warped_frame)
+            display_angles(None, None, None, None, warped_frame)
+    print("Starting loss:")
+
+    vel_loss, accel_loss = 0, 0
+    # TODO: Why does this loss.
+    velocity_loss_sum = 0
+    position_loss_sum = 0
+    prev_position_loss = 0
+    accel_loss_sum = 0
+    num_enemies_pos = len(algorithm.enemy_previous_positions)-1
+
+    for i in range(1,num_enemies_pos):
+        # NOTE: We only append to enemy_future_positions at len(enemy_previous_positions) >= 3
+        # NOTE: We append to enemy_future_position_velocity immediately
+        velocity_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_position_velocity[i])
+        calculated_position_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_previous_positions[i-1])
+        accel_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_positions[i])
+        if calculated_position_loss == 0:
+            position_loss_sum += prev_position_loss
+        else:
+            position_loss_sum += calculated_position_loss
+        prev_position_loss = calculated_position_loss
+            
+        # accel_loss += math.sqrt((algorithm.enemy_future_positions[i][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i][1] - algorithm.enemy_previous_positions[i][1]) ** 2)
+    
+    if (num_enemies_pos > 0):
+        average_vel_percentage_loss = velocity_loss_sum/num_enemies_pos
+        average_pos_percentage_loss = position_loss_sum/num_enemies_pos
+        average_accel_percentage_loss = accel_loss_sum/num_enemies_pos
+    else:
+        average_vel_percentage_loss = 0
+        average_pos_percentage_loss = 0
+        average_accel_percentage_loss = 0
+        
+    print("======================================================")
+
+    print(f"Velocities: {algorithm.enemy_future_position_velocity[10:15]}")
+    print("------------------------------------------")
+    print(f"Accelerations: {algorithm.enemy_future_positions[10:15]}")
+    print("------------------------------------------")
+    print(f"Corresponding positions: {algorithm.enemy_previous_positions[11:16]}")
+
+    print("======================================================")
+
+    print("Velocity Loss: " + str(average_vel_percentage_loss))
+    print("Position Loss: " + str(average_pos_percentage_loss))
+    print("Acceleration Loss: " + str(average_accel_percentage_loss))
+
+    print("======================================================")
+
+    cap.release() # Release the camera object
+    cv2.destroyAllWindows() # Destroy all cv2 windows
+    print("Video capture finished successfully!")
+
+    # TEST THE ACCURACY OF EACH via "L2 loss"
+
+    if IS_TRANSMITTING:
+        try:
+            speed_motor_group.stop()
+            turn_motor_group.stop()
+            ser.cleanup()
+        except:
+            print("Algorithm cleanup failed")
+
+def position_loss(cur_pos, predicted_pos):
+    # percentage loss
+    # TODO: catch when cur_pos is (0,0)
+    if (cur_pos[0] != 0 and cur_pos[1] != 0):
+        pos_diff_x = (predicted_pos[0] - cur_pos[0])/cur_pos[0]
+        pos_diff_y = (predicted_pos[1] - cur_pos[1])/cur_pos[1]
+    else:
+        return 0
+    return math.sqrt(pos_diff_x**2 + pos_diff_y**2)
+
+def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, enemy_future_position_velocity, image):
+    # # Blue line: Huey's Current Orientation
+    # if detected_bots_with_data and detected_bots_with_data["huey"]["orientation"]:
+    #     orientation_degrees = detected_bots_with_data["huey"]["orientation"]
+        
+    #     # Components of current front arrow
+    #     dx = np.cos(math.pi / 180 * orientation_degrees)
+    #     dy = -1 * np.sin(math.pi / 180 * orientation_degrees)
+        
+    #     # Huey's center
+    #     start_x = int(detected_bots_with_data["huey"]["center"][0])
+    #     start_y = int(detected_bots_with_data["huey"]["center"][1])
+        
+    #     end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
+    #     # cv2.arrowedLine(image, (start_x, start_y), end_point, (255, 0, 0), 2)
+
+    #     # Red line, where we want to face
+    #     if move_dictionary and move_dictionary["turn"]:
+    #         turn = move_dictionary["turn"]  # angle in degrees / 180
+    #         new_orientation_degrees = orientation_degrees + (turn * 180)
+            
+    #         # Components of predicted turn
+    #         dx = np.cos(math.pi * new_orientation_degrees / 180)
+    #         dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
+
+    #         end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
+    #         # cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
+
+    # # Plot enemy future position 
+    # print(enemy_future_list)
+
+    # if enemy_future_list and len(enemy_future_list) > 0 and detected_bots_with_data["enemy"] and len(detected_bots_with_data["enemy"]) != 0:
+    #     enemy_x = int(detected_bots_with_data["enemy"]["center"][0])
+    #     enemy_y = int(detected_bots_with_data["enemy"]["center"][1])
+
+    #     future_pos_x = int(enemy_future_list[len(enemy_future_list) - 1][0])
+    #     future_pos_y = int(enemy_future_list[len(enemy_future_list) - 1][1])
+        
+    #     print("future_pos_x: " + str(future_pos_x) + ", future_pos_y" + str(future_pos_y))
+
+    #     # Green line, enemy future pos from accel. & velocity
+    #     # cv2.arrowedLine(image, (enemy_x, enemy_y), (future_pos_x, future_pos_y), (0, 255, 0), 2)
+
+    #     # Yellow line, enemy future pos from just velocity
+    #     if enemy_future_position_velocity and len(enemy_future_position_velocity) > 0:
+    #         velocity_pos_x = int(enemy_future_position_velocity[len(enemy_future_position_velocity) - 1][0])
+    #         velocity_pos_y = int(enemy_future_position_velocity[len(enemy_future_position_velocity) - 1][1])
+    #         # cv2.arrowedLine(image, (enemy_x, enemy_y), (velocity_pos_x, velocity_pos_y), (0, 255, 255), 2)
+        
+    cv2.imshow("Battle with Predictions", image)
+    cv2.waitKey(1)
 
 
 if __name__ == "__main__":
     # Run using 'kernprof -l -v --unit 1e-3 main.py' for debugging
     main()
-
-
-"""
-
-1. frame skipping
-2. flags for testing mode and production mode
-
-"""
