@@ -17,7 +17,7 @@ from warp_main import get_homography_mat, warp
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True to redo warp and color picking bot color, front and back corners
-WARP_AND_COLOR_PICKING = False
+WARP_AND_COLOR_PICKING = True
 IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
@@ -35,8 +35,8 @@ resize_factor = 0.8
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
-camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
-# camera_number = test_videos_folder + "/warped_no_huey.mp4"
+# camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
+camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = 0
 
 frame_rate = 20
@@ -190,7 +190,7 @@ def main():
 
             # 11. Object Detection
             detected_bots = predictor.predict(
-                warped_frame, show=True, track=False)
+                warped_frame, show=True, track=True)
 
             # 12. Corner Detection
             corner_detection.set_bots(detected_bots["bots"])

@@ -364,7 +364,7 @@ class YoloModel(TemplateModel):
             model = self.model
             if self.device != None:
                 results = self.model.track(
-                    img, stream=False, persist=True, show=show, device=self.device)
+                    img, stream=False, persist=True, device=self.device)
             else:
                 results = self.model.track(img, stream=False, persist=True)
         # If multiple img passed, results has more than one element
@@ -393,7 +393,9 @@ class YoloModel(TemplateModel):
             else:
                 robots.append(dict)
 
-        out = {"bots": robots, "housebots": housebots}
+        out = {"bots": robots, "housebot": housebots}
+        if show:
+            self.show_predictions(img, out)
 
         return out
 
@@ -410,7 +412,7 @@ class YoloModel(TemplateModel):
                 if 'housebot' in label:
                     color = (0, 0, 255)  # Red for housebot
                 else:
-                    color = (0, 255, 0)  # Green for bots
+                    color = (255, 255, 255)  # White for bots
 
                 # Draw the bounding box
                 cv2.rectangle(img, (int(x_min), int(y_min)),
@@ -425,7 +427,7 @@ class YoloModel(TemplateModel):
                     0.5, color, 2
                 )
 
-        cv2.imshow("YoloModel Predictions", img)
+        # cv2.imshow("YoloModel Predictions", img)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
 
