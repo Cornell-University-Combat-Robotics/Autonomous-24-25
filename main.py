@@ -9,6 +9,7 @@ from Algorithm.ram import Ram
 from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
 from machine.predict import RoboflowModel
+from machine.predict import YoloModel
 from transmission.motors import Motor
 from transmission.serial_conn import Serial
 from warp_main import get_homography_mat, warp
@@ -20,7 +21,7 @@ WARP_AND_COLOR_PICKING = True
 IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
-IS_ORIGINAL_FPS = True
+IS_ORIGINAL_FPS = False
 
 folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
@@ -28,13 +29,14 @@ test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
 
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
-camera_number = test_videos_folder + "/huey_duet_demo.mp4"
+# camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
 # camera_number = test_videos_folder + "/huey_demo3.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
+camera_number = 0
 
 frame_rate = 8
 
@@ -43,6 +45,7 @@ if IS_TRANSMITTING:
     turn_motor_channel = 1
 
 # ------------------------------ BEFORE THE MATCH ------------------------------
+
 
 @profile
 def main():
@@ -78,7 +81,8 @@ def main():
 
     # 3. Homography Matrix and 4. Display the warped image if flag is True
     if WARP_AND_COLOR_PICKING:
-        resized_image = cv2.resize(captured_image, (0, 0), fx=resize_factor, fy=resize_factor)
+        resized_image = cv2.resize(
+            captured_image, (0, 0), fx=resize_factor, fy=resize_factor)
         cv2.imwrite(folder + "/resized_image.png", resized_image)
         h_mat = get_homography_mat(resized_image, 700, 700)
         warped_frame = warp(resized_image, h_mat, 700, 700)
@@ -125,7 +129,8 @@ def main():
         exit(1)
 
     # Defining Roboflow Machine Learning Model Object
-    predictor = RoboflowModel()
+    # predictor = RoboflowModel()
+    predictor = YoloModel("250v12best", "PT", device='mps')
 
     # Defining Corner Detection Object
     corner_detection = RobotCornerDetection(selected_colors, False, False)
@@ -177,7 +182,8 @@ def main():
         # 10. Warp image
         if IS_ORIGINAL_FPS or time_elapsed > 1.0 / frame_rate:
             prev = time.time()
-            frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
+            frame = cv2.resize(
+                frame, (0, 0), fx=resize_factor, fy=resize_factor)
             warped_frame = warp(frame, h_mat, 700, 700)
             cv2.imwrite(folder + "/warped_cage.png", warped_frame)
 
@@ -193,9 +199,11 @@ def main():
                 if detected_bots_with_data["enemy"]:
                     # 13. Algorithm
                     detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
-                    move_dictionary = algorithm.ram_ram(detected_bots_with_data)
+                    move_dictionary = algorithm.ram_ram(
+                        detected_bots_with_data)
                     print("move_dictionary: " + str(move_dictionary))
-                    display_angles(detected_bots_with_data, move_dictionary, warped_frame)
+                    display_angles(detected_bots_with_data,
+                                   move_dictionary, warped_frame)
 
                     # 14. Transmission
                     if IS_TRANSMITTING:
@@ -206,8 +214,8 @@ def main():
             else:
                 display_angles(None, None, warped_frame)
 
-    cap.release() # Release the camera object
-    cv2.destroyAllWindows() # Destroy all cv2 windows
+    cap.release()  # Release the camera object
+    cv2.destroyAllWindows()  # Destroy all cv2 windows
 
     if IS_TRANSMITTING:
         try:
@@ -222,29 +230,32 @@ def display_angles(detected_bots_with_data, move_dictionary, image):
     # Blue line: Huey's Current Orientation
     if detected_bots_with_data and detected_bots_with_data["huey"]["orientation"]:
         orientation_degrees = detected_bots_with_data["huey"]["orientation"]
-        
+
         # Components of current front arrow
         dx = np.cos(math.pi / 180 * orientation_degrees)
         dy = -1 * np.sin(math.pi / 180 * orientation_degrees)
-        
+
         # Huey's center
         start_x = int(detected_bots_with_data["huey"]["center"][0])
         start_y = int(detected_bots_with_data["huey"]["center"][1])
-        
-        end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
+
+        end_point = (int(start_x + 300 * resize_factor * dx),
+                     int(start_y + 300 * resize_factor * dy))
         cv2.arrowedLine(image, (start_x, start_y), end_point, (255, 0, 0), 2)
 
         # Red line, where we want to face
         if move_dictionary and move_dictionary["turn"]:
             turn = move_dictionary["turn"]  # angle in degrees / 180
             new_orientation_degrees = orientation_degrees + (turn * 180)
-            
+
             # Components of predicted turn
             dx = np.cos(math.pi * new_orientation_degrees / 180)
             dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
 
-            end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
-            cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
+            end_point = (int(start_x + 300 * resize_factor * dx),
+                         int(start_y + 300 * resize_factor * dy))
+            cv2.arrowedLine(image, (start_x, start_y),
+                            end_point, (0, 0, 255), 2)
 
     cv2.imshow("Battle with Predictions", image)
     cv2.waitKey(1)
