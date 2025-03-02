@@ -16,15 +16,26 @@ from warp_main import get_homography_mat, warp
 
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
+# Set True to optimize for competition, removing all visuals
+COMP_SETTINGS = False
+
 # Set True to redo warp and color picking bot color, front and back corners
-WARP_AND_COLOR_PICKING = True
+WARP_AND_COLOR_PICKING = False
 IS_TRANSMITTING = False
 
 # True to display angles for each iteration
+SHOW_FRAME = False
 DISPLAY_ANGLES = False
 
 # Set True to process every single frame the camera captures
 IS_ORIGINAL_FPS = False
+
+if COMP_SETTINGS:
+    SHOW_FRAME = False
+    DISPLAY_ANGLES = False
+
+if not SHOW_FRAME:
+    DISPLAY_ANGLES = False
 
 folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
@@ -42,7 +53,7 @@ camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = 0
 
-frame_rate = 20
+frame_rate = 60
 
 if IS_TRANSMITTING:
     speed_motor_channel = 3
@@ -172,7 +183,7 @@ def main():
     while cap.isOpened():
         # 9. Camera Capture
         time_elapsed = time.time() - prev
-        print(time_elapsed)
+        print(round(time_elapsed * 1000, 1))
         ret, frame = cap.read()
         if not ret:
             # If frame capture fails, break the loop
@@ -180,9 +191,10 @@ def main():
             break
 
         # Press Q on keyboard to exit
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            print("exit" + "\n")
-            break
+        if SHOW_FRAME:
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                print("exit" + "\n")
+                break
 
         # 10. Warp image
         if IS_ORIGINAL_FPS or time_elapsed > 1.0 / frame_rate:
@@ -194,38 +206,39 @@ def main():
 
             # 11. Object Detection
             detected_bots = predictor.predict(
-                warped_frame, show=True, track=True)
+                warped_frame, show=SHOW_FRAME, track=True)
 
             # 12. Corner Detection
             corner_detection.set_bots(detected_bots["bots"])
             detected_bots_with_data = corner_detection.corner_detection_main()
             print("detected_bots_with_data: " + str(detected_bots_with_data))
 
-            if DISPLAY_ANGLES:
-                if detected_bots_with_data and detected_bots_with_data["huey"]:
-                    if detected_bots_with_data["enemy"]:
-                        # 13. Algorithm
-                        detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
-                        move_dictionary = algorithm.ram_ram(
-                            detected_bots_with_data)
-                        print("move_dictionary: " + str(move_dictionary))
+            if detected_bots_with_data and detected_bots_with_data["huey"]:
+                if detected_bots_with_data["enemy"]:
+                    # 13. Algorithm
+                    detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
+                    move_dictionary = algorithm.ram_ram(
+                        detected_bots_with_data)
+                    print("move_dictionary: " + str(move_dictionary))
+                    if DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data,
                                        move_dictionary, warped_frame)
 
-                        # 14. Transmission
-                        if IS_TRANSMITTING:
-                            speed_motor_group.move(move_dictionary["speed"])
-                            turn_motor_group.move(move_dictionary["turn"])
-                    else:
-                        display_angles(detected_bots_with_data,
-                                       None, warped_frame)
-                else:
-                    display_angles(None, None, warped_frame)
-            else:
+                    # 14. Transmission
+                    if IS_TRANSMITTING:
+                        speed_motor_group.move(move_dictionary["speed"])
+                        turn_motor_group.move(move_dictionary["turn"])
+                elif DISPLAY_ANGLES:
+                    display_angles(detected_bots_with_data,
+                                   None, warped_frame)
+            elif DISPLAY_ANGLES:
+                display_angles(None, None, warped_frame)
+            if SHOW_FRAME and not DISPLAY_ANGLES:
                 cv2.imshow("Bounding boxes (no angles)", warped_frame)
 
-    cap.release()  # Release the camera object
-    cv2.destroyAllWindows()  # Destroy all cv2 windows
+    if SHOW_FRAME:
+        cap.release()  # Release the camera object
+        cv2.destroyAllWindows()  # Destroy all cv2 windows
 
     if IS_TRANSMITTING:
         try:
