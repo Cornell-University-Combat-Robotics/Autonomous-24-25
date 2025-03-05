@@ -62,9 +62,9 @@ class Ram():
     DANGER_ZONE = 55
     LEFT = 0
     RIGHT = 3
-    MAX_SPEED = 1  # between 0 and 1
+    MAX_SPEED = 0.1  # between 0 and 1
     MIN_SPEED = 0  # between 0 and 1
-    MAX_TURN = 1  # between 0 and 1
+    MAX_TURN = 0.2  # between 0 and 1
     MIN_TURN = 0  # between 0 and 1
     ARENA_WIDTH = 1200  # in pixels
     # this is true when the match actually has begun and will cause the motors to move
