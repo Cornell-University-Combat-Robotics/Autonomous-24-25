@@ -294,8 +294,8 @@ class Ram():
             self.enemy_future_positions.append(direction + self.huey_position)
 
             
-            if(len(self.enemy_previous_positions)==1):
-                print(f"First vel: {self.enemy_future_position_velocity}; first accel: {self.enemy_future_positions}")
+            # if(len(self.enemy_previous_positions)==1):
+            #     print(f"First vel: {self.enemy_future_position_velocity}; first accel: {self.enemy_future_positions}")
 
             test_ram_csv.test_file_update(delta_time= self.delta_t, bots=bots, huey_pos=self.huey_position, huey_facing=self.huey_orientation, 
                                     enemy_pos= self.enemy_position, huey_old_pos=self.huey_old_position, 
@@ -329,13 +329,13 @@ class Ram():
         prev_pos_2 = enemy_previous_positions[-2]
         
         old_vel = self.calculate_velocity(prev_pos_2, prev_pos_1, self.delta_t)
-        print("Velocity 1: " + str(old_vel))
+        # print("Velocity 1: " + str(old_vel))
         cur_vel = self.calculate_velocity(prev_pos_1, cur_pos, self.delta_t)
-        print("Velocity 2: " + str(cur_vel))
-        print("Previous Positions: " + str(prev_pos_1) + ", " + str(prev_pos_2))
+        # print("Velocity 2: " + str(cur_vel))
+        # print("Previous Positions: " + str(prev_pos_1) + ", " + str(prev_pos_2))
     
         accel = self.acceleration(old_vel, cur_vel, self.delta_t) 
-        print("Acceleration: " + str(accel))
+        # print("Acceleration: " + str(accel))
         
         displacement = (0.5) * accel * (self.delta_t) * (self.delta_t) + cur_vel * self.delta_t
 
@@ -344,5 +344,5 @@ class Ram():
         
         
         # return np.array([cur_pos[0] + displacement, cur_pos[1]-displacement], dtype=np.float)
-        print("Predicted Pos: " + str((cur_pos + displacement)[0]) + ", " + str((cur_pos + displacement)[1]))
+        # print("Predicted Pos: " + str((cur_pos + displacement)[0]) + ", " + str((cur_pos + displacement)[1]))
         return cur_pos + displacement

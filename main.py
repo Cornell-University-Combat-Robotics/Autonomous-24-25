@@ -16,7 +16,7 @@ from warp_main import get_homography_mat, warp
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True to redo warp and color picking bot color, front and back corners
-WARP_AND_COLOR_PICKING = True
+WARP_AND_COLOR_PICKING = False
 IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
@@ -40,6 +40,7 @@ resize_factor = 0.8
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/not_huey_test.mp4"
 camera_number = test_videos_folder + "/real_gruey_naked.mp4"
+# camera_number = test_videos_folder + "/slightly_fatter_huey_test.mp4"
 
 frame_rate = 8
 
@@ -243,6 +244,7 @@ def main():
         average_vel_percentage_loss = 0
         average_pos_percentage_loss = 0
         average_accel_percentage_loss = 0
+    
         
     print("======================================================")
 
@@ -259,6 +261,7 @@ def main():
     print("Acceleration Loss: " + str(average_accel_percentage_loss))
 
     print("======================================================")
+    
 
     cap.release() # Release the camera object
     cv2.destroyAllWindows() # Destroy all cv2 windows
@@ -310,7 +313,7 @@ def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, 
             dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
 
             end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
-            # cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
+            cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
 
     # Plot enemy future position 
     print(enemy_future_list)
