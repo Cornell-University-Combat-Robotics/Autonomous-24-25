@@ -4,8 +4,11 @@ import time
 import cv2
 import numpy as np
 
+contour_area = 20
 
 class RobotCornerDetection:
+
+
     """
     A class for detecting the corners and orientation of robots in images
     based on their unique colors and shapes.
@@ -101,7 +104,8 @@ class RobotCornerDetection:
             bot_color_hsv = self.selected_colors[0]
 
             for image in images:
-                if image is None:
+                print("Image type: " + str(type(image)))
+                if image is None or (hasattr(image, 'size') and image.size == 0):
                     print("Warning: One of the images is None, skipping...")
                     continue
 
@@ -185,7 +189,7 @@ class RobotCornerDetection:
         for contour in contours:
             # Filter out small contours based on area
             area = cv2.contourArea(contour)
-            if area > 20:
+            if area > contour_area: #TODO: 
                 # TODO: this value is subject to change based on dimensions of our video & resize_factor
                 # Compute moments for each contour
                 M = cv2.moments(contour)
@@ -267,9 +271,13 @@ class RobotCornerDetection:
         Returns:
                 list: A list containing updated red and blue points.
         """
+        print("RUNNNNNNINNGGG MISSSSSSINGGGGGG POINTTTT!!!!!!!")
         try:
             red_points = points[0]
             blue_points = points[1]
+            
+            print("red pts: " + str(len(red_points)))
+            print("blue pts: " + str(len(blue_points)))
 
             if len(red_points) == 1 and len(blue_points) == 2:
                 # Case #1: 1 red point and 2 blue points
@@ -352,9 +360,11 @@ class RobotCornerDetection:
             list: The left and right front points of the robot.
         """
         try:
-            red_points = points[0]
+            red_points = points[0] # TODO: change to front_points, back_points ?
             blue_points = points[1]
 
+            print("red pts: " + str(len(red_points)))
+            print("blue pts: " + str(len(blue_points)))
             # Ensure there are exactly two red points and at least one blue point
             if len(red_points) != 2 or len(blue_points) == 0:
                 raise ValueError("Expected exactly 2 red points and at least 1 blue point.")
