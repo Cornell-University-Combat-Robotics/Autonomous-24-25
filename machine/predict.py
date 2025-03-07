@@ -399,7 +399,7 @@ class YoloModel(TemplateModel):
             # cv2.waitKey(0)
             # cv2.destroyAllWindows
 
-            dict = {"bbox": [[x1, y1], [x2, y2]], "center": [cx, cy], "img": cropped_img}
+            dict = {"bbox": [[max(0, x1), max(0, y1)], [min(600, x2), min(600, y2)]], "center": [cx, cy], "img": cropped_img}
 
             if box.cls == 0:
                 housebots.append(dict)

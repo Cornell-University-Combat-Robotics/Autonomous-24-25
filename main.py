@@ -146,8 +146,8 @@ def main():
             exit(1)
 
         # Defining Roboflow Machine Learning Model Object
-        # predictor = RoboflowModel()
-        predictor = YoloModel("250v12best", "PT", device='mps')
+        predictor = RoboflowModel()
+        # predictor = YoloModel("250v12best", "PT", device='mps')
 
         # Defining Corner Detection Object
         corner_detection = RobotCornerDetection(selected_colors, False, False)
