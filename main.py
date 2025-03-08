@@ -27,6 +27,13 @@ test_videos_folder = folder + "/test_videos"
 
 resize_factor = 0.8
 
+accel_loss_sum = 0
+velocity_loss_sum = 0
+position_loss_sum = 0
+num_enemies_pos = 0
+prev_position_loss = 0
+timestamp = time.time()
+
 # TODO: test on real NHRL video
 
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
@@ -167,6 +174,9 @@ def main():
         print("Error opening video file" + "\n")
 
     while cap.isOpened():
+        global num_enemies_pos
+        global prev_position_loss
+        global timestamp
         # 9. Camera Capture
         time_elapsed = time.time() - prev
         ret, frame = cap.read()
@@ -196,50 +206,45 @@ def main():
             print("detected_bots_with_data: " + str(detected_bots_with_data) + "\n")
 
             if detected_bots_with_data and detected_bots_with_data["huey"]:
+
+                detected_enemy_bbox = []
+                detected_enemy_center = []
                 if detected_bots_with_data["enemy"]:
                     # 13. Algorithm
+                    num_enemies_pos = len(algorithm.enemy_future_positions) - 1
                     detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
-                    move_dictionary, enemy_future_list = algorithm.ram_ram(detected_bots_with_data)
-                    # print("move_dictionary: " + str(move_dictionary) + "\n")
-                    display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
+                    detected_enemy_bbox = detected_bots_with_data["enemy"]["bbox"] # save in case enemy is lost in  future
+                    detected_enemy_center = detected_bots_with_data["enemy"]["center"]
+                    
+                    if (num_enemies_pos > 1):
+                        prev_position_loss = display_loss(warped_frame, algorithm, num_enemies_pos, velocity_loss_sum, accel_loss_sum, position_loss_sum, prev_position_loss,timestamp)
 
                     # 14. Transmission
                     if IS_TRANSMITTING:
                         speed_motor_group.move(move_dictionary["speed"])
                         turn_motor_group.move(move_dictionary["turn"])
-                else:
-                    display_angles(detected_bots_with_data, None, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
+                else: # No enemy bots detected, use last stored pos
+                    algorithm.enemy_previous_positions += algorithm.enemy_previous_positions[-1] #  duplicate last pos
+                    num_enemies_pos = len(algorithm.enemy_previous_positions)-1
+                    detected_bots_with_data["enemy"]["bbox"] = detected_enemy_bbox
+                    detected_bots_with_data["enemy"]["center"] = detected_enemy_center
+                    # display_angles(detected_bots_with_data, None, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
+                move_dictionary, enemy_future_list = algorithm.ram_ram(detected_bots_with_data)
+
+                display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
             else:
                 display_angles(None, None, None, None, warped_frame)
-            display_angles(None, None, None, None, warped_frame)
     print("Starting loss:")
-
-    vel_loss, accel_loss = 0, 0
-    # TODO: Why does this loss.
-    velocity_loss_sum = 0
-    position_loss_sum = 0
-    prev_position_loss = 0
-    accel_loss_sum = 0
-    num_enemies_pos = len(algorithm.enemy_previous_positions)-1
-
-    for i in range(1,num_enemies_pos):
-        # NOTE: We only append to enemy_future_positions at len(enemy_previous_positions) >= 3
-        # NOTE: We append to enemy_future_position_velocity immediately
-        velocity_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_position_velocity[i])
-        calculated_position_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_previous_positions[i-1])
-        accel_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_positions[i])
-        if calculated_position_loss == 0:
-            position_loss_sum += prev_position_loss
-        else:
-            position_loss_sum += calculated_position_loss
-        prev_position_loss = calculated_position_loss
-            
-        # accel_loss += math.sqrt((algorithm.enemy_future_positions[i][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i][1] - algorithm.enemy_previous_positions[i][1]) ** 2)
     
-    if (num_enemies_pos > 0):
-        average_vel_percentage_loss = velocity_loss_sum/num_enemies_pos
-        average_pos_percentage_loss = position_loss_sum/num_enemies_pos
-        average_accel_percentage_loss = accel_loss_sum/num_enemies_pos
+    #TODO: update num_enemies_pos every frame rather than using len(future_positions)
+
+    num_enemies_pos = len(algorithm.enemy_future_positions) - 1
+    
+    print("final num: " + str(num_enemies_pos))
+    if (num_enemies_pos + 1 > 0):
+        average_vel_percentage_loss = velocity_loss_sum/(num_enemies_pos + 1)
+        average_pos_percentage_loss = position_loss_sum/(num_enemies_pos + 1)
+        average_accel_percentage_loss = accel_loss_sum/(num_enemies_pos + 1)
     else:
         average_vel_percentage_loss = 0
         average_pos_percentage_loss = 0
@@ -338,6 +343,45 @@ def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, 
         
     cv2.imshow("Battle with Predictions", image)
     cv2.waitKey(1)
+
+def display_loss(warped_frame, algorithm, i, velocity_loss_sum, accel_loss_sum, position_loss_sum, prev_position_loss,timestamp):
+     # NOTE: We only append to enemy_future_positions at len(enemy_previous_positions) >= 3
+    # NOTE: We append to enemy_future_position_velocity immediately
+    cur_velocity_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_position_velocity[i])
+    calculated_position_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_previous_positions[i-1])
+    # cur_acceleration_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_positions[i])
+    
+    pos_loss_text = f"Position Loss: {calculated_position_loss * 100:.1f}\n"
+    vel_loss_text = f"Velocity Loss: {cur_velocity_loss * 100:.1f}\n"
+    # accel_loss_text = f"Acceleration Loss: {cur_acceleration_loss}"
+    
+    vel_loss_color = (25500*cur_velocity_loss, 0, 0)
+    pos_loss_color = (25500*calculated_position_loss, 0, 0)
+    # accel_loss_color = (255*cur_acceleration_loss, 255*cur_acceleration_loss, 255*cur_acceleration_loss)
+
+    # change loss color depending on how big change is
+    # write loss to txt file
+    
+    # appends text organized under video name
+    with open(f'{camera_number}{timestamp}.txt','a') as file:
+        file.write(f'Position Loss: {calculated_position_loss}     ')
+        file.write(f'Velocity Loss: {cur_velocity_loss} ')
+        # file.write(f'Accel Loss: {cur_acceleration_loss}\n')
+    
+    # cv2.putText(warped_frame, accel_loss_text, (50, 100), cv2.FONT_HERSHEY_DUPLEX, 0.5, accel_loss_color, 2, cv2.LINE_AA)
+    cv2.putText(warped_frame, vel_loss_text, (20, 100), cv2.FONT_HERSHEY_DUPLEX, 0.5, vel_loss_color, 2, cv2.LINE_AA)
+    cv2.putText(warped_frame, pos_loss_text, (20, 200), cv2.FONT_HERSHEY_DUPLEX, 0.5, pos_loss_color, 2, cv2.LINE_AA)
+    cv2.destroyAllWindows() # refresh every frame
+    
+    velocity_loss_sum += cur_velocity_loss
+    # accel_loss_sum += cur_acceleration_loss
+    if calculated_position_loss == 0:
+        position_loss_sum += prev_position_loss
+    else:
+        position_loss_sum += calculated_position_loss
+    prev_position_loss = calculated_position_loss
+    return prev_position_loss
+    
 
 
 if __name__ == "__main__":
