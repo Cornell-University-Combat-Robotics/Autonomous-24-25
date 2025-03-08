@@ -21,7 +21,7 @@ COMP_SETTINGS = False
 
 # Set True to redo warp and color picking bot color, front and back corners
 WARP_AND_COLOR_PICKING = True
-IS_TRANSMITTING = False
+IS_TRANSMITTING = True
 
 # True to display angles for each iteration
 SHOW_FRAME = True
@@ -57,8 +57,8 @@ camera_number = 1
 frame_rate = 60
 
 if IS_TRANSMITTING:
-    speed_motor_channel = 3
-    turn_motor_channel = 1
+    speed_motor_channel = 1
+    turn_motor_channel = 3
 
 # ------------------------------ BEFORE THE MATCH ------------------------------
 
@@ -146,8 +146,8 @@ def main():
             exit(1)
 
         # Defining Roboflow Machine Learning Model Object
-        predictor = RoboflowModel()
-        # predictor = YoloModel("250v12best", "PT", device='mps')
+        # predictor = RoboflowModel()
+        predictor = YoloModel("250v12best", "PT", device='mps')
 
         # Defining Corner Detection Object
         corner_detection = RobotCornerDetection(selected_colors, False, False)

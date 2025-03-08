@@ -11,9 +11,9 @@ pygame.init()
 algo = Ram()
 DELAY = 1000 # how often to get bot positions and orientations (milliseconds)
 ser = Serial()
-# Currently using channel 1 for speed and channel 2 for turning, because the escs automatically mix the channel
+# Currently using channel 1 for speed and channel 3 for turning, because the escs automatically mix the channel
 speed_motor_group = Motor(ser=ser, channel=1)
-turn_motor_group = Motor(ser=ser, channel=2)
+turn_motor_group = Motor(ser=ser, channel=3)
 
 # Set up window dimensions
 width, height = 800, 600

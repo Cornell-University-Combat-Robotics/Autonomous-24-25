@@ -47,7 +47,7 @@ class RobotCornerDetection:
         hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         # Define the HSV range for the robot's color
-        lower_limit = np.array([max(0, bot_color_hsv[0] - 15), 90, 90])
+        lower_limit = np.array([max(0, bot_color_hsv[0] - 15), 80, 80])
         upper_limit = np.array([min(179, bot_color_hsv[0] + 15), 255, 255])
 
         # Create a mask for the robot's color in the image
@@ -74,8 +74,8 @@ class RobotCornerDetection:
         # Define the HSV range around the selected color
         # We tried using 10 for the range; It was too large and picked up orange instead of red
         # For now, it is +-8
-        lower_limit = np.array([max(0, selected_color[0] - 12), 90, 90])
-        upper_limit = np.array([min(179, selected_color[0] + 12), 255, 255])
+        lower_limit = np.array([max(0, selected_color[0] - 15), 80, 80])
+        upper_limit = np.array([min(179, selected_color[0] + 15), 255, 255])
 
         mask = cv2.inRange(hsv_image, lower_limit, upper_limit)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -179,7 +179,7 @@ class RobotCornerDetection:
         for contour in contours:
             # Filter out small contours based on area
             area = cv2.contourArea(contour)
-            if area > 20:
+            if area > 10:
                 # TODO: this value is subject to change based on dimensions of our video & resize_factor
                 # Compute moments for each contour
                 M = cv2.moments(contour)

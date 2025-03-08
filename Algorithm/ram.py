@@ -62,9 +62,9 @@ class Ram():
     DANGER_ZONE = 55
     LEFT = 0
     RIGHT = 3
-    MAX_SPEED = 0.1  # between 0 and 1
+    MAX_SPEED = 1  # between 0 and 1 # DON'T CHANGE THIS
     MIN_SPEED = 0  # between 0 and 1
-    MAX_TURN = 0.2  # between 0 and 1
+    MAX_TURN = 1  # between 0 and 1 # DON'T CHANGE THIS
     MIN_TURN = 0  # between 0 and 1
     ARENA_WIDTH = 1200  # in pixels
     # this is true when the match actually has begun and will cause the motors to move
@@ -249,9 +249,11 @@ class Ram():
     def predict_desired_turn_and_speed(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         angle = self.predict_desired_orientation_angle(
             our_pos, our_orientation, enemy_pos, enemy_velocity, dt)
-        # print("Predicted Angle From Predict Turn and Speed: ", angle)
-        # print("Turn: ",  angle * (Ram.MAX_TURN / 180.0))
-        # print("Speed: ", 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0)))
+        print("-------")
+        print("Predicted Angle From Predict Turn and Speed: ", angle)
+        print("Turn: ",  angle * (Ram.MAX_TURN / 180.0))
+        print("Speed: ", 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0)))
+        print("-------")
         return angle * (Ram.MAX_TURN / 180.0), 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0))
 
     """ if enemy robot predicted position is outside of arena, move it inside. """
