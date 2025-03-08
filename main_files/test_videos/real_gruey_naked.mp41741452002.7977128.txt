@@ -1,0 +1,1 @@
+Position Loss: 0.0 Velocity Loss: 0.027367834828413446 
