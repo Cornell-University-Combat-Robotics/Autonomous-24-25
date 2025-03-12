@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from line_profiler import profile
 
-# from Algorithm.ram_copy import Ram #ensure 
+# from Algorithm.ram import Ram #ensure 
 from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
 from machine.predict import RoboflowModel
@@ -38,8 +38,8 @@ resize_factor = 0.8
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
-# camera_number = test_videos_folder + "/trimmedBZ-nhrl_sep24_fs-pikmin-gforce-4e7e-Cage-7-Overhead-High.mp4"
-camera_number = test_videos_folder + "/not_huey_test.mp4"
+camera_number = test_videos_folder + "/trimmedBZ-nhrl_sep24_fs-pikmin-gforce-4e7e-Cage-7-Overhead-High.mp4"
+# camera_number = test_videos_folder + "/not_huey_test.mp4"
 # camera_number = test_videos_folder + "/real_gruey_naked.mp4"
 
 frame_rate = 8
@@ -214,52 +214,52 @@ def main():
             display_angles(None, None, None, None, warped_frame)
     print("Starting loss:")
 
-    vel_loss, accel_loss = 0, 0
-    # TODO: Why does this loss.
-    velocity_loss_sum = 0
-    position_loss_sum = 0
-    prev_position_loss = 0
-    accel_loss_sum = 0
-    num_enemies_pos = len(algorithm.enemy_previous_positions)-1
+    # vel_loss, accel_loss = 0, 0
+    # # TODO: Why does this loss.
+    # velocity_loss_sum = 0
+    # position_loss_sum = 0
+    # prev_position_loss = 0
+    # accel_loss_sum = 0
+    # num_enemies_pos = len(algorithm.enemy_previous_positions)-1
 
-    for i in range(1,num_enemies_pos):
-        # NOTE: We only append to enemy_future_positions at len(enemy_previous_positions) >= 3
-        # NOTE: We append to enemy_future_position_velocity immediately
-        velocity_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_position_velocity[i])
-        calculated_position_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_previous_positions[i-1])
-        accel_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_positions[i])
-        if calculated_position_loss == 0:
-            position_loss_sum += prev_position_loss
-        else:
-            position_loss_sum += calculated_position_loss
-        prev_position_loss = calculated_position_loss
+    # for i in range(1,num_enemies_pos):
+    #     # NOTE: We only append to enemy_future_positions at len(enemy_previous_positions) >= 3
+    #     # NOTE: We append to enemy_future_position_velocity immediately
+    #     velocity_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_position_velocity[i])
+    #     calculated_position_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_previous_positions[i-1])
+    #     accel_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_positions[i])
+    #     if calculated_position_loss == 0:
+    #         position_loss_sum += prev_position_loss
+    #     else:
+    #         position_loss_sum += calculated_position_loss
+    #     prev_position_loss = calculated_position_loss
             
-        # accel_loss += math.sqrt((algorithm.enemy_future_positions[i][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i][1] - algorithm.enemy_previous_positions[i][1]) ** 2)
+    #     # accel_loss += math.sqrt((algorithm.enemy_future_positions[i][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i][1] - algorithm.enemy_previous_positions[i][1]) ** 2)
     
-    if (num_enemies_pos > 0):
-        average_vel_percentage_loss = velocity_loss_sum/num_enemies_pos
-        average_pos_percentage_loss = position_loss_sum/num_enemies_pos
-        average_accel_percentage_loss = accel_loss_sum/num_enemies_pos
-    else:
-        average_vel_percentage_loss = 0
-        average_pos_percentage_loss = 0
-        average_accel_percentage_loss = 0
+    # if (num_enemies_pos > 0):
+    #     average_vel_percentage_loss = velocity_loss_sum/num_enemies_pos
+    #     average_pos_percentage_loss = position_loss_sum/num_enemies_pos
+    #     average_accel_percentage_loss = accel_loss_sum/num_enemies_pos
+    # else:
+    #     average_vel_percentage_loss = 0
+    #     average_pos_percentage_loss = 0
+    #     average_accel_percentage_loss = 0
         
-    print("======================================================")
+    # print("======================================================")
 
-    print(f"Velocities: {algorithm.enemy_future_position_velocity[10:15]}")
-    print("------------------------------------------")
-    print(f"Accelerations: {algorithm.enemy_future_positions[10:15]}")
-    print("------------------------------------------")
-    print(f"Corresponding positions: {algorithm.enemy_previous_positions[11:16]}")
+    # print(f"Velocities: {algorithm.enemy_future_position_velocity[10:15]}")
+    # print("------------------------------------------")
+    # print(f"Accelerations: {algorithm.enemy_future_positions[10:15]}")
+    # print("------------------------------------------")
+    # print(f"Corresponding positions: {algorithm.enemy_previous_positions[11:16]}")
 
-    print("======================================================")
+    # print("======================================================")
 
-    print("Velocity Loss: " + str(average_vel_percentage_loss))
-    print("Position Loss: " + str(average_pos_percentage_loss))
-    print("Acceleration Loss: " + str(average_accel_percentage_loss))
+    # print("Velocity Loss: " + str(average_vel_percentage_loss))
+    # print("Position Loss: " + str(average_pos_percentage_loss))
+    # print("Acceleration Loss: " + str(average_accel_percentage_loss))
 
-    print("======================================================")
+    # print("======================================================")
 
     cap.release() # Release the camera object
     cv2.destroyAllWindows() # Destroy all cv2 windows
@@ -267,13 +267,13 @@ def main():
 
     # TEST THE ACCURACY OF EACH via "L2 loss"
 
-    if IS_TRANSMITTING:
-        try:
-            speed_motor_group.stop()
-            turn_motor_group.stop()
-            ser.cleanup()
-        except:
-            print("Algorithm cleanup failed")
+    # if IS_TRANSMITTING:
+    #     try:
+    #         speed_motor_group.stop()
+    #         turn_motor_group.stop()
+    #         ser.cleanup()
+    #     except:
+    #         print("Algorithm cleanup failed")
 
 def position_loss(cur_pos, predicted_pos):
     # percentage loss
