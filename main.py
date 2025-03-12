@@ -130,21 +130,6 @@ def main():
         print(f"Error reading selected_colors.txt: {e}" + "\n")
         exit(1)
 
-    # Defining Roboflow Machine Learning Model Object
-    # predictor = RoboflowModel()
-
-    # Defining Corner Detection Object
-    # corner_detection = RobotCornerDetection(selected_colors, False, False)
-
-    # Defining Ram Ram Algorithm Object
-    # algorithm = Ram()
-
-    # if IS_TRANSMITTING:
-    #     # Defining Transmission Object
-    #     ser = Serial()
-    #     speed_motor_group = Motor(ser=ser, channel=speed_motor_channel)
-    #     turn_motor_group = Motor(ser=ser, channel=turn_motor_channel)
-
     cv2.destroyAllWindows()
 
     # 6. Set FPS
@@ -165,8 +150,14 @@ def main():
     cap = cv2.VideoCapture(camera_number)
     if cap.isOpened() == False:
         print("Error opening video file" + "\n")
+        
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out_file = 'output.mp4'
+    fps = 20.0  # Frames per second
+    frame_size = (600, 600)  # Example dimensions
+    out = cv2.VideoWriter(out_file, fourcc, fps, frame_size)
 
-    while cap.isOpened():
+    while cap.isOpened():    
         # 9. Camera Capture
         time_elapsed = time.time() - prev
         ret, frame = cap.read()
@@ -186,94 +177,17 @@ def main():
             frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
             warped_frame = warp(frame, h_mat, 700, 700)
             cv2.imwrite(folder + "/warped_cage.png", warped_frame)
+            
+            out.write(warped_frame)
 
-            # 11. Object Detection
-            # detected_bots = predictor.predict(warped_frame, show=True)
-
-            # 12. Corner Detection
-            # corner_detection.set_bots(detected_bots["bots"])
-            # detected_bots_with_data = corner_detection.corner_detection_main()
-            # print("detected_bots_with_data: " + str(detected_bots_with_data) + "\n")
-
-            # if detected_bots_with_data and detected_bots_with_data["huey"]:
-            # #     if detected_bots_with_data["enemy"]:
-            # #         # 13. Algorithm
-            # #         detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
-            # #         move_dictionary, enemy_future_list = algorithm.ram_ram(detected_bots_with_data)
-            # #         # print("move_dictionary: " + str(move_dictionary) + "\n")
-            # #         display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
-
-            # #         # 14. Transmission
-            # #         if IS_TRANSMITTING:
-            # #             speed_motor_group.move(move_dictionary["speed"])
-            # #             turn_motor_group.move(move_dictionary["turn"])
-            # #     else:
-            # #         display_angles(detected_bots_with_data, None, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
-            # # else:
-            #     display_angles(None, None, None, None, warped_frame)
             display_angles(None, None, None, None, warped_frame)
     print("Starting loss:")
 
-    # vel_loss, accel_loss = 0, 0
-    # # TODO: Why does this loss.
-    # velocity_loss_sum = 0
-    # position_loss_sum = 0
-    # prev_position_loss = 0
-    # accel_loss_sum = 0
-    # num_enemies_pos = len(algorithm.enemy_previous_positions)-1
-
-    # for i in range(1,num_enemies_pos):
-    #     # NOTE: We only append to enemy_future_positions at len(enemy_previous_positions) >= 3
-    #     # NOTE: We append to enemy_future_position_velocity immediately
-    #     velocity_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_position_velocity[i])
-    #     calculated_position_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_previous_positions[i-1])
-    #     accel_loss_sum += position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_positions[i])
-    #     if calculated_position_loss == 0:
-    #         position_loss_sum += prev_position_loss
-    #     else:
-    #         position_loss_sum += calculated_position_loss
-    #     prev_position_loss = calculated_position_loss
-            
-    #     # accel_loss += math.sqrt((algorithm.enemy_future_positions[i][0] - algorithm.enemy_previous_positions[i][0]) ** 2 + (algorithm.enemy_future_positions[i][1] - algorithm.enemy_previous_positions[i][1]) ** 2)
-    
-    # if (num_enemies_pos > 0):
-    #     average_vel_percentage_loss = velocity_loss_sum/num_enemies_pos
-    #     average_pos_percentage_loss = position_loss_sum/num_enemies_pos
-    #     average_accel_percentage_loss = accel_loss_sum/num_enemies_pos
-    # else:
-    #     average_vel_percentage_loss = 0
-    #     average_pos_percentage_loss = 0
-    #     average_accel_percentage_loss = 0
-        
-    # print("======================================================")
-
-    # print(f"Velocities: {algorithm.enemy_future_position_velocity[10:15]}")
-    # print("------------------------------------------")
-    # print(f"Accelerations: {algorithm.enemy_future_positions[10:15]}")
-    # print("------------------------------------------")
-    # print(f"Corresponding positions: {algorithm.enemy_previous_positions[11:16]}")
-
-    # print("======================================================")
-
-    # print("Velocity Loss: " + str(average_vel_percentage_loss))
-    # print("Position Loss: " + str(average_pos_percentage_loss))
-    # print("Acceleration Loss: " + str(average_accel_percentage_loss))
-
-    # print("======================================================")
-
+    out.release()
     cap.release() # Release the camera object
     cv2.destroyAllWindows() # Destroy all cv2 windows
     print("Video capture finished successfully!")
 
-    # TEST THE ACCURACY OF EACH via "L2 loss"
-
-    # if IS_TRANSMITTING:
-    #     try:
-    #         speed_motor_group.stop()
-    #         turn_motor_group.stop()
-    #         ser.cleanup()
-    #     except:
-    #         print("Algorithm cleanup failed")
 
 def position_loss(cur_pos, predicted_pos):
     # percentage loss
@@ -286,53 +200,6 @@ def position_loss(cur_pos, predicted_pos):
     return math.sqrt(pos_diff_x**2 + pos_diff_y**2)
 
 def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, enemy_future_position_velocity, image):
-    # # Blue line: Huey's Current Orientation
-    # if detected_bots_with_data and detected_bots_with_data["huey"]["orientation"]:
-    #     orientation_degrees = detected_bots_with_data["huey"]["orientation"]
-        
-    #     # Components of current front arrow
-    #     dx = np.cos(math.pi / 180 * orientation_degrees)
-    #     dy = -1 * np.sin(math.pi / 180 * orientation_degrees)
-        
-    #     # Huey's center
-    #     start_x = int(detected_bots_with_data["huey"]["center"][0])
-    #     start_y = int(detected_bots_with_data["huey"]["center"][1])
-        
-    #     end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
-    #     # cv2.arrowedLine(image, (start_x, start_y), end_point, (255, 0, 0), 2)
-
-    #     # Red line, where we want to face
-    #     if move_dictionary and move_dictionary["turn"]:
-    #         turn = move_dictionary["turn"]  # angle in degrees / 180
-    #         new_orientation_degrees = orientation_degrees + (turn * 180)
-            
-    #         # Components of predicted turn
-    #         dx = np.cos(math.pi * new_orientation_degrees / 180)
-    #         dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
-
-    #         end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
-    #         # cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
-
-    # # Plot enemy future position 
-    # print(enemy_future_list)
-
-    # if enemy_future_list and len(enemy_future_list) > 0 and detected_bots_with_data["enemy"] and len(detected_bots_with_data["enemy"]) != 0:
-    #     enemy_x = int(detected_bots_with_data["enemy"]["center"][0])
-    #     enemy_y = int(detected_bots_with_data["enemy"]["center"][1])
-
-    #     future_pos_x = int(enemy_future_list[len(enemy_future_list) - 1][0])
-    #     future_pos_y = int(enemy_future_list[len(enemy_future_list) - 1][1])
-        
-    #     print("future_pos_x: " + str(future_pos_x) + ", future_pos_y" + str(future_pos_y))
-
-    #     # Green line, enemy future pos from accel. & velocity
-    #     # cv2.arrowedLine(image, (enemy_x, enemy_y), (future_pos_x, future_pos_y), (0, 255, 0), 2)
-
-    #     # Yellow line, enemy future pos from just velocity
-    #     if enemy_future_position_velocity and len(enemy_future_position_velocity) > 0:
-    #         velocity_pos_x = int(enemy_future_position_velocity[len(enemy_future_position_velocity) - 1][0])
-    #         velocity_pos_y = int(enemy_future_position_velocity[len(enemy_future_position_velocity) - 1][1])
-    #         # cv2.arrowedLine(image, (enemy_x, enemy_y), (velocity_pos_x, velocity_pos_y), (0, 255, 255), 2)
         
     cv2.imshow("Battle with Predictions", image)
     cv2.waitKey(1)
