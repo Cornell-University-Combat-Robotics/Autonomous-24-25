@@ -16,11 +16,11 @@ from warp_main import get_homography_mat, warp
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True to redo warp and color picking bot color, front and back corners
-WARP_AND_COLOR_PICKING = False
+WARP_AND_COLOR_PICKING = True
 IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
-IS_ORIGINAL_FPS = True
+IS_ORIGINAL_FPS = False
 
 folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
