@@ -4,6 +4,9 @@ import time
 import cv2
 import numpy as np
 from line_profiler import profile
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import style
 
 from Algorithm.ram_copy import Ram #ensure 
 from corner_detection.color_picker import ColorPicker
@@ -33,6 +36,9 @@ position_loss_sum = 0
 num_enemies_pos = 0
 prev_position_loss = 0
 timestamp = time.time()
+last_detected_enemy = {}
+xs = []
+ys = []
 
 # TODO: test on real NHRL video
 
@@ -46,10 +52,14 @@ timestamp = time.time()
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/not_huey_test.mp4"
-camera_number = test_videos_folder + "/real_gruey_naked.mp4"
+#camera_number = test_videos_folder + "/real_gruey_naked.mp4"
+camera_number = test_videos_folder + "/MYFATHER.mov"
 # camera_number = test_videos_folder + "/slightly_fatter_huey_test.mp4"
 
 frame_rate = 8
+style.use('fivethirtyeight')
+# fig = plt.figure()
+# ax1 = fig.add_subplot(1,1,1)
 
 if IS_TRANSMITTING:
     speed_motor_channel = 3
@@ -71,7 +81,7 @@ def main():
 
         if ret and frame is not None:
             cv2.imshow("Frame", frame)
-
+            # plt.pause(0.01)
             # Check for key press
             key = cv2.waitKey(1) & 0xFF
 
@@ -170,6 +180,14 @@ def main():
 
     # 8. Match begins
     cap = cv2.VideoCapture(camera_number)
+    #output_filename = 'output.mp4'
+    #frame_width = 600
+    #frame_height = 600
+    #fps = frame_rate
+    
+    #fourcc = cv2.VideoWriter_fourcc(*'MP4V')   
+    #out = cv2.VideoWriter(output_filename, fourcc, fps, (frame_width, frame_height))
+
     if cap.isOpened() == False:
         print("Error opening video file" + "\n")
 
@@ -177,6 +195,7 @@ def main():
         global num_enemies_pos
         global prev_position_loss
         global timestamp
+
         # 9. Camera Capture
         time_elapsed = time.time() - prev
         ret, frame = cap.read()
@@ -196,6 +215,7 @@ def main():
             frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
             warped_frame = warp(frame, h_mat, 700, 700)
             cv2.imwrite(folder + "/warped_cage.png", warped_frame)
+            #out.write(warped_frame)
 
             # 11. Object Detection
             detected_bots = predictor.predict(warped_frame, show=True)
@@ -204,30 +224,41 @@ def main():
             corner_detection.set_bots(detected_bots["bots"])
             detected_bots_with_data = corner_detection.corner_detection_main()
             print("detected_bots_with_data: " + str(detected_bots_with_data) + "\n")
-
             if detected_bots_with_data and detected_bots_with_data["huey"]:
-
-                detected_enemy_bbox = []
-                detected_enemy_center = []
                 if detected_bots_with_data["enemy"]:
                     # 13. Algorithm
                     num_enemies_pos = len(algorithm.enemy_future_positions) - 1
                     detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
-                    detected_enemy_bbox = detected_bots_with_data["enemy"]["bbox"] # save in case enemy is lost in  future
-                    detected_enemy_center = detected_bots_with_data["enemy"]["center"]
+                    last_detected_enemy = detected_bots_with_data["enemy"]
                     
                     if (num_enemies_pos > 1):
-                        prev_position_loss = display_loss(warped_frame, algorithm, num_enemies_pos, velocity_loss_sum, accel_loss_sum, position_loss_sum, prev_position_loss,timestamp)
-
+                        global xs
+                        global ys
+                        prev_position_loss = display_loss(warped_frame, algorithm, num_enemies_pos, prev_position_loss,timestamp, xs, ys)
+                        
+                        # def animate(i):
+                        #     ax1.clear()  # Clear previous frame
+                        #     ax1.plot(xs, ys, label="Position Loss")  # Plot position loss vs. timestamp
+                        #     ax1.set_xlabel("Timestamp")
+                        #     ax1.set_ylabel("Position Loss")
+                        #     ax1.set_title("Real-time Position Loss Tracking")
+                        #     ax1.legend()
+                        #     ax1.grid(True)
+                        #     plt.pause(0.01)
+                            
+                        # ani = animation.FuncAnimation(fig, animate, interval = 1000)
+                        # plt.ion()  # Interactive mode (doesn't block execution)
+                        # plt.show(block=False)                        
                     # 14. Transmission
                     if IS_TRANSMITTING:
                         speed_motor_group.move(move_dictionary["speed"])
                         turn_motor_group.move(move_dictionary["turn"])
                 else: # No enemy bots detected, use last stored pos
-                    algorithm.enemy_previous_positions += algorithm.enemy_previous_positions[-1] #  duplicate last pos
-                    num_enemies_pos = len(algorithm.enemy_previous_positions)-1
-                    detected_bots_with_data["enemy"]["bbox"] = detected_enemy_bbox
-                    detected_bots_with_data["enemy"]["center"] = detected_enemy_center
+                    print("No enemies seen.")
+                    algorithm.enemy_previous_positions.append(algorithm.enemy_previous_positions[-1]) #  duplicate last pos
+                    print (last_detected_enemy["bbox"])
+                    print(last_detected_enemy["center"])
+                    detected_bots_with_data["enemy"] = last_detected_enemy
                     # display_angles(detected_bots_with_data, None, enemy_future_list, algorithm.enemy_future_position_velocity, warped_frame)
                 move_dictionary, enemy_future_list = algorithm.ram_ram(detected_bots_with_data)
 
@@ -267,7 +298,7 @@ def main():
 
     print("======================================================")
     
-
+    #out.release()
     cap.release() # Release the camera object
     cv2.destroyAllWindows() # Destroy all cv2 windows
     print("Video capture finished successfully!")
@@ -343,14 +374,21 @@ def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, 
         
     cv2.imshow("Battle with Predictions", image)
     cv2.waitKey(1)
-
-def display_loss(warped_frame, algorithm, i, velocity_loss_sum, accel_loss_sum, position_loss_sum, prev_position_loss,timestamp):
+#def update_graph(pos_loss, vel_loss):
+    #ys.append(pos_loss)
+    #ys2.append(vel_loss)
+def display_loss(warped_frame, algorithm, i, prev_position_loss,timestamp, xs, ys):
+    global velocity_loss_sum
+    global position_loss_sum
+    global accel_loss_sum
      # NOTE: We only append to enemy_future_positions at len(enemy_previous_positions) >= 3
     # NOTE: We append to enemy_future_position_velocity immediately
     cur_velocity_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_position_velocity[i])
     calculated_position_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_previous_positions[i-1])
     # cur_acceleration_loss = position_loss(algorithm.enemy_previous_positions[i], algorithm.enemy_future_positions[i])
-    
+    ys.append(calculated_position_loss)
+    current_time = time.time() - timestamp
+    xs.append(current_time)
     pos_loss_text = f"Position Loss: {calculated_position_loss * 100:.1f}\n"
     vel_loss_text = f"Velocity Loss: {cur_velocity_loss * 100:.1f}\n"
     # accel_loss_text = f"Acceleration Loss: {cur_acceleration_loss}"
@@ -364,10 +402,10 @@ def display_loss(warped_frame, algorithm, i, velocity_loss_sum, accel_loss_sum, 
     
     # appends text organized under video name
     with open(f'{camera_number}{timestamp}.txt','a') as file:
-        file.write(f'Position Loss: {calculated_position_loss}     ')
-        file.write(f'Velocity Loss: {cur_velocity_loss} ')
+        file.write(f'Position Loss: {calculated_position_loss} \n    ')
+        file.write(f'Velocity Loss: {cur_velocity_loss} \n \n')
         # file.write(f'Accel Loss: {cur_acceleration_loss}\n')
-    
+    #update_graph(calculated_position_loss, cur_velocity_loss)
     # cv2.putText(warped_frame, accel_loss_text, (50, 100), cv2.FONT_HERSHEY_DUPLEX, 0.5, accel_loss_color, 2, cv2.LINE_AA)
     cv2.putText(warped_frame, vel_loss_text, (20, 100), cv2.FONT_HERSHEY_DUPLEX, 0.5, vel_loss_color, 2, cv2.LINE_AA)
     cv2.putText(warped_frame, pos_loss_text, (20, 200), cv2.FONT_HERSHEY_DUPLEX, 0.5, pos_loss_color, 2, cv2.LINE_AA)
