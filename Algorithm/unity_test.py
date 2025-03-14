@@ -1,0 +1,79 @@
+from ram import Ram
+import numpy as np
+
+def normalize_angle(angle):
+    if angle < 0:
+        angle += 360
+    elif angle >= 360:
+        angle -= 360
+    return angle
+
+def fix_angle(angle):
+    angle = 360 - angle
+    return normalize_angle(angle)
+
+def parse(lines, index):
+    center_str = lines[index]
+    counter = 1
+    counter2 = 0
+    huey_strs = []
+    while (counter < len(center_str)-1):
+        huey_strs.append("")
+        while (center_str[counter] != "," and counter < len(center_str)-1):
+            huey_strs[counter2] = huey_strs[counter2] + center_str[counter]
+            counter+=1
+        counter2 += 1
+    return huey_strs
+
+while (True):
+    #read from unity_writes
+    file = open('unity_write.txt', 'r')
+    lines = file.readlines()
+    file.close()
+
+    # values from file: huey_center, huey_orientation, enemy_center
+    # constants: robot width, robot height
+
+    #parse and calculate values
+    # all units in meters!
+
+    huey_center_strs = parse(lines, 0)
+    huey_center =(np.array([float(huey_center_strs[0]), float(huey_center_strs[2])]))
+
+    huey_orientation = float(lines[1])
+    enemy_center_strs = parse(lines, 2)
+    enemy_center = (np.array([float(enemy_center_strs[0]), float(enemy_center_strs[2])]))
+
+
+    robot_width = 0.23495
+    robot_height = 0.19685
+
+    huey_width = robot_width
+    huey_height = robot_height
+    huey_bottom_center = huey_center - huey_height
+    huey_left_center = huey_center - huey_width
+
+    enemy_width = robot_width
+    enemy_height = robot_height
+    enemy_bottom_center = enemy_center - enemy_height
+    enemy_left_center = enemy_center - enemy_width
+
+    #run values through ram
+    bots_data = {
+                'huey': {
+                    'bbox': [huey_bottom_center, huey_left_center, huey_width, huey_height],  # Example bounding box for huey
+                    'center': huey_center,
+                    'orientation': fix_angle(huey_orientation)
+                },
+                'enemy': {
+                    'bbox': [enemy_bottom_center, enemy_left_center, enemy_width, enemy_height],  # Example bounding box for enemy
+                    'center': enemy_center
+                }
+        }
+    huey_bot = Ram(huey_center, huey_orientation, enemy_center)
+    huey_move_output = huey_bot.ram_ram(bots_data)
+
+    #write output to unity_reads
+    file = open('unity_read.txt', 'w')
+    lines = file.writelines([huey_move_output['left'], huey_move_output['right'], huey_move_output['speed'], huey_move_output['turn']])
+    file.close()
