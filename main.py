@@ -1,6 +1,7 @@
 import math
 import os
 import time
+
 import cv2
 import numpy as np
 from line_profiler import profile
@@ -8,8 +9,7 @@ from line_profiler import profile
 from Algorithm.ram import Ram
 from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
-from machine.predict import RoboflowModel
-from machine.predict import YoloModel
+from machine.predict import RoboflowModel, YoloModel
 from transmission.motors import Motor
 from transmission.serial_conn import Serial
 from warp_main import get_homography_mat, warp
@@ -19,11 +19,13 @@ from warp_main import get_homography_mat, warp
 # Set True to optimize for competition, removing all visuals
 COMP_SETTINGS = False
 
-# Set True to redo warp and color picking bot color, front and back corners
+# Set True to redo warp and picking Huey's main color, front and back corners
 WARP_AND_COLOR_PICKING = True
-IS_TRANSMITTING = True
 
-# True to display angles for each iteration
+# Set True when testing with a live Huey and not a pre-filmed video
+IS_TRANSMITTING = False
+
+# True to display current and future orientation angles for each iteration
 SHOW_FRAME = True
 DISPLAY_ANGLES = True
 
@@ -39,10 +41,10 @@ if not SHOW_FRAME:
 
 folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
-
 resize_factor = 0.8
+frame_rate = 60
 
-camera_number = 1
+camera_number = 0
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -54,19 +56,17 @@ camera_number = 1
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = 0
 
-frame_rate = 60
-
 if IS_TRANSMITTING:
     speed_motor_channel = 1
     turn_motor_channel = 3
 
 # ------------------------------ BEFORE THE MATCH ------------------------------
 
-
 @profile
 def main():
     try:
-        # 1. Start the video and 2. Capture initial frame
+        # 1. Start the capturing frame from the camera or pre-recorded video
+        # 2. Capture initial frame by pressing '0'
         cap = cv2.VideoCapture(camera_number)
         captured_image = None
 
@@ -78,37 +78,31 @@ def main():
 
             if ret and frame is not None:
                 cv2.imshow("Frame", frame)
+                key = cv2.waitKey(1) & 0xFF # Check for key press
 
-                # Check for key press
-                key = cv2.waitKey(1) & 0xFF
-
-                if key == ord("q"):  # Press 'q' to quit without capturing
+                if key == ord("q"): # Press 'q' to quit without capturing
                     break
-                elif key == ord("0"):  # Press '0' to capture the image and exit
-                    captured_image = frame.copy()  # Store the captured frame
-                    cv2.imwrite(
-                        folder + "/captured_image.png", captured_image
-                    )  # Save the image
+                elif key == ord("0"): # Press '0' to capture the image and exit
+                    captured_image = frame.copy()
+                    cv2.imwrite(folder + "/captured_image.png", captured_image)
                     break
             else:
                 print("Failed to read frame" + "\n")
                 break
-
         cv2.destroyAllWindows()
 
-        # 3. Homography Matrix and 4. Display the warped image if flag is True
+        # 3. Use the initial frame to get the Homography Matrix
         if WARP_AND_COLOR_PICKING:
-            resized_image = cv2.resize(
-                captured_image, (0, 0), fx=resize_factor, fy=resize_factor)
+            resized_image = cv2.resize(captured_image, (0, 0), fx=resize_factor, fy=resize_factor)
             cv2.imwrite(folder + "/resized_image.png", resized_image)
-            h_mat = get_homography_mat(resized_image, 700, 700)
-            warped_frame = warp(resized_image, h_mat, 700, 700)
+            homography_matrix = get_homography_mat(resized_image, 700, 700)
+            warped_frame = warp(resized_image, homography_matrix, 700, 700)
             cv2.imshow("Warped Cage", warped_frame)
             cv2.imwrite(folder + "/warped_frame.png", warped_frame)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
-            # 5. ColorPicker: Manually picking colors for the robot, front and back colors
+            # 3.2 Part 2. ColorPicker: Manually picking colors for Huey, front and back corners
             image_path = folder + "/warped_frame.png"
             output_file = folder + "/selected_colors.txt"
             selected_colors = ColorPicker.pick_colors(image_path)
@@ -116,22 +110,23 @@ def main():
                 for color in selected_colors:
                     file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
             print(f"Selected colors have been saved to '{output_file}'." + "\n")
+        # 3. Or use the previously saved homography matrix from the txt file
         else:
-            h_mat = []
+            homography_matrix = []
             homography_matrix_file = folder + "/homography_matrix.txt"
             try:
                 with open(homography_matrix_file, "r") as file:
                     for line in file:
                         row = list(map(float, line.strip().split(" ")))
-                        h_mat.append(row)
-                if len(h_mat) != 3 or len(h_mat[0]) != 3:
+                        homography_matrix.append(row)
+                if len(homography_matrix) != 3 or len(homography_matrix[0]) != 3:
                     raise ValueError("The file must represent a 3 x 3 matrix.")
-                h_mat = np.array(h_mat, dtype=np.float32)
+                homography_matrix = np.array(homography_matrix, dtype=np.float32)
             except Exception as e:
                 print(f"Error reading homography_matrix.txt: {e}" + "\n")
                 exit(1)
 
-        # Reading the HSV values for robot color, front and back corners from a text file
+        # 4. Reading the HSV values for Huey, front and back corners from a text file
         selected_colors = []
         selected_colors_file = folder + "/selected_colors.txt"
         try:
@@ -147,7 +142,7 @@ def main():
 
         # Defining Roboflow Machine Learning Model Object
         # predictor = RoboflowModel()
-        predictor = YoloModel("250v12best", "PT", device='mps')
+        predictor = YoloModel("250v12best", "PT", device="mps")
 
         # Defining Corner Detection Object
         corner_detection = RobotCornerDetection(selected_colors, False, False)
@@ -163,10 +158,33 @@ def main():
 
         cv2.destroyAllWindows()
 
-        # 6. Set FPS
-        prev = 0
+        # TODO: run everything once and then define ram ram correctly
+        first_run_ml = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
+        corner_detection.set_bots(first_run_ml["bots"])
+        first_run_data = corner_detection.corner_detection_main()
 
-        # 7. Wait for match to start
+        if first_run_data and first_run_data["huey"] and first_run_data["enemy"]:
+            first_run_data["enemy"] = first_run_data["enemy"][0]  # Ensure single enemy
+            first_move_dictionary = algorithm.ram_ram(first_run_data)
+            print("Initial move dictionary:", first_move_dictionary)
+
+            if DISPLAY_ANGLES:
+                display_angles(first_run_data, first_move_dictionary, warped_frame)
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
+            if IS_TRANSMITTING:
+                speed_motor_group.move(first_move_dictionary["speed"])
+                turn_motor_group.move(first_move_dictionary["turn"])
+        else:
+            print("Warning: Initial detection failed. Check settings." + "\n")
+
+        algorithm = Ram()
+
+        # ----------------------------------------------------------------------
+
+        # 7. Wait for match to start. User needs to enter in 'start' in the command line
+        # In a real match, we enter 'start' before the match actually starts
+        # to ensure ML, Corner, and Algo is running smoothly before the 3, 2, 1 ... go!
         while True:
             user_input = input("Type 'start' to begin: ").strip().lower()
             if user_input == "start":
@@ -178,75 +196,64 @@ def main():
         # --------------------------------------------------------------------------
 
         # 8. Match begins
+        prev = 0
         cap = cv2.VideoCapture(camera_number)
         if cap.isOpened() == False:
             print("Error opening video file" + "\n")
 
         while cap.isOpened():
-            # 9. Camera Capture
+            # 9. Frames are being capture by the camera/pre-recorded video
             time_elapsed = time.time() - prev
-            print(round(time_elapsed * 1000, 1))
             ret, frame = cap.read()
             if not ret:
-                # If frame capture fails, break the loop
-                print("Failed to capture image" + "\n")
+                print("Failed to capture image" + "\n") # If frame capture fails, break the loop
                 break
 
-            # Press Q on keyboard to exit
             if SHOW_FRAME:
-                if cv2.waitKey(1) & 0xFF == ord("q"):
+                if cv2.waitKey(1) & 0xFF == ord("q"): # Press Q on keyboard to exit
                     print("exit" + "\n")
                     break
 
-            # 10. Warp image
+            # 10. Warp image using the Homography Matrix
             if IS_ORIGINAL_FPS or time_elapsed > 1.0 / frame_rate:
                 prev = time.time()
-                frame = cv2.resize(
-                    frame, (0, 0), fx=resize_factor, fy=resize_factor)
-                warped_frame = warp(frame, h_mat, 700, 700)
-                # cv2.imwrite(folder + "/warped_cage.png", warped_frame) This was taking ~7 ms per iteration - Aaron
+                frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
+                warped_frame = warp(frame, homography_matrix, 700, 700)
 
-                # 11. Object Detection
+                # 11. Run the Warped Image through Object Detection
                 detected_bots = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
 
-                # 12. Corner Detection
-                start_time = time.time()
+                # 12. Run Object Detection's results through Corner Detection
                 corner_detection.set_bots(detected_bots["bots"])
                 detected_bots_with_data = corner_detection.corner_detection_main()
-                corner_time = time.time() - start_time
-                # print(f"[TIME] Corner Detection: {corner_time:.4f} sec")
-
                 print("detected_bots_with_data: " + str(detected_bots_with_data))
 
                 if detected_bots_with_data and detected_bots_with_data["huey"]:
                     if detected_bots_with_data["enemy"]:
-                        # 13. Algorithm
+                        # 13. Algorithm runs only if we detect Huey and an enemy robot
                         detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
-                        move_dictionary = algorithm.ram_ram(
-                            detected_bots_with_data)
+                        move_dictionary = algorithm.ram_ram(detected_bots_with_data)
                         print("move_dictionary: " + str(move_dictionary))
                         if DISPLAY_ANGLES:
-                            display_angles(detected_bots_with_data,
-                                        move_dictionary, warped_frame)
-
-                        # 14. Transmission
+                            display_angles(detected_bots_with_data, move_dictionary, warped_frame)
+                        # 14. Transmitting the motor values to Huey's if we're using a live video
                         if IS_TRANSMITTING:
                             speed_motor_group.move(move_dictionary["speed"])
                             turn_motor_group.move(move_dictionary["turn"])
                     elif DISPLAY_ANGLES:
-                        display_angles(detected_bots_with_data,
-                                    None, warped_frame)
+                        display_angles(detected_bots_with_data, None, warped_frame)
                 elif DISPLAY_ANGLES:
                     display_angles(None, None, warped_frame)
                 if SHOW_FRAME and not DISPLAY_ANGLES:
                     cv2.imshow("Bounding boxes (no angles)", warped_frame)
 
         if SHOW_FRAME:
-            cap.release()  # Release the camera object
-            cv2.destroyAllWindows()  # Destroy all cv2 windows
+            cap.release()
+            cv2.destroyAllWindows()
 
     except KeyboardInterrupt:
         if IS_TRANSMITTING:
+            # After a KeyboardInterrupt, motor's need to be cleaned up correctly
             try:
                 speed_motor_group.stop()
                 turn_motor_group.stop()
@@ -254,12 +261,11 @@ def main():
             except:
                 print("Algorithm cleanup failed")
 
-        cap.release() # Release the camera object
-        cv2.destroyAllWindows() # Destroy all cv2 windows
-
+        cap.release()
+        cv2.destroyAllWindows()
 
 def display_angles(detected_bots_with_data, move_dictionary, image):
-    # Blue line: Huey's Current Orientation
+    # BLUE line: Huey's Current Orientation according to Corner Detection
     if detected_bots_with_data and detected_bots_with_data["huey"]["orientation"]:
         orientation_degrees = detected_bots_with_data["huey"]["orientation"]
 
@@ -271,27 +277,23 @@ def display_angles(detected_bots_with_data, move_dictionary, image):
         start_x = int(detected_bots_with_data["huey"]["center"][0])
         start_y = int(detected_bots_with_data["huey"]["center"][1])
 
-        end_point = (int(start_x + 300 * resize_factor * dx),
-                     int(start_y + 300 * resize_factor * dy))
+        end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
         cv2.arrowedLine(image, (start_x, start_y), end_point, (255, 0, 0), 2)
 
-        # Red line, where we want to face
+        # RED line: Huey's Desired Orientation according to Algorithm
         if move_dictionary and move_dictionary["turn"]:
-            turn = move_dictionary["turn"]  # angle in degrees / 180
+            turn = move_dictionary["turn"] # angle in degrees / 180
             new_orientation_degrees = orientation_degrees + (turn * 180)
 
             # Components of predicted turn
             dx = np.cos(math.pi * new_orientation_degrees / 180)
             dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
 
-            end_point = (int(start_x + 300 * resize_factor * dx),
-                         int(start_y + 300 * resize_factor * dy))
-            cv2.arrowedLine(image, (start_x, start_y),
-                            end_point, (0, 0, 255), 2)
+            end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
+            cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
 
     cv2.imshow("Battle with Predictions", image)
     cv2.waitKey(1)
-
 
 if __name__ == "__main__":
     # Run using 'kernprof -l -v --unit 1e-3 main.py' for debugging

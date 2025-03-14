@@ -39,12 +39,16 @@ class ColorPicker:
                 try:
                     color = test_img[y, x]  # OpenCV reads as BGR
                     hsv_color = cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_BGR2HSV)[0][0]
-                    if len(selected_colors) < 3:
+                    if len(selected_colors) < 4:
                         selected_colors.append(hsv_color)
                         points.append([x, y])
                         print(f"Selected color (HSV): {hsv_color}")
                         print(f"Point added: {x}, {y}")
                         redraw_image()
+
+                        if len(selected_colors) == 4:
+                            print("\n✅ Three colors selected.")
+                            print("➡ Type 'continue' and to confirm or 'z' to undo the last selection.")
                 except Exception as e:
                     print(f"Error processing color at ({x}, {y}): {e}")
 
@@ -93,22 +97,32 @@ class ColorPicker:
 
         while True:
             key = cv2.waitKey(1) & 0xFF
-            if key == ord("z"):  # If 'z' is pressed
+            
+            if key == ord("z"):  # Undo last selection
                 if selected_colors and points:
                     removed_color = selected_colors.pop()
                     removed_point = points.pop()
-                    print(f"Color removed: {removed_color}")
-                    print(f"Point removed: {removed_point}")
+                    print(f"🛑 Color removed: {removed_color}")
+                    print(f"🛑 Point removed: {removed_point}")
                     redraw_image()
                 else:
-                    print("No points to remove.")
-            elif key == 27:  # Press 'Esc' to exit
-                break
-            elif len(selected_colors) == 3:
-                break
+                    print("⚠ No points to remove.")
+            elif key == 27:  # Press 'Esc' to exit without saving
+                print("❌ Selection canceled. Exiting...")
+                selected_colors = []
+                return None
+            elif len(selected_colors) == 4:
+                selected_colors = selected_colors[:len(selected_colors)-1]
+                user_input = input("\n✅ Type 'continue' to confirm selection: ").strip().lower()
+                if user_input == "continue":
+                    print("\n✅ Colors confirmed! Proceeding...\n")
+                    break
+                else:
+                    print("⚠ Invalid input. Try run main.py again")
+                    return None
 
-        print("Final Selected Colors (HSV):", selected_colors)
-        print("Final Selected Points:", points)
+        print("🎨 Final Selected Colors (HSV):", selected_colors)
+        print("📌 Final Selected Points:", points)
 
         cv2.destroyAllWindows()
         return selected_colors
