@@ -1,0 +1,1044 @@
+Position Loss: 0.002123184751996508 
+    Velocity Loss: 0.051576417514791965 
+ 
+Position Loss: 0.026429929356078206 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.001606425702811245 
+ 
+Position Loss: 0.0008025682182985554 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.1816049966172937 
+ 
+Position Loss: 0.09877868392804548 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.24858361448278388 
+ 
+Position Loss: 0.1406894783269376 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.3374433208683256 
+ 
+Position Loss: 0.20149620082799138 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.3429559279442293 
+ 
+Position Loss: 0.20564635387978916 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.005154639175257732 
+ 
+Position Loss: 0.002583979328165375 
+    Velocity Loss: 0.33892802159016777 
+ 
+Position Loss: 0.2018339292707181 
+    Velocity Loss: 0.0018744142455482662 
+ 
+Position Loss: 0.0009363295880149813 
+    Velocity Loss: 0.007236550290837081 
+ 
+Position Loss: 0.003628321001296128 
+    Velocity Loss: 0.001876172607879925 
+ 
+Position Loss: 0.0009372071227741331 
+    Velocity Loss: 0.2915631288475038 
+ 
+Position Loss: 0.16933148123159172 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.1237006246180048 
+ 
+Position Loss: 0.06471242433382918 
+    Velocity Loss: 0.007547169811320755 
+ 
+Position Loss: 0.003787878787878788 
+    Velocity Loss: 0.007575757575757576 
+ 
+Position Loss: 0.0037735849056603774 
+    Velocity Loss: 0.007547169811320755 
+ 
+Position Loss: 0.003787878787878788 
+    Velocity Loss: 0.207500460061051 
+ 
+Position Loss: 0.10127507007517729 
+    Velocity Loss: 0.0021598272138228943 
+ 
+Position Loss: 0.001081081081081081 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.002162162162162162 
+ 
+Position Loss: 0.0010799136069114472 
+    Velocity Loss: 0.39327476739800543 
+ 
+Position Loss: 0.1668705824079711 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.3754746639952033 
+ 
+Position Loss: 0.15808830465764606 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.2952696675666212 
+ 
+Position Loss: 0.12996901673677388 
+    Velocity Loss: 0.004319654427645789 
+ 
+Position Loss: 0.0021645021645021645 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.004329004329004329 
+ 
+Position Loss: 0.0021598272138228943 
+    Velocity Loss: 0.0021645021645021645 
+ 
+Position Loss: 0.001081081081081081 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.002162162162162162 
+ 
+Position Loss: 0.0010822510822510823 
+    Velocity Loss: 0.0021645021645021645 
+ 
+Position Loss: 0.001081081081081081 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.16876266167480966 
+ 
+Position Loss: 0.0795789281191495 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.004056795131845842 
+ 
+Position Loss: 0.0020325203252032522 
+    Velocity Loss: 0.0040650406504065045 
+ 
+Position Loss: 0.002028397565922921 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.09657707703962796 
+ 
+Position Loss: 0.04628570818305496 
+    Velocity Loss: 0.004 
+ 
+Position Loss: 0.002004008016032064 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.00196078431372549 
+ 
+Position Loss: 0.0009813542688910696 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.001962708537782139 
+ 
+Position Loss: 0.000980392156862745 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.04403946937478759 
+ 
+Position Loss: 0.02173169084370839 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.11572261206227881 
+ 
+Position Loss: 0.060311332308429215 
+    Velocity Loss: 0.0018779342723004694 
+ 
+Position Loss: 0.0009380863039399625 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.004667211419061521 
+ 
+Position Loss: 0.00232978963776083 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0018779342723004694 
+ 
+Position Loss: 0.0009380863039399625 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.001876172607879925 
+ 
+Position Loss: 0.0009389671361502347 
+    Velocity Loss: 0.11774413961548888 
+ 
+Position Loss: 0.06089947692489092 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.08406163477119746 
+ 
+Position Loss: 0.04043273907229371 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.004454342984409799 
+ 
+Position Loss: 0.0022222222222222222 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.004777610685077552 
+ 
+Position Loss: 0.002393691789717402 
+    Velocity Loss: 0.004454342984409799 
+ 
+Position Loss: 0.0022222222222222222 
+    Velocity Loss: 0.10311757443577962 
+ 
+Position Loss: 0.04974175469967325 
+    Velocity Loss: 0.004282655246252677 
+ 
+Position Loss: 0.002145922746781116 
+    Velocity Loss: 0.001694915254237288 
+ 
+Position Loss: 0.000846740050804403 
+    Velocity Loss: 0.008583690987124463 
+ 
+Position Loss: 0.004273504273504274 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.07590147983235401 
+ 
+Position Loss: 0.03689385244519518 
+    Velocity Loss: 0.004140786749482402 
+ 
+Position Loss: 0.002074688796680498 
+    Velocity Loss: 0.004149377593360996 
+ 
+Position Loss: 0.002070393374741201 
+    Velocity Loss: 0.004461041180111975 
+ 
+Position Loss: 0.002234764297097311 
+    Velocity Loss: 0.004469528594194622 
+ 
+Position Loss: 0.0022305205900559873 
+    Velocity Loss: 0.004461041180111975 
+ 
+Position Loss: 0.002234252747864457 
+    Velocity Loss: 0.008462833130944883 
+ 
+Position Loss: 0.004214739583962243 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.21906485994920724 
+ 
+Position Loss: 0.09872801423810262 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0037243947858473 
+ 
+Position Loss: 0.0018587360594795538 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.2953769804889637 
+ 
+Position Loss: 0.12904228248423774 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0033812341504649195 
+ 
+Position Loss: 0.001693480101608806 
+    Velocity Loss: 0.001693480101608806 
+ 
+Position Loss: 0.0008460236886632825 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0036565405490823857 
+ 
+Position Loss: 0.0018256145523036548 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.3345009262426805 
+ 
+Position Loss: 0.1443689395988766 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.004448970100191485 
+ 
+Position Loss: 0.0022209279447020043 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.34274143815910735 
+ 
+Position Loss: 0.14813124234784583 
+    Velocity Loss: 0.0017969451931716084 
+ 
+Position Loss: 0.0008992805755395684 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.28002326877259837 
+ 
+Position Loss: 0.12713434487274705 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.2498962605184686 
+ 
+Position Loss: 0.1182206670711748 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.002770383703620142 
+ 
+Position Loss: 0.0013865520062156208 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.2394480893461908 
+ 
+Position Loss: 0.12342065887234024 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.002224694104560623 
+ 
+Position Loss: 0.0011135857461024498 
+    Velocity Loss: 0.0022271714922048997 
+ 
+Position Loss: 0.0011123470522803114 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.2517119132226353 
+ 
+Position Loss: 0.14016028276398484 
+    Velocity Loss: 0.0016863406408094434 
+ 
+Position Loss: 0.0008424599831508003 
+    Velocity Loss: 0.0016849199663016006 
+ 
+Position Loss: 0.0008431703204047217 
+    Velocity Loss: 0.003372681281618887 
+ 
+Position Loss: 0.0016835016835016834 
+    Velocity Loss: 0.003367003367003367 
+ 
+Position Loss: 0.0016863406408094434 
+    Velocity Loss: 0.00421139009205147 
+ 
+Position Loss: 0.0021043771043771043 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0016835016835016834 
+ 
+Position Loss: 0.0008424599831508003 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.2860689596949144 
+ 
+Position Loss: 0.16672187988889084 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.36195961481911487 
+ 
+Position Loss: 0.22014920711894936 
+    Velocity Loss: 0.003590664272890485 
+ 
+Position Loss: 0.0017985611510791368 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0017050298380221654 
+ 
+Position Loss: 0.0008517887563884157 
+    Velocity Loss: 0.0017035775127768314 
+ 
+Position Loss: 0.0008525149190110827 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0017050298380221654 
+ 
+Position Loss: 0.0008517887563884157 
+    Velocity Loss: 0.4534767025464897 
+ 
+Position Loss: 0.29018523918315664 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.5436773090582225 
+ 
+Position Loss: 0.36742606909223696 
+    Velocity Loss: 0.0018796992481203006 
+ 
+Position Loss: 0.0009389671361502347 
+    Velocity Loss: 0.006582703772815102 
+ 
+Position Loss: 0.0032820979036795295 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0018796992481203006 
+ 
+Position Loss: 0.0009389671361502347 
+    Velocity Loss: 0.007325431445197545 
+ 
+Position Loss: 0.0036730447967715865 
+    Velocity Loss: 0.5951958555649416 
+ 
+Position Loss: 0.4149210172296805 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.6427462115487662 
+ 
+Position Loss: 0.4600348281055277 
+    Velocity Loss: 0.025806451612903226 
+ 
+Position Loss: 0.012738853503184714 
+    Velocity Loss: 0.025477707006369428 
+ 
+Position Loss: 0.012903225806451613 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.012903225806451613 
+ 
+Position Loss: 0.00641025641025641 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.4714580042547859 
+ 
+Position Loss: 0.29564219025918065 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.01639344262295082 
+ 
+Position Loss: 0.008264462809917356 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.01652892561983471 
+ 
+Position Loss: 0.00819672131147541 
+    Velocity Loss: 0.01639344262295082 
+ 
+Position Loss: 0.008264462809917356 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.2885186619133681 
+ 
+Position Loss: 0.14408120403430372 
+    Velocity Loss: 0.014925373134328358 
+ 
+Position Loss: 0.007518796992481203 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.40593758890796744 
+ 
+Position Loss: 0.17341886984990604 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0028169014084507044 
+ 
+Position Loss: 0.0014104372355430183 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.2285314687551735 
+ 
+Position Loss: 0.10290875430882793 
+    Velocity Loss: 0.014326647564469915 
+ 
+Position Loss: 0.007112375533428165 
+    Velocity Loss: 0.01422475106685633 
+ 
+Position Loss: 0.0071633237822349575 
+    Velocity Loss: 0.014326647564469915 
+ 
+Position Loss: 0.007112375533428165 
+    Velocity Loss: 0.011379800853485065 
+ 
+Position Loss: 0.005722460658082976 
+    Velocity Loss: 0.002861230329041488 
+ 
+Position Loss: 0.0014285714285714286 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.002857142857142857 
+ 
+Position Loss: 0.0014265335235378032 
+    Velocity Loss: 0.10696781415519546 
+ 
+Position Loss: 0.05150861187117933 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.011267133779639811 
+ 
+Position Loss: 0.005662242019441273 
+    Velocity Loss: 0.01098901098901099 
+ 
+Position Loss: 0.00546448087431694 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.5919939197559413 
+ 
+Position Loss: 0.2289787897951696 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.008852279258004086 
+ 
+Position Loss: 0.004409785285300076 
+    Velocity Loss: 0.008819570570600153 
+ 
+Position Loss: 0.004426139629002043 
+    Velocity Loss: 0.17012645774818638 
+ 
+Position Loss: 0.07856833642263253 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.007782101167315175 
+ 
+Position Loss: 0.00390625 
+    Velocity Loss: 0.0078125 
+ 
+Position Loss: 0.0038910505836575876 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.1579457208153883 
+ 
+Position Loss: 0.07561941064563447 
+    Velocity Loss: 0.002805049088359046 
+ 
+Position Loss: 0.0014005602240896359 
+    Velocity Loss: 0.0028011204481792717 
+ 
+Position Loss: 0.001402524544179523 
+    Velocity Loss: 0.005610098176718092 
+ 
+Position Loss: 0.002797202797202797 
+    Velocity Loss: 0.002797202797202797 
+ 
+Position Loss: 0.0014005602240896359 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.007272727272727273 
+ 
+Position Loss: 0.0036231884057971015 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.24797845417405262 
+ 
+Position Loss: 0.11834637283972735 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.44109118097023076 
+ 
+Position Loss: 0.19565222377338598 
+    Velocity Loss: 0.02752166411992981 
+ 
+Position Loss: 0.013948371032117955 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0221606648199446 
+ 
+Position Loss: 0.011204481792717087 
+    Velocity Loss: 0.0056022408963585435 
+ 
+Position Loss: 0.0028089887640449437 
+    Velocity Loss: 0.0 
+ 
+Position Loss: 0.0 
+    Velocity Loss: 0.0 
+ 
