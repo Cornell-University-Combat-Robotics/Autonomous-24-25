@@ -7,7 +7,6 @@ from transmission.motors import Motor
 from transmission.serial_conn import Serial
 
 # Initialize pygame
-pygame.init()
 algo = Ram()
 DELAY = 1000 # how often to get bot positions and orientations (milliseconds)
 ser = Serial()
@@ -16,6 +15,7 @@ speed_motor_group = Motor(ser=ser, channel=1)
 turn_motor_group = Motor(ser=ser, channel=3)
 
 # Set up window dimensions
+pygame.init()
 width, height = 800, 600
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Control Points")
