@@ -2,7 +2,7 @@
 import pygame
 import math
 import time
-from Algorithm.ram import Ram
+from ram import Ram
 import numpy as np
 
 # Initialize pygame
@@ -80,6 +80,7 @@ bots_data = {
                 'center': enemy['center']
             }
     }
+huey_bot = Ram(huey_old_position=huey['center'], huey_orientation=huey['orientation'], enemy_position=enemy['center'])
 
 while running:
     if (math.dist([enemy['center'][0], enemy['center'][1]], [huey['center'][0], huey['center'][1]]) < 0.203*300):
@@ -94,7 +95,6 @@ while running:
         huey = {'center': [10, 10], 'orientation': 0.0}  # Huey's position and orientation (0 degrees = along x-axis)
         enemy = {'center': [width - 10, height - 10]}  # Enemy's position
 
-    huey_bot = Ram(huey_old_position=huey['center'], huey_orientation=huey['orientation'], enemy_position=enemy['center'])
 
     screen.fill((255, 255, 255))  # Clear screen with white background
 
@@ -113,9 +113,9 @@ while running:
 
     # things to account for: power, friction
     
-    huey_current_speed = 2.2 # (pixels moved in this frame)
+    huey_current_speed = 5 # (pixels moved in this frame)
 
-    enemy_current_speed = 5 # (enemy pixles moved in this frame)
+    enemy_current_speed = 30 # (enemy pixles moved in this frame)
     wheel_base = 0.1905
 
     # turn speed = leftwheel speed - rightwheel speed / base width

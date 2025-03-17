@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import os
 
-
 class ColorPicker:
     """
     A class for manually picking colors from an image.
@@ -40,11 +39,16 @@ class ColorPicker:
                 try:
                     color = test_img[y, x]  # OpenCV reads as BGR
                     hsv_color = cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_BGR2HSV)[0][0]
-                    selected_colors.append(hsv_color)
-                    points.append([x, y])
-                    print(f"Selected color (HSV): {hsv_color}")
-                    print(f"Point added: {x}, {y}")
-                    redraw_image()
+                    if len(selected_colors) < 4:
+                        selected_colors.append(hsv_color)
+                        points.append([x, y])
+                        print(f"Selected color (HSV): {hsv_color}")
+                        print(f"Point added: {x}, {y}")
+                        redraw_image()
+
+                        if len(selected_colors) == 4:
+                            print("\n✅ Three colors selected.")
+                            print("➡ Type 'continue' and to confirm or 'z' to undo the last selection.")
                 except Exception as e:
                     print(f"Error processing color at ({x}, {y}): {e}")
 
@@ -61,36 +65,64 @@ class ColorPicker:
                     (255, 0, 0),
                     1,
                 )
-            cv2.imshow("Select Colors", img_copy)
+
+            # Create a display panel for selected colors
+            color_panel_height = img_copy.shape[0]
+            color_panel_width = 150
+            color_panel = np.zeros((color_panel_height, color_panel_width, 3), dtype=np.uint8)
+
+            labels = ["Robot", "Front", "Back"]
+
+            for i, hsv_color in enumerate(selected_colors):
+                bgr_color = cv2.cvtColor(np.uint8([[hsv_color]]), cv2.COLOR_HSV2BGR)[0][0]
+                start_y = i * (color_panel_height // 3)
+                end_y = (i + 1) * (color_panel_height // 3)
+                color_panel[start_y:end_y, :] = bgr_color
+
+                cv2.putText(
+                    color_panel,
+                    labels[i],
+                    (10, start_y + 30),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (255, 255, 255),
+                    2,
+                )
+
+            combined_image = np.hstack((img_copy, color_panel))
+            cv2.imshow("Select Colors", combined_image)
 
         cv2.imshow("Select Colors", test_img)
         cv2.setMouseCallback("Select Colors", click_event)
 
         while True:
             key = cv2.waitKey(1) & 0xFF
-            if key == ord("z"):  # If 'z' is pressed
+            
+            if key == ord("z"):  # Undo last selection
                 if selected_colors and points:
                     removed_color = selected_colors.pop()
                     removed_point = points.pop()
-                    print(f"Color removed: {removed_color}")
-                    print(f"Point removed: {removed_point}")
+                    print(f"🛑 Color removed: {removed_color}")
+                    print(f"🛑 Point removed: {removed_point}")
                     redraw_image()
                 else:
-                    print("No points to remove.")
-            elif key == 27:  # Press 'Esc' to exit
-                break
-            elif len(selected_colors) == 3:
-                break
+                    print("⚠ No points to remove.")
+            elif key == 27:  # Press 'Esc' to exit without saving
+                print("❌ Selection canceled. Exiting...")
+                selected_colors = []
+                return None
+            elif len(selected_colors) == 4:
+                selected_colors = selected_colors[:len(selected_colors)-1]
+                user_input = input("\n✅ Type 'continue' to confirm selection: ").strip().lower()
+                if user_input == "continue":
+                    print("\n✅ Colors confirmed! Proceeding...\n")
+                    break
+                else:
+                    print("⚠ Invalid input. Try run main.py again")
+                    return None
 
-        # Ensure the selection is in the correct order: Robot, Front, Back
-        print("Final Selected Colors (HSV):")
-        print(f"Robot Color: {selected_colors[0]}")
-        print(f"Front Corner Color: {selected_colors[1]}")
-        print(f"Back Corner Color: {selected_colors[2]}")
-        print("Final Selected Points:")
-        print(f"Robot Point: {points[0]}")
-        print(f"Front Corner Point: {points[1]}")
-        print(f"Back Corner Point: {points[2]}")
+        print("🎨 Final Selected Colors (HSV):", selected_colors)
+        print("📌 Final Selected Points:", points)
 
         cv2.destroyAllWindows()
         return selected_colors

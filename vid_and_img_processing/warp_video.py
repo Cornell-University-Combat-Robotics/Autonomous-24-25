@@ -45,5 +45,5 @@ def warp_video(video_name, output_w=600, output_h=600):
 if __name__ == "__main__":
     INPUT_BASE_PATH = "data/input_video/"
     OUTPUT_BASE_PATH = "data/output_video/"
-    video_name = "cheezegrater-ariabravo.mp4"
+    video_name = "knuckledollar.mp4"
     warp_video(video_name)
