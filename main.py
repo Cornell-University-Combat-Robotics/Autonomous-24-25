@@ -19,11 +19,11 @@ from warp_main import get_homography_mat, warp
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True to redo warp and color picking bot color, front and back corners
-WARP_AND_COLOR_PICKING = True
+WARP_AND_COLOR_PICKING = False
 IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
-IS_ORIGINAL_FPS = False
+IS_ORIGINAL_FPS = True
 
 folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
@@ -49,11 +49,11 @@ ys = []
 # camera_number = test_videos_folder + "/huey_demo3.2.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
-# camera_number = test_videos_folder + "/green_huey_demo.mp4"
+camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/not_huey_test.mp4"
 #camera_number = test_videos_folder + "/real_gruey_naked.mp4"
-camera_number = test_videos_folder + "/MYFATHER.mov"
+# camera_number = test_videos_folder + "/MYFATHER.mov"
 # camera_number = test_videos_folder + "/slightly_fatter_huey_test.mp4"
 
 frame_rate = 8
@@ -336,20 +336,53 @@ def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, 
         start_x = int(detected_bots_with_data["huey"]["center"][0])
         start_y = int(detected_bots_with_data["huey"]["center"][1])
         
-        end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
+        end_point = (int(start_x + 180 * resize_factor * dx), int(start_y + 180 * resize_factor * dy))
         cv2.arrowedLine(image, (start_x, start_y), end_point, (255, 0, 0), 2)
 
-        # Red line, where we want to face
+        # Predicted orientations
         if move_dictionary and move_dictionary["turn"]:
             turn = move_dictionary["turn"]  # angle in degrees / 180
-            new_orientation_degrees = orientation_degrees + (turn * 180)
-            
-            # Components of predicted turn
-            dx = np.cos(math.pi * new_orientation_degrees / 180)
-            dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
+            speed = move_dictionary["speed"]  # speed of wheels [0, 1]
+            left = move_dictionary["left"]
+            right = move_dictionary["right"]
 
-            end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
+        # Turn values TODO: FIX THE TRIG.
+            # Left turn (+ 90 deg)
+                # Huey's left wing
+            start_x_left = int(np.copy(start_x) - np.sin(math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+            start_y_left = int(np.copy(start_y) - np.cos(math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+            # start_x_left = int(np.copy(start_x) + np.cos(math.pi / 2 + math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+            # start_y_left = int(np.copy(start_y) + np.sin(math.pi + math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+
+            dx = np.cos(math.pi / 180 * orientation_degrees) * left
+            dy = -1 * np.sin(math.pi / 180 * orientation_degrees) * left
+
+            end_point = (int(start_x_left + 300 * resize_factor * dx), int(start_y_left + 300 * resize_factor * dy))
+            cv2.arrowedLine(image, (start_x_left, start_y_left), end_point, (255, 255, 0), 2)
+
+            # Right turn (- 90 deg)
+                # Huey's right wing
+            start_x_right = int(np.copy(start_x) + np.sin(math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+            start_y_right = int(np.copy(start_y) + np.cos(math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+            # start_x_right = int(np.copy(start_x) + np.cos( - math.pi / 2 + math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+            # start_y_right = int(np.copy(start_y) + np.sin( - math.pi / 2 + math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+
+            dx = np.cos(math.pi / 180 * orientation_degrees) * right
+            dy = -1 * np.sin(math.pi / 180 * orientation_degrees) * right
+
+            end_point = (int(start_x_right + 300 * resize_factor * dx), int(start_y_right + 300 * resize_factor * dy))
+            cv2.arrowedLine(image, (start_x_right, start_y_right), end_point, (0, 255, 255), 2)
+
+            new_orientation_degrees = orientation_degrees + (turn * 180)
+
+        # Red line, where we want to face    
+            dx = np.cos(math.pi * new_orientation_degrees / 180) * speed
+            dy = -1 * np.sin(math.pi * new_orientation_degrees / 180) * speed
+
+            end_point = (int(start_x + 180 * resize_factor * dx), int(start_y + 180 * resize_factor * dy))
             cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
+
+            
 
     # Plot enemy future position 
     print(enemy_future_list)

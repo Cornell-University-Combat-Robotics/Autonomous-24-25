@@ -59,7 +59,7 @@ class Ram():
     # ----------------------------- CONSTANTS -----------------------------
     ENEMY_HISTORY_BUFFER = 10 # how many previous enemy position we are recording
     DANGER_ZONE = 55
-    LEFT = 0
+    LEFT = 0 # TODO: why are these here if not used...why 0 and 3
     RIGHT = 3
     MAX_SPEED = 1 # between 0 and 1
     MIN_SPEED = 0 # between 0 and 1
