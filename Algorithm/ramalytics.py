@@ -6,10 +6,7 @@ import csv
 
 CSV = "RamRamTest/ram_ram_test95.csv"
 
-def plotVelocity():
-    fields = ['time','huey_velocity','speed']
-
-    df = pd.read_csv(CSV, skipinitialspace=True, usecols=fields)
+def plotVelocity(df):
     column_list = df['huey_velocity'].tolist()
     df['row_number'] = np.arange(len(df))
     
@@ -25,7 +22,24 @@ def plotVelocity():
 
     df.plot('row_number',y=['huey_velocity','speed'])
 
-    plt.show()
+def plotTurn(df):
+    turn = df['turn'].tolist()
+    facing = df['huey_facing'].tolist()
+    df['row_number'] = np.arange(len(df))
 
-plotVelocity()
+    dfacing = []
+
+    for i in range(len(turn)-1):
+        diff = (facing[i+1]-facing[i])
+        dfacing.append(diff)
+
+    df['turn'] = dfacing    
+
+    df.plot('row_number',y=['facing','turn'])
+
+
+fields = ['time','huey_velocity','speed','huey_facing','turn']
+df = pd.read_csv(CSV, skipinitialspace=True, usecols=fields)
+plotTurn(df)
+plt.show()
     
