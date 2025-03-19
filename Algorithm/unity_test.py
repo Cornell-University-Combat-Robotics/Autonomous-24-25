@@ -37,13 +37,17 @@ while (True):
     #parse and calculate values
     # all units in meters!
 
-    huey_center_strs = parse(lines, 0)
-    huey_center =(np.array([float(huey_center_strs[0]), float(huey_center_strs[2])]))
+    #huey_center_strs = parse(lines, 0)
+    #huey_center =(np.array([float(huey_center_strs[0]), float(huey_center_strs[2])]))
 
-    huey_orientation = float(lines[1])
-    enemy_center_strs = parse(lines, 2)
-    enemy_center = (np.array([float(enemy_center_strs[0]), float(enemy_center_strs[2])]))
+    #huey_orientation = float(lines[1])
+    
+    #enemy_center_strs = parse(lines, 2)
+    #enemy_center = (np.array([float(enemy_center_strs[0]), float(enemy_center_strs[2])]))
 
+    huey_center = np.array([float(lines[0]), float(lines[1])])
+    huey_orientation = float(lines[2])
+    enemy_center = np.array([float(lines[3]), float(lines[4])])
 
     robot_width = 0.23495
     robot_height = 0.19685
@@ -70,10 +74,10 @@ while (True):
                     'center': enemy_center
                 }
         }
-    huey_bot = Ram(huey_center, huey_orientation, enemy_center)
+    huey_bot = Ram(huey_position=huey_center, huey_orientation=huey_orientation, huey_old_position=huey_orientation, enemy_position=enemy_center)
     huey_move_output = huey_bot.ram_ram(bots_data)
 
     #write output to unity_reads
-    file = open('unity_read.txt', 'w')
-    lines = file.writelines([huey_move_output['left'], huey_move_output['right'], huey_move_output['speed'], huey_move_output['turn']])
+    file = open('unity_reads.txt', 'w')
+    lines = file.writelines(str(huey_move_output['left'])+ "\n" + str(huey_move_output['right']) + "\n" + str(huey_move_output['speed']) + "\n" + str(huey_move_output['turn']))
     file.close()
