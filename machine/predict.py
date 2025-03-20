@@ -308,7 +308,7 @@ class RoboflowModel(TemplateModel):
                 2,
             )
 
-        print(f"Detected [{len(housebots)} housebots], [{len(bots)} bots]")
+        # print(f"Detected [{len(housebots)} housebots], [{len(bots)} bots]")
 
         # for name, data in predictions.items():
         #     # Extract bounding box coordinates and class details
@@ -367,9 +367,7 @@ class YoloModel(TemplateModel):
                 model_extension = ".xml"
                 weights_extension = ".bin"
                 core = ov.Core()
-                classification_model_xml = (
-                    "./machine/models/" + model_name + model_extension
-                )
+                classification_model_xml = ("./machine/models/" + model_name + model_extension)
                 weights = "./machine/models/" + model_name + weights_extension
 
                 model = core.read_model(model=classification_model_xml, weights=weights)
@@ -381,7 +379,7 @@ class YoloModel(TemplateModel):
     def predict(self, img, show=False, track=False):
         # This prints timing info
         if self.device != None:
-            results = self.model(img, device=self.device)
+            results = self.model(img, device=self.device, verbose=False)
         else:
             results = self.model(img)
         # If multiple img passed, results has more than one element

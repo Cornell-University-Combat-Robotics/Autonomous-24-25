@@ -19,6 +19,9 @@ from warp_main import get_homography_mat, warp
 # Set True to optimize for competition, removing all visuals
 COMP_SETTINGS = False
 
+# Set True to print outputs for Corner Detection and Algo
+PRINT = False
+
 # Set True to redo warp and picking Huey's main color, front and back corners
 WARP_AND_COLOR_PICKING = True
 
@@ -35,6 +38,7 @@ IS_ORIGINAL_FPS = False
 if COMP_SETTINGS:
     SHOW_FRAME = False
     DISPLAY_ANGLES = False
+    PRINT = False
 
 if not SHOW_FRAME:
     DISPLAY_ANGLES = False
@@ -44,7 +48,7 @@ test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
 frame_rate = 60
 
-camera_number = 0
+# camera_number = 0
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -52,9 +56,8 @@ camera_number = 0
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
-# camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
+camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
-# camera_number = 0
 
 if IS_TRANSMITTING:
     speed_motor_channel = 1
@@ -80,9 +83,9 @@ def main():
                 cv2.imshow("Frame", frame)
                 key = cv2.waitKey(1) & 0xFF # Check for key press
 
-                if key == ord("q"): # Press 'q' to quit without capturing
+                if key == ord("q"): # Press 'q' to quit without capturing # TODO: have these instructions above the image
                     break
-                elif key == ord("0"): # Press '0' to capture the image and exit
+                elif key == ord("0"): # Press '0' to capture the image and exit # TODO: have these instructions above the image
                     captured_image = frame.copy()
                     cv2.imwrite(folder + "/captured_image.png", captured_image)
                     break
@@ -140,6 +143,7 @@ def main():
             print(f"Error reading selected_colors.txt: {e}" + "\n")
             exit(1)
 
+        # 5. Defining all subsystem objects: ML, Corner, Algorithm
         # Defining Roboflow Machine Learning Model Object
         # predictor = RoboflowModel()
         predictor = YoloModel("250v12best", "PT", device="mps")
@@ -148,37 +152,37 @@ def main():
         corner_detection = RobotCornerDetection(selected_colors, False, False)
 
         # Defining Ram Ram Algorithm Object
-        algorithm = Ram()
+        algorithm = None
 
         if IS_TRANSMITTING:
-            # Defining Transmission Object
+            # 5.1: Defining Transmission Object if we're using a live video
             ser = Serial()
             speed_motor_group = Motor(ser=ser, channel=speed_motor_channel)
             turn_motor_group = Motor(ser=ser, channel=turn_motor_channel)
 
         cv2.destroyAllWindows()
 
-        # TODO: run everything once and then define ram ram correctly
+        # 6. Do an initial run of ML and Corner. Initialize Algo
         first_run_ml = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
         corner_detection.set_bots(first_run_ml["bots"])
-        first_run_data = corner_detection.corner_detection_main()
+        first_run_corner = corner_detection.corner_detection_main()
 
-        if first_run_data and first_run_data["huey"] and first_run_data["enemy"]:
-            first_run_data["enemy"] = first_run_data["enemy"][0]  # Ensure single enemy
-            first_move_dictionary = algorithm.ram_ram(first_run_data)
-            print("Initial move dictionary:", first_move_dictionary)
+        if first_run_corner and first_run_corner["huey"] and first_run_corner["enemy"]:
+            first_run_corner["enemy"] = first_run_corner["enemy"][0] # Ensure single enemy
+            algorithm = Ram(bots = first_run_corner)
+            first_move_dictionary = algorithm.ram_ram(first_run_corner)
+            if PRINT:
+                print(f"Initial Object Detection Output: Detected [{len(first_run_ml[housebots])} housebots], [{len(first_run_ml[bots])} bots]")
+                print("Initial Corner Detection Output: " + str(first_run_corner))
+                print("Initial Algorithm Output: " + str(first_move_dictionary))
 
             if DISPLAY_ANGLES:
-                display_angles(first_run_data, first_move_dictionary, warped_frame)
+                display_angles(first_run_corner, first_move_dictionary, warped_frame)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
-            if IS_TRANSMITTING:
-                speed_motor_group.move(first_move_dictionary["speed"])
-                turn_motor_group.move(first_move_dictionary["turn"])
         else:
-            print("Warning: Initial detection failed. Check settings." + "\n")
-
-        algorithm = Ram()
+            algorithm = Ram()
+            print("Warning: Initial detection of Huey and enemy robot failed." + "\n")
 
         # ----------------------------------------------------------------------
 
@@ -226,14 +230,16 @@ def main():
                 # 12. Run Object Detection's results through Corner Detection
                 corner_detection.set_bots(detected_bots["bots"])
                 detected_bots_with_data = corner_detection.corner_detection_main()
-                print("detected_bots_with_data: " + str(detected_bots_with_data))
+                if PRINT:
+                    print("CORNER DETECTION: " + str(detected_bots_with_data))
 
                 if detected_bots_with_data and detected_bots_with_data["huey"]:
                     if detected_bots_with_data["enemy"]:
                         # 13. Algorithm runs only if we detect Huey and an enemy robot
                         detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
                         move_dictionary = algorithm.ram_ram(detected_bots_with_data)
-                        print("move_dictionary: " + str(move_dictionary))
+                        if PRINT:
+                            print("ALGORITHM: " + str(move_dictionary))
                         if DISPLAY_ANGLES:
                             display_angles(detected_bots_with_data, move_dictionary, warped_frame)
                         # 14. Transmitting the motor values to Huey's if we're using a live video
@@ -246,23 +252,30 @@ def main():
                     display_angles(None, None, warped_frame)
                 if SHOW_FRAME and not DISPLAY_ANGLES:
                     cv2.imshow("Bounding boxes (no angles)", warped_frame)
+        
+        cap.release()
 
         if SHOW_FRAME:
-            cap.release()
             cv2.destroyAllWindows()
 
     except KeyboardInterrupt:
+        print("KEYBOARD INTERRUPT CLEAN UP")
+    except Exception as e:
+        print("UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP:", e)
+    finally:
         if IS_TRANSMITTING:
-            # After a KeyboardInterrupt, motor's need to be cleaned up correctly
+            # Motors need to be cleaned up correctly
             try:
                 speed_motor_group.stop()
                 turn_motor_group.stop()
                 ser.cleanup()
-            except:
-                print("Algorithm cleanup failed")
+            except Exception as motor_exception:
+                print("Motor cleanup failed:", motor_exception)
 
         cap.release()
-        cv2.destroyAllWindows()
+
+        if SHOW_FRAME:
+            cv2.destroyAllWindows()
 
 def display_angles(detected_bots_with_data, move_dictionary, image):
     # BLUE line: Huey's Current Orientation according to Corner Detection

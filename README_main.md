@@ -19,12 +19,17 @@ The `main.py` file is the main code that calls every other function from the sub
 
 ## Prerequisites
 Ensure you have the following installed:
+- Make sure to run `pip install -r requirements.txt` for ease
 - Python 3.10+
 - OpenCV
 - NumPy
+- Tkinter
+- Pandas
 - `line_profiler` (for profiling)
 - `torch` (for machine learning models)
 - `cv2`, `os`, `time`
+- `onnxruntime`
+- `openvino`
 - Additional dependencies for `RoboflowModel` and `YoloModel`
 
 ## Usage
