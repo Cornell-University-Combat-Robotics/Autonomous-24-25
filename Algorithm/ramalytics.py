@@ -31,11 +31,13 @@ def plotTurn(df):
 
     for i in range(len(turn)-1):
         diff = (facing[i+1]-facing[i])
-        dfacing.append(diff)
+        dfacing.append(abs(diff))
+
+    dfacing.append(diff)
 
     df['turn'] = dfacing    
 
-    df.plot('row_number',y=['facing','turn'])
+    df.plot('row_number',y=['huey_facing','turn'])
 
 
 fields = ['time','huey_velocity','speed','huey_facing','turn']
