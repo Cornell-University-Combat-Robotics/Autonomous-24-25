@@ -18,12 +18,15 @@ from warp_main import get_homography_mat, warp
 
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
+IS_TRANSMITTING = False
 # Set True to redo warp and color picking bot color, front and back corners
 WARP_AND_COLOR_PICKING = True
-IS_TRANSMITTING = False
 
 # Set True to process every single frame the camera captures
 IS_ORIGINAL_FPS = False
+
+#Set True to save naked homographized video
+IS_SAVING_NAKED = False
 
 folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
@@ -49,10 +52,10 @@ ys = []
 # camera_number =  "/huey_demo3.2.mp4"
 # camera_number =  "/only_huey_demo.mp4"
 # camera_number =  "/only_enemy_demo.mp4"
-# camera_number =  "/green_huey_demo.mp4"
+camera_number =  "/green_huey_demo.mp4"
 # camera_number =  "/yellow_huey_demo.mp4"
 # camera_number =  "/not_huey_test.mp4"
-camera_number = "/real_gruey_naked.mp4"
+# camera_number = "/real_gruey_naked.mp4"
 # camera_number =  "/MYFATHER.mov"
 # camera_number =  "/slightly_fatter_huey_test.mp4"
 
@@ -180,14 +183,15 @@ def main():
 
     # 8. Match begins
     global timestamp
-    
-    cap = cv2.VideoCapture(test_videos_folder + camera_number)
-    output_filename = f'naked_homo/{camera_number}{timestamp}output.mp4'
-    frame_width = 700
-    frame_height = 700
 
-    fourcc = cv2.VideoWriter_fourcc(*'MP4V')   
-    out = cv2.VideoWriter(output_filename, fourcc, frame_rate, (frame_width, frame_height))
+    if(IS_SAVING_NAKED):
+        cap = cv2.VideoCapture(test_videos_folder + camera_number)
+        output_filename = f'naked_homo/{camera_number}{timestamp}output.mp4'
+        frame_width = 700
+        frame_height = 700
+
+        fourcc = cv2.VideoWriter_fourcc(*'H264')   
+        out = cv2.VideoWriter(output_filename, fourcc, frame_rate, (frame_width, frame_height))
 
     if cap.isOpened() == False:
         print("Error opening video file" + "\n")
@@ -215,7 +219,8 @@ def main():
             frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
             warped_frame = warp(frame, h_mat, 700, 700)
             cv2.imwrite(folder + "/warped_cage.png", warped_frame)
-            out.write(warped_frame)
+            if (IS_SAVING_NAKED):
+                out.write(warped_frame)
 
             # 11. Object Detection
             detected_bots = predictor.predict(warped_frame, show=True)
