@@ -1,5 +1,5 @@
 import unittest
-from Algorithm.ram import Ram
+from ram import Ram
 import numpy as np
 import time
 

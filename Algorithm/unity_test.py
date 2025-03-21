@@ -1,5 +1,6 @@
 from ram import Ram
 import numpy as np
+import time
 
 def normalize_angle(angle):
     if angle < 0:
@@ -27,23 +28,17 @@ def parse(lines, index):
 
 while (True):
     #read from unity_writes
-    file = open('unity_write.txt', 'r')
-    lines = file.readlines()
-    file.close()
+    lines = []
+    while (len(lines) == 0):
+        file = open('unity_write.txt', 'r')
+        lines = file.readlines()
+        file.close()
 
     # values from file: huey_center, huey_orientation, enemy_center
     # constants: robot width, robot height
 
     #parse and calculate values
     # all units in meters!
-
-    #huey_center_strs = parse(lines, 0)
-    #huey_center =(np.array([float(huey_center_strs[0]), float(huey_center_strs[2])]))
-
-    #huey_orientation = float(lines[1])
-    
-    #enemy_center_strs = parse(lines, 2)
-    #enemy_center = (np.array([float(enemy_center_strs[0]), float(enemy_center_strs[2])]))
 
     huey_center = np.array([float(lines[0]), float(lines[1])])
     huey_orientation = float(lines[2])
