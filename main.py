@@ -42,19 +42,19 @@ ys = []
 
 # TODO: test on real NHRL video
 
-# camera_number = test_videos_folder + "/crude_rot_huey.mp4"
-# camera_number = test_videos_folder + "/huey_duet_demo.mp4"
-# camera_number = test_videos_folder + "/huey_demo2.mp4"
-# camera_number = test_videos_folder + "/huey_demo3.mp4"
-# camera_number = test_videos_folder + "/huey_demo3.2.mp4"
-# camera_number = test_videos_folder + "/only_huey_demo.mp4"
-# camera_number = test_videos_folder + "/only_enemy_demo.mp4"
-# camera_number = test_videos_folder + "/green_huey_demo.mp4"
-# camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
-# camera_number = test_videos_folder + "/not_huey_test.mp4"
-#camera_number = test_videos_folder + "/real_gruey_naked.mp4"
-camera_number = test_videos_folder + "/MYFATHER.mov"
-# camera_number = test_videos_folder + "/slightly_fatter_huey_test.mp4"
+# camera_number =  "/crude_rot_huey.mp4"
+# camera_number =  "/huey_duet_demo.mp4"
+# camera_number =  "/huey_demo2.mp4"
+# camera_number =  "/huey_demo3.mp4"
+# camera_number =  "/huey_demo3.2.mp4"
+# camera_number =  "/only_huey_demo.mp4"
+# camera_number =  "/only_enemy_demo.mp4"
+# camera_number =  "/green_huey_demo.mp4"
+# camera_number =  "/yellow_huey_demo.mp4"
+# camera_number =  "/not_huey_test.mp4"
+camera_number = "/real_gruey_naked.mp4"
+# camera_number =  "/MYFATHER.mov"
+# camera_number =  "/slightly_fatter_huey_test.mp4"
 
 frame_rate = 8
 style.use('fivethirtyeight')
@@ -70,7 +70,7 @@ if IS_TRANSMITTING:
 @profile
 def main():
     # 1. Start the video and 2. Capture initial frame
-    cap = cv2.VideoCapture(camera_number)
+    cap = cv2.VideoCapture(test_videos_folder + camera_number)
     captured_image = None
 
     if cap.isOpened() == False:
@@ -179,14 +179,15 @@ def main():
     # --------------------------------------------------------------------------
 
     # 8. Match begins
-    cap = cv2.VideoCapture(camera_number)
-    #output_filename = 'output.mp4'
-    #frame_width = 600
-    #frame_height = 600
-    #fps = frame_rate
+    global timestamp
     
-    #fourcc = cv2.VideoWriter_fourcc(*'MP4V')   
-    #out = cv2.VideoWriter(output_filename, fourcc, fps, (frame_width, frame_height))
+    cap = cv2.VideoCapture(test_videos_folder + camera_number)
+    output_filename = f'naked_homo/{camera_number}{timestamp}output.mp4'
+    frame_width = 700
+    frame_height = 700
+
+    fourcc = cv2.VideoWriter_fourcc(*'MP4V')   
+    out = cv2.VideoWriter(output_filename, fourcc, frame_rate, (frame_width, frame_height))
 
     if cap.isOpened() == False:
         print("Error opening video file" + "\n")
@@ -194,7 +195,6 @@ def main():
     while cap.isOpened():
         global num_enemies_pos
         global prev_position_loss
-        global timestamp
 
         # 9. Camera Capture
         time_elapsed = time.time() - prev
@@ -215,7 +215,7 @@ def main():
             frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
             warped_frame = warp(frame, h_mat, 700, 700)
             cv2.imwrite(folder + "/warped_cage.png", warped_frame)
-            #out.write(warped_frame)
+            out.write(warped_frame)
 
             # 11. Object Detection
             detected_bots = predictor.predict(warped_frame, show=True)
@@ -401,7 +401,7 @@ def display_loss(warped_frame, algorithm, i, prev_position_loss,timestamp, xs, y
     # write loss to txt file
     
     # appends text organized under video name
-    with open(f'{camera_number}{timestamp}.txt','a') as file:
+    with open(f'{test_videos_folder + camera_number}{timestamp}.txt','a') as file:
         file.write(f'Position Loss: {calculated_position_loss} \n    ')
         file.write(f'Velocity Loss: {cur_velocity_loss} \n \n')
         # file.write(f'Accel Loss: {cur_acceleration_loss}\n')
