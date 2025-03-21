@@ -25,6 +25,7 @@ data/input_video
 data/warped_vid_frames
 *.pyc
 *.mp4
+!/naked_homo/*.mp4
 !/main_files/test_videos/
 !/main_files/test_videos/*.mp4
 /image_flattening/image_flattening/
