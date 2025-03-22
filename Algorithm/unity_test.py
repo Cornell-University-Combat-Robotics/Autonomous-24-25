@@ -38,7 +38,7 @@ while (True):
     # values from file: huey_center, huey_orientation, enemy_center
     # constants: robot width, robot height
 
-    #parse and calculate values
+    #parse and calculate valuesa
     # all units in meters!
 
     huey_center = np.array([float(lines[0]), -float(lines[1])])
