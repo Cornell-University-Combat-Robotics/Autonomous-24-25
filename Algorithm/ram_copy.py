@@ -98,7 +98,8 @@ class Ram():
 
         # initialize the current enemy position
         self.enemy_position = enemy_position
-        
+        self.enemy_velocity_history = [[0, 0]]
+
         # initialize the enemy position array
         self.enemy_previous_positions = []
         self.enemy_previous_positions.append(self.enemy_position)
@@ -248,18 +249,18 @@ class Ram():
 
 
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
-    def ram_ram(self, bots = {'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}}):
+    def ram_ram(self, bots = {'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}}):        
         self.delta_t = time.time() - self.old_time # record delta time
         self.old_time = time.time()
-        
         
         # get new position and heading values
         self.huey_position = np.array(bots['huey'].get('center'))
         self.huey_orientation = bots['huey'].get('orientation')
         
         self.enemy_position = np.array(bots['enemy'].get('center'))
-        
+    
         enemy_velocity = self.calculate_velocity(self.enemy_previous_positions[-1], self.enemy_position, self.delta_t)
+        self.enemy_velocity_history.append(enemy_velocity)
         #print("enemy_position: ", self.enemy_position)
         #print("enemy_previous_positions: ", self.enemy_previous_positions)
         #print("delta_t: ", self.delta_t)
