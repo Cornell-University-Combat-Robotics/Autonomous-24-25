@@ -26,7 +26,7 @@ PRINT = False
 WARP_AND_COLOR_PICKING = True
 
 # Set True when testing with a live Huey and not a pre-filmed video
-IS_TRANSMITTING = False
+IS_TRANSMITTING = True
 
 # True to display current and future orientation angles for each iteration
 SHOW_FRAME = True
@@ -48,7 +48,7 @@ test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
 frame_rate = 60
 
-# camera_number = 0
+camera_number = 0
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -56,7 +56,7 @@ frame_rate = 60
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
-camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
+# camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 
 if IS_TRANSMITTING:
@@ -70,16 +70,35 @@ def main():
     try:
         # 1. Start the capturing frame from the camera or pre-recorded video
         # 2. Capture initial frame by pressing '0'
-        cap = cv2.VideoCapture(camera_number)
+        cap = cv2.VideoCapture(camera_number, cv2.CAP_DSHOW)
+
+        # print("1")
+
+        if not cap.isOpened():
+            print(f"Error: Could not open video source {camera_number}")
+            return
+        
+        # print("2")
+
         captured_image = None
 
         if cap.isOpened() == False:
             print("Error opening video file" + "\n")
 
+        # print("3")
+
         while cap.isOpened():
+            # print("4")
             ret, frame = cap.read()
 
-            if ret and frame is not None:
+            # print(ret)
+            # print(frame)
+            # if frame:
+            #     print(frame.size > 0)
+
+            if ret and frame is not None and frame.size > 0:
+
+                # print("5")
                 cv2.imshow("Press 'q' to quit. Press '0' to capture the image", frame)
                 key = cv2.waitKey(1) & 0xFF # Check for key press
 
@@ -146,7 +165,7 @@ def main():
         # 5. Defining all subsystem objects: ML, Corner, Algorithm
         # Defining Roboflow Machine Learning Model Object
         # predictor = RoboflowModel()
-        predictor = YoloModel("250v12best", "PT", device="mps")
+        predictor = YoloModel("250v12best", "ONNX")
 
         # Defining Corner Detection Object
         corner_detection = RobotCornerDetection(selected_colors, False, False)
@@ -172,7 +191,7 @@ def main():
             algorithm = Ram(bots = first_run_corner)
             first_move_dictionary = algorithm.ram_ram(first_run_corner)
             if PRINT:
-                print(f"Initial Object Detection Output: Detected [{len(first_run_ml["housebots"])} housebots], [{len(first_run_ml["bots"])} bots]")
+                # print(f"Initial Object Detection Output: Detected [{len(first_run_ml[housebots])} housebots], [{len(first_run_ml[bots])} bots]")
                 print("Initial Corner Detection Output: " + str(first_run_corner))
                 print("Initial Algorithm Output: " + str(first_move_dictionary))
 
@@ -201,7 +220,8 @@ def main():
 
         # 8. Match begins
         prev = 0
-        cap = cv2.VideoCapture(camera_number)
+        cap.release()
+        cap = cv2.VideoCapture(camera_number, cv2.CAP_DSHOW)
         if cap.isOpened() == False:
             print("Error opening video file" + "\n")
 
@@ -244,8 +264,8 @@ def main():
                             display_angles(detected_bots_with_data, move_dictionary, warped_frame)
                         # 14. Transmitting the motor values to Huey's if we're using a live video
                         if IS_TRANSMITTING:
-                            speed_motor_group.move(move_dictionary["speed"])
-                            turn_motor_group.move(move_dictionary["turn"])
+                            speed_motor_group.move(move_dictionary["speed"] * 0.8)
+                            turn_motor_group.move(move_dictionary["turn"] * -1 * 0.6)#JANK AS HELL DO NOT KEEP THIS IN
                     elif DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data, None, warped_frame)
                 elif DISPLAY_ANGLES:

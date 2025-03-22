@@ -65,7 +65,7 @@ class Ram():
     MAX_TURN = 1 # between 0 and 1
     MIN_TURN = 0 # between 0 and 1
     ARENA_WIDTH = 1200 # in pixels
-    TEST_MODE = False # saves values to CSV file
+    TEST_MODE = True # saves values to CSV file
 
     '''
     Constructor for the Ram class that initializes the position and orientation of the bot, the motors, the enemy position, 

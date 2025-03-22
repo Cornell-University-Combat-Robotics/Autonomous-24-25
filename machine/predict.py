@@ -379,7 +379,8 @@ class YoloModel(TemplateModel):
     def predict(self, img, show=False, track=False):
         # This prints timing info
         if self.device != None:
-            results = self.model(img, device=self.device, verbose=False)
+            # results = self.model(img, device=self.device, verbose=False)
+            results = self.model(img, device=self.device)
         else:
             results = self.model(img)
         # If multiple img passed, results has more than one element
