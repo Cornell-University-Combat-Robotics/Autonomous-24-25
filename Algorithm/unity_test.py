@@ -26,6 +26,7 @@ def parse(lines, index):
         counter2 += 1
     return huey_strs
 
+first = True
 while (True):
     #read from unity_writes
     lines = []
@@ -40,9 +41,9 @@ while (True):
     #parse and calculate values
     # all units in meters!
 
-    huey_center = np.array([float(lines[0]), float(lines[1])])
-    huey_orientation = float(lines[2])
-    enemy_center = np.array([float(lines[3]), float(lines[4])])
+    huey_center = np.array([float(lines[0]), -float(lines[1])])
+    huey_orientation = float(lines[2]) + 90.0
+    enemy_center = np.array([float(lines[3]), -float(lines[4])])
 
     robot_width = 0.23495
     robot_height = 0.19685
@@ -69,7 +70,11 @@ while (True):
                     'center': enemy_center
                 }
         }
-    huey_bot = Ram(huey_position=huey_center, huey_orientation=huey_orientation, huey_old_position=huey_orientation, enemy_position=enemy_center)
+    
+    if (first):
+        huey_bot = Ram(huey_position=huey_center, huey_orientation=huey_orientation, huey_old_position=huey_orientation, enemy_position=enemy_center)
+        first = False
+    
     huey_move_output = huey_bot.ram_ram(bots_data)
 
     #write output to unity_reads
