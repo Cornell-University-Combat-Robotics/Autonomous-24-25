@@ -42,10 +42,10 @@ def get_homography_mat(frame, output_w=1200, output_h=1200):
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
 
         # Display the image with points
-        cv2.imshow("Image", frame_copy)
+        cv2.imshow("Warp: Select arena corners from top left, top right, bottom right to bottom left", frame_copy)
 
-    cv2.imshow("Image", frame)
-    cv2.setMouseCallback("Image", click_event)
+    cv2.imshow("Warp: Select arena corners from top left, top right, bottom right to bottom left", frame)
+    cv2.setMouseCallback("Warp: Select arena corners from top left, top right, bottom right to bottom left", click_event)
 
     key = cv2.waitKey(1) & 0xFF
     # press 'Esc' to quit

@@ -90,10 +90,10 @@ class ColorPicker:
                 )
 
             combined_image = np.hstack((img_copy, color_panel))
-            cv2.imshow("Select Colors", combined_image)
+            cv2.imshow("Color Picking: Pick Huey color, front corner, then back corner. Press 'z' to cancel previous selection. Once 3 colors are selected, press anywhere on the screen to continue", combined_image)
 
-        cv2.imshow("Select Colors", test_img)
-        cv2.setMouseCallback("Select Colors", click_event)
+        cv2.imshow("Color Picking: Pick Huey color, front corner, then back corner. Press 'z' to cancel previous selection. Once 3 colors are selected, press anywhere on the screen to continue", test_img)
+        cv2.setMouseCallback("Color Picking: Pick Huey color, front corner, then back corner. Press 'z' to cancel previous selection. Once 3 colors are selected, press anywhere on the screen to continue", click_event)
 
         while True:
             key = cv2.waitKey(1) & 0xFF

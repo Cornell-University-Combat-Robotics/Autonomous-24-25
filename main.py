@@ -80,12 +80,12 @@ def main():
             ret, frame = cap.read()
 
             if ret and frame is not None:
-                cv2.imshow("Frame", frame)
+                cv2.imshow("Press 'q' to quit. Press '0' to capture the image", frame)
                 key = cv2.waitKey(1) & 0xFF # Check for key press
 
-                if key == ord("q"): # Press 'q' to quit without capturing # TODO: have these instructions above the image
+                if key == ord("q"): # Press 'q' to quit without capturing
                     break
-                elif key == ord("0"): # Press '0' to capture the image and exit # TODO: have these instructions above the image
+                elif key == ord("0"): # Press '0' to capture the image and exit
                     captured_image = frame.copy()
                     cv2.imwrite(folder + "/captured_image.png", captured_image)
                     break
@@ -100,7 +100,7 @@ def main():
             cv2.imwrite(folder + "/resized_image.png", resized_image)
             homography_matrix = get_homography_mat(resized_image, 700, 700)
             warped_frame = warp(resized_image, homography_matrix, 700, 700)
-            cv2.imshow("Warped Cage", warped_frame)
+            cv2.imshow("Warped Cage. Press '0' to continue", warped_frame)
             cv2.imwrite(folder + "/warped_frame.png", warped_frame)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
@@ -172,12 +172,12 @@ def main():
             algorithm = Ram(bots = first_run_corner)
             first_move_dictionary = algorithm.ram_ram(first_run_corner)
             if PRINT:
-                print(f"Initial Object Detection Output: Detected [{len(first_run_ml[housebots])} housebots], [{len(first_run_ml[bots])} bots]")
+                print(f"Initial Object Detection Output: Detected [{len(first_run_ml["housebots"])} housebots], [{len(first_run_ml["bots"])} bots]")
                 print("Initial Corner Detection Output: " + str(first_run_corner))
                 print("Initial Algorithm Output: " + str(first_move_dictionary))
 
             if DISPLAY_ANGLES:
-                display_angles(first_run_corner, first_move_dictionary, warped_frame)
+                display_angles(first_run_corner, first_move_dictionary, warped_frame, True)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
         else:
@@ -277,7 +277,7 @@ def main():
         if SHOW_FRAME:
             cv2.destroyAllWindows()
 
-def display_angles(detected_bots_with_data, move_dictionary, image):
+def display_angles(detected_bots_with_data, move_dictionary, image, initial_run=False):
     # BLUE line: Huey's Current Orientation according to Corner Detection
     if detected_bots_with_data and detected_bots_with_data["huey"]["orientation"]:
         orientation_degrees = detected_bots_with_data["huey"]["orientation"]
@@ -305,7 +305,10 @@ def display_angles(detected_bots_with_data, move_dictionary, image):
             end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
             cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
 
-    cv2.imshow("Battle with Predictions", image)
+    if initial_run:
+        cv2.imshow("Initial Run: Battle with Predictions. Press '0' to continue", image)
+    else:
+        cv2.imshow("Battle with Predictions", image)
     cv2.waitKey(1)
 
 if __name__ == "__main__":
