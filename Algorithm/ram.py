@@ -164,7 +164,7 @@ class Ram():
 
     def predict_enemy_position(self, enemy_position: np.array, enemy_velocity: np.array, dt: float):
         # print("enemy_velocity: ", dt* enemy_velocity)
-        predicted_position = enemy_position + enemy_velocity
+        predicted_position = enemy_position # + enemy_velocity
         self.check_wall(predicted_position, 729)
 
         return predicted_position
