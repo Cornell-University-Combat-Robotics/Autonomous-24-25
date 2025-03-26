@@ -3,7 +3,6 @@ import os
 import time
 import cv2
 import numpy as np
-import pprint
 
 
 class RobotCornerDetection:
@@ -107,10 +106,13 @@ class RobotCornerDetection:
                     continue
 
                 color_pixel_count = self.find_bot_color_pixels(image, bot_color_hsv)
-                if color_pixel_count > max_color_pixels:
+                if color_pixel_count > max_color_pixels and color_pixel_count > 200: # TODO
                     max_color_pixels = color_pixel_count
                     our_bot_image = image
-
+            
+            if our_bot_image is None:
+                print("Huey is not found")
+                
             return our_bot_image
         
         except Exception as e:
@@ -119,7 +121,7 @@ class RobotCornerDetection:
     
     def detect_our_robot_main(self, bot_images: list[np.ndarray]):
         """
-        Detects the image containing our robot between two given images.
+        Detects the image containing our robot between two or more given images.
 
         Args:
             bot1_image (np.ndarray): The first bot image.
@@ -148,12 +150,7 @@ class RobotCornerDetection:
                 cv2.destroyAllWindows()
 
             if bot_images and all(img is not None for img in bot_images):
-                start_time = time.time()
                 our_bot = self.find_our_bot(bot_images)
-                end_time = time.time()
-                print(
-                    f"Code execution time (detect_our_robot_main): {end_time - start_time} seconds"
-                )
                 return our_bot
             else:
                 print("No valid bot images found.")
@@ -178,15 +175,16 @@ class RobotCornerDetection:
             list: Centroids of the detected contours.
         """
         contours = self.get_contours_per_color(side, hsv_image)
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
         centroids = []
         for contour in contours:
             # Filter out small contours based on area
             area = cv2.contourArea(contour)
-            if area > 200:
-                # TODO: this value is subject to change based on the size of our bot's corners
+            if area > 20:
+                # TODO: this value is subject to change based on dimensions of our video & resize_factor
                 # Compute moments for each contour
                 M = cv2.moments(contour)
-                if M["m00"] != 0:
+                if M["m00"] != 0 and len(centroids) < 2:
                     # Calculate the centroid (center of the dot)
                     cx = int(M["m10"] / M["m00"])
                     cy = int(M["m01"] / M["m00"])
@@ -358,7 +356,7 @@ class RobotCornerDetection:
 
             all_points = red_points + blue_points
             center = np.mean(all_points, axis=0)
-            print("center: " + str(center))
+            # print("center: " + str(center))
 
             vector1 = np.array(red_points[0]) - center
             vector2 = np.array(red_points[1]) - center
@@ -381,9 +379,6 @@ class RobotCornerDetection:
                 else math.degrees(theta2) + 360
             )
 
-            print("theta1_deg: " + str(theta1_deg))
-            print("theta2_deg: " + str(theta2_deg))
-
             # Determine which red point is the top right front corner
             if theta2_deg - theta1_deg > 235:
                 right_front = red_points[1]
@@ -402,8 +397,7 @@ class RobotCornerDetection:
                 # The point with the larger angle is the top right front corner
                 right_front = red_points[1]
                 left_front = red_points[0]
-
-            return [left_front, right_front]
+            return [left_front, right_front] # [[], []]
 
         except Exception as e:
             print(f"Unexpected error in get_left_and_right_front_points: {e}")
@@ -419,28 +413,28 @@ class RobotCornerDetection:
         try:
             bot_images = [bot["img"] for bot in self.bots]
             image = self.detect_our_robot_main(bot_images)
-
+            
             if image is not None:
-                cv2.imshow("Huey", image)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
+                # cv2.imshow("Huey", image)
+                # cv2.waitKey(1)
+                # cv2.destroyAllWindows()
 
                 centroid_points = self.find_centroids(image)
-                print("centroid points: " + str(centroid_points))
+                # print("centroid points: " + str(centroid_points))
 
                 left_front, right_front = self.get_left_and_right_front_points(centroid_points)
                 orientation = self.compute_tangent_angle(left_front, right_front)
 
                 # Find the identified bot (our robot)
-                huey_bb = None
+                huey_bbox = None
                 for bot_data in self.bots:
                     if bot_data["img"] is image:
-                        huey_bb = bot_data["bb"]
+                        huey_bbox = bot_data["bbox"]
                         break
 
                 huey = {
-                    "bb": huey_bb,
-                    "center": np.mean(huey_bb, axis=0),
+                    "bbox": huey_bbox,
+                    "center": np.mean(huey_bbox, axis=0),
                     "orientation": orientation,
                 }
 
@@ -449,14 +443,13 @@ class RobotCornerDetection:
                 for bot_data in self.bots:
                     if bot_data["img"] is not image:
                         enemy = {
-                            "bb": bot_data["bb"],
-                            "center": np.mean(bot_data["bb"], axis=0),
+                            "bbox": bot_data["bbox"],
+                            "center": np.mean(bot_data["bbox"], axis=0),
                         }
                         enemy_bots.append(enemy)
 
-                result = {"huey": huey, "enemies": enemy_bots}
-                pprint.pprint(result, sort_dicts=False, indent=2)
-
+                result = {"huey": huey, "enemy": enemy_bots}
+                
                 if self.display_final_image:
                     # Draw the left front corner
                     cv2.circle(
@@ -504,7 +497,7 @@ class RobotCornerDetection:
                 return result
             else:
                 print("Image doesn't exist")
-                return None
+                return {"huey": {}, "enemy": []}
 
         except Exception as e:
             print(f"Unexpected error in corner_detection_main: {e}")
@@ -512,16 +505,16 @@ class RobotCornerDetection:
 
 
 if __name__ == "__main__":
-    heuy_image_path = os.getcwd() + "/warped_images/east_4.png"
+    huey_image_path = os.getcwd() + "/warped_images/east_4.png"
     not_huey_image_path = os.getcwd() + "/warped_images/east_4_not_huey.png"
     selected_colors_file = os.getcwd() + "/selected_colors.txt"
     
     try:
-        huey_image = cv2.imread(heuy_image_path)
+        huey_image = cv2.imread(huey_image_path)
         not_huey_image = cv2.imread(not_huey_image_path)
         
         if huey_image is None:
-            raise ValueError(f"Failed to load image at path: {heuy_image_path}")
+            raise ValueError(f"Failed to load image at path: {huey_image_path}")
         if not_huey_image is None:
             raise ValueError(f"Failed to load image at path: {not_huey_image_path}")
     
@@ -529,10 +522,10 @@ if __name__ == "__main__":
         print(f"Error loading images: {e}")
         exit(1)
 
-    housebot = {"bb": [[0, 0], [1, 1]], "img": not_huey_image}
-    bot1 = {"bb": [[50, 50], [60, 60]], "img": not_huey_image}
-    bot2 = {"bb": [[150, 150], [160, 160]], "img": huey_image}
-    bot3 = {"bb": [[300, 150], [400, 180]], "img": not_huey_image}
+    housebot = {"bbox": [[0, 0], [1, 1]], "img": not_huey_image}
+    bot1 = {"bbox": [[50, 50], [60, 60]], "img": not_huey_image}
+    bot2 = {"bbox": [[150, 150], [160, 160]], "img": huey_image}
+    bot3 = {"bbox": [[300, 150], [400, 180]], "img": not_huey_image}
 
     housebots = [housebot]
     bots = [bot1, bot2, bot3]

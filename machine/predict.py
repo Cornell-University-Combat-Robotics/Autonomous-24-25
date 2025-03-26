@@ -7,7 +7,8 @@ from roboflow import Roboflow
 from inference import get_model
 import os
 from dotenv import load_dotenv
-from template_model import TemplateModel
+# from template_model import TemplateModel # to run in machine
+from machine.template_model import TemplateModel # to run in main
 from ultralytics import YOLO
 import onnxruntime as ort
 import pandas as pd
@@ -107,7 +108,7 @@ class OurModel(TemplateModel):
             # Add label text
             cv2.putText(
                 img, 'housebot',
-                (x_min, y_min - 10),  # Slightly above the top-left corner
+                (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
@@ -124,7 +125,7 @@ class OurModel(TemplateModel):
             # Add label text
             cv2.putText(
                 img, 'bot',
-                (x_min, y_min - 10),  # Slightly above the top-left corner
+                (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
@@ -147,15 +148,15 @@ class OurModel(TemplateModel):
         #     # Add label text
         #     cv2.putText(
         #         img, name,
-        #         (x_min, y_min - 10),  # Slightly above the top-left corner
+        #         (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
         #         cv2.FONT_HERSHEY_SIMPLEX,
         #         0.5, color, 2
         #     )
 
         # Display the image with predictions
-        cv2.imshow("Predictions", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        cv2.imshow("OurModel Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
     def train(self, batch, epoch, train_path, validation_path, save_path, save):
         return super().train(batch, epoch, train_path, validation_path, save_path, save)
@@ -180,12 +181,15 @@ class RoboflowModel(TemplateModel):
 
         preds = out[0].predictions
 
+        housebot_candidates = []
+
         robots = 1
         for pred in preds:
             if pred.confidence > confidence_threshold:
                 p = {}
                 if pred.class_id == 0:
                     name = 'housebot'
+                    housebot_candidates.append(pred)
                 elif pred.class_id == 1:
                     name = 'bots'
 
@@ -196,10 +200,10 @@ class RoboflowModel(TemplateModel):
 
                 p['center'] = [x, y]
 
-                x_min = int(x - box_width / 2)
-                y_min = int(y - box_height / 2)
-                x_max = int(x + box_width / 2)
-                y_max = int(y + box_height / 2)
+                x_min = int(x - box_width / 2) - 20
+                y_min = int(y - box_height / 2) - 20
+                x_max = int(x + box_width / 2) + 20
+                y_max = int(y + box_height / 2) + 20
 
                 # Extract bounding box
                 screenshot = img[y_min:y_max, x_min:x_max]
@@ -211,11 +215,26 @@ class RoboflowModel(TemplateModel):
                 p['bbox'] = [[x_min, y_min], [x_max, y_max]]
                 p['img'] = screenshot
 
-                bots[name].append(p)
+                if name == 'bots':
+                    bots[name].append(p)
+
+        # Select the most confident housebot
+        if housebot_candidates:
+            best_housebot = max(housebot_candidates, key=lambda pred: pred.confidence)
+
+            # Process the most confident housebot
+            x, y, box_width, box_height = best_housebot.x, best_housebot.y, best_housebot.width, best_housebot.height
+            p = {
+                'center': [x, y],
+                'bbox': [[int(x - box_width / 2) - 20, int(y - box_height / 2) - 20],
+                        [int(x + box_width / 2) + 20, int(y + box_height / 2) + 20]],
+                'img': img[int(y - box_height / 2) - 20:int(y + box_height / 2) + 20,
+                        int(x - box_width / 2) - 20:int(x + box_width / 2) + 20]
+            }
+            bots['housebot'].append(p)
 
         if show:
             self.show_predictions(img, bots)
-
         return bots
 
     def show_predictions(self, img, predictions):
@@ -223,7 +242,7 @@ class RoboflowModel(TemplateModel):
         housebots = predictions['housebot']
         bots = predictions['bots']
 
-        color = (0, 0, 255)
+        color = (0, 0, 255) # Red for housebots
         for housebot in housebots:
             x_min, y_min = housebot['bbox'][0]
             x_max, y_max = housebot['bbox'][1]
@@ -235,12 +254,12 @@ class RoboflowModel(TemplateModel):
             # Add label text
             cv2.putText(
                 img, 'housebot',
-                (x_min, y_min - 10),  # Slightly above the top-left corner
+                (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
 
-        color = (0, 255, 0)  # Green for bots
+        color = (255, 255, 255) # White for bots
         for bot in bots:
             x_min, y_min = bot['bbox'][0]
             x_max, y_max = bot['bbox'][1]
@@ -252,10 +271,12 @@ class RoboflowModel(TemplateModel):
             # Add label text
             cv2.putText(
                 img, 'bot',
-                (x_min, y_min - 10),  # Slightly above the top-left corner
+                (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5, color, 2
             )
+
+        print(f"\nDetected [{len(housebots)} housebots], [{len(bots)} bots]")
 
         # for name, data in predictions.items():
         #     # Extract bounding box coordinates and class details
@@ -275,15 +296,15 @@ class RoboflowModel(TemplateModel):
         #     # Add label text
         #     cv2.putText(
         #         img, name,
-        #         (x_min, y_min - 10),  # Slightly above the top-left corner
+        #         (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
         #         cv2.FONT_HERSHEY_SIMPLEX,
         #         0.5, color, 2
         #     )
 
         # Display the image with predictions
-        #cv2.imshow("Predictions", img)
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
+        # cv2.imshow("Roboflow Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
     def train(self, batch, epoch, train_path, validation_path, save_path, save):
         return super().train(batch, epoch, train_path, validation_path, save_path, save)
@@ -380,17 +401,18 @@ class YoloModel(TemplateModel):
                 # Draw the bounding box
                 cv2.rectangle(img, (int(x_min), int(y_min)),
                               (int(x_max), int(y_max)), color, 2)
-
+                
                 # Add label text
-                # cv2.putText(
-                #     img, label,
-                #     (x_min, y_min - 10),  # Slightly above the top-left corner
-                #     cv2.FONT_HERSHEY_SIMPLEX,
-                #     0.5, color, 2
-                # )
-        cv2.imshow("Predictions", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+                cv2.putText(
+                    img, label,
+                    (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, color, 2
+                )
+
+        cv2.imshow("YoloModel Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         return img
 
@@ -460,13 +482,13 @@ class OnnxModel(TemplateModel):
 
                 # Annotate with class and confidence
                 label = f"Class: {int(class_id)} Conf: {confidence:.2f}"
-                cv2.putText(image, label, (xmin, ymin - 10),
+                cv2.putText(image, label, (int(xmin), int(ymin - 10)),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
         # Display the result
         cv2.imshow('YOLO Detection', image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
 
         # Display the image with predictions
         # cv2.imshow("Predictions", img)
@@ -489,8 +511,8 @@ if __name__ == '__main__':
     #predictor = YoloModel("100epoch11","PT")
     predictor = RoboflowModel()
     
-
-    img = cv2.imread('12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg')
+    img_path = os.getcwd() + "/main_files/12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg"
+    img = cv2.imread(img_path)
 
     # cv2.imshow("Original image", img)
     # cv2.waitKey(0)
