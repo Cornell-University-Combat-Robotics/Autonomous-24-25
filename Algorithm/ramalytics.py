@@ -23,7 +23,7 @@ def plotVelocity(df):
     plot_df_filtered = plot_df.iloc[5:, :]
     
     # Plot with the filtered data
-    plot_df_filtered.plot('row_number', y=['huey_velocity', 'speed'])
+    plot_df_filtered.plot('row_number', y=['speed','huey_velocity'])
 
 def plotTurn(df):
     turn = df['turn'].tolist()
