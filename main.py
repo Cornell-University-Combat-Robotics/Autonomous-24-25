@@ -23,7 +23,7 @@ IS_TRANSMITTING = False
 WARP_AND_COLOR_PICKING = True
 
 # Set True to process every single frame the camera captures
-IS_ORIGINAL_FPS = False
+IS_ORIGINAL_FPS = True
 
 #Set True to save naked homographized video
 IS_SAVING_NAKED = False
@@ -55,11 +55,11 @@ ys = []
 # camera_number =  "/huey_demo3.2.mp4"
 # camera_number =  "/only_huey_demo.mp4"
 # camera_number =  "/only_enemy_demo.mp4"
-# camera_number =  "/green_huey_demo.mp4"
+camera_number =  "/green_huey_demo.mp4"
 # camera_number =  "/yellow_huey_demo.mp4"
 # camera_number =  "/not_huey_test.mp4"
 # camera_number = "/real_gruey_naked.mp4"
-camera_number =  "/MYFATHER.mov"
+# camera_number =  "/MYFATHER.mov"
 # camera_number = "/vid2_FINAL_FINAL_LAST_REALFINAL.mov"
 # camera_number =  "/slightly_fatter_huey_test.mp4"
 
@@ -362,19 +362,40 @@ def display_angles(detected_bots_with_data, move_dictionary, enemy_future_list, 
         start_x = int(detected_bots_with_data["huey"]["center"][0])
         start_y = int(detected_bots_with_data["huey"]["center"][1])
         
-        end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
+        end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 100 * resize_factor * dy))
         cv2.arrowedLine(image, (start_x, start_y), end_point, (255, 0, 0), 2)
 
-        # Red line, where we want to face
+        # Left wheels
+        start_x_left = int(start_x - np.sin(math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+        start_y_left = int(start_y - np.cos(math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+
+        # Right wheels
+        start_x_right = int(start_x + np.sin(math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+        start_y_right = int(start_y + np.cos(math.pi / 180 * orientation_degrees) * 50 * resize_factor)
+
+        # Red line: where we want to face
         if move_dictionary and move_dictionary["turn"]:
             turn = move_dictionary["turn"]  # angle in degrees / 180
+            if move_dictionary["left"]:
+                left = move_dictionary["left"] # value from -1 to 1
+            if move_dictionary["right"]:
+                right = move_dictionary["right"]
+
             new_orientation_degrees = orientation_degrees + (turn * 180)
             
+            # Left wheel speed
+            end_point = (int(start_x_left + left * 300 * np.cos(math.pi / 180 * orientation_degrees) * resize_factor), int(start_y_left - left * 300 * np.sin(math.pi / 180 * orientation_degrees)* resize_factor))
+            cv2.arrowedLine(image, (start_x_left, start_y_left), end_point, (0, 255, 255), 2)
+
+            # Right wheel speed
+            end_point = (int(start_x_right + right * 300 * np.cos(math.pi / 180 * orientation_degrees) * resize_factor), int(start_y_right - right * 300 * np.sin(math.pi / 180 * orientation_degrees)* resize_factor))
+            cv2.arrowedLine(image, (start_x_right, start_y_right), end_point, (255, 0, 255), 2)
+
             # Components of predicted turn
             dx = np.cos(math.pi * new_orientation_degrees / 180)
             dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
 
-            end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
+            end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 100 * resize_factor * dy))
             cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
 
     # Plot enemy future position 
