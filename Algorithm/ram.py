@@ -241,7 +241,7 @@ class Ram():
         # print("Speed: ", 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0)))
         return angle * (Ram.MAX_TURN / 180.0), 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0))
     
-    """ if enemy robot predicted position is outside of arena, move it inside. """
+    ''' if enemy robot predicted position is outside of arena, move it inside. '''
     def check_wall(self, predicted_position: np.array, arena_width = ARENA_WIDTH):
         flag = False
         if(predicted_position[0]>arena_width):
@@ -257,7 +257,28 @@ class Ram():
             predicted_position[1] = 0
             flag = True
         if(self.TEST_MODE and flag):
-            print("moved that jon")
+            print("check_wall called")
+
+    '''sends a flag when our bot is barrier % away from the wall of the arena
+       NOTE: barrier is an int that will be turned into a percentage'''
+    def barrier_flag(self, our_pos: np.array, barrier = 10, arena_width = ARENA_WIDTH):
+        boundary = (barrier/100)*arena_width
+        flag = False
+        if(our_pos[0]>arena_width-boundary):
+            our_pos[0] = 1200
+            flag = True
+        if(our_pos[0]<arena_width):
+            our_pos[0] = 0
+            flag = True
+        if(our_pos[1]>arena_width-boundary):
+            our_pos[1] = 1200
+            flag = True
+        if(our_pos[1]<arena_width):
+            our_pos[1] = 0
+            flag = True
+        return flag
+        
+
         
 
         
