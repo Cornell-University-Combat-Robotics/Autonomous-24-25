@@ -9,8 +9,8 @@ import matplotlib.animation as animation
 from matplotlib import style
 
 from Algorithm.ram_copy import Ram #ensure 
-from corner_detection.color_picker import ColorPicker
-from corner_detection.corner_detection import RobotCornerDetection
+from corner_detection.color_picker_copy import ColorPicker
+from corner_detection.corner_detection_copy import RobotCornerDetection
 from machine.predict import RoboflowModel
 from transmission.motors import Motor
 from transmission.serial_conn import Serial
@@ -55,7 +55,9 @@ ys = []
 # camera_number =  "/huey_demo3.2.mp4"
 # camera_number =  "/only_huey_demo.mp4"
 # camera_number =  "/only_enemy_demo.mp4"
-camera_number =  "/green_huey_demo.mp4"
+# camera_number =  "/green_huey_demo.mp4"
+# camera_number =  "/dolphin_huey.mp4"
+camera_number = "/orca_huey.mp4"
 # camera_number =  "/yellow_huey_demo.mp4"
 # camera_number =  "/not_huey_test.mp4"
 # camera_number = "/real_gruey_naked.mp4"
@@ -148,8 +150,8 @@ def main():
             for line in file:
                 hsv = list(map(int, line.strip().split(", ")))
                 selected_colors.append(hsv)
-        if len(selected_colors) != 3:
-            raise ValueError("The file must contain exactly 3 HSV values.")
+        if len(selected_colors) != 4:
+            raise ValueError("The file must contain exactly 4 HSV values.")
     except Exception as e:
         print(f"Error reading selected_colors.txt: {e}" + "\n")
         exit(1)
@@ -240,7 +242,7 @@ def main():
 
             # 12. Corner Detection
             corner_detection.set_bots(detected_bots["bots"])
-            detected_bots_with_data = corner_detection.corner_detection_main()
+            detected_bots_with_data, IS_FLIPPED = corner_detection.corner_detection_main()
             print("detected_bots_with_data: " + str(detected_bots_with_data) + "\n")
             if detected_bots_with_data and detected_bots_with_data["huey"]:
                 if detected_bots_with_data["enemy"]:
@@ -269,8 +271,8 @@ def main():
                         # plt.show(block=False)                        
                     # 14. Transmission
                     if IS_TRANSMITTING:
-                        speed_motor_group.move(move_dictionary["speed"])
-                        turn_motor_group.move(move_dictionary["turn"])
+                        speed_motor_group.move(IS_FLIPPED * move_dictionary["speed"])
+                        turn_motor_group.move(IS_FLIPPED * move_dictionary["turn"])
                 else: # No enemy bots detected, use last stored pos
                     print("No enemies seen.")
                     algorithm.enemy_previous_positions.append(algorithm.enemy_previous_positions[-1]) #  duplicate last pos

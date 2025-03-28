@@ -1,0 +1,42 @@
+Position Loss: 0.01249384444457929 
+Velocity Loss: 0.281461399626149 
+ 
+Difference: 0.26896755518156973 
+ 
+Time Stamp: 0.8666666666666667 
+Current Velocity: [     14.482      7.2411] 
+======================================== 
+Position Loss: 0.019629633623864776 
+Velocity Loss: 0.5280012010916817 
+ 
+Difference: 0.5083715674678169 
+ 
+Time Stamp: 1.9666666666666666 
+Current Velocity: [     51.268      7.3241] 
+======================================== 
+Position Loss: 0.04326548183201438 
+Velocity Loss: 1.030948772614509 
+ 
+Difference: 0.9876832907824946 
+ 
+Time Stamp: 3.033333333333333 
+Current Velocity: [    -69.038      89.749] 
+======================================== 
+Position Loss: 0.0 
+Velocity Loss: 1.2061983468654673 
+ 
+Difference: 1.2061983468654673 
+ 
+Time Stamp: 4.1 
+Current Velocity: [          0           0] 
+======================================== 
+Position Loss: 0.02244852028199569 
+Velocity Loss: 0.1361116350442488 
+ 
+Difference: 0.11366311476225312 
+ 
+Time Stamp: 4.766666666666667 
+Current Velocity: [    -28.041      112.16] 
+======================================== 
+Velocity Loss: 0.05407070095437675 
+Position Loss: 0.017637261358713685
