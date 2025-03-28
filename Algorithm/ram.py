@@ -16,6 +16,8 @@ class Ram():
         the previous position of the bot
     huey_orientation : float
         the current orientation of the bot
+    huey_desired_orientation : float
+        the desired orientation of the bot
     left : float
         the left motor speed of the bot
     right : float
@@ -92,6 +94,8 @@ class Ram():
         self.huey_position = huey_position
         self.huey_old_position = huey_old_position
         self.huey_orientation = huey_orientation
+        self.huey_desired_orientation
+
 
         self.left = 0
         self.right = 0
@@ -103,6 +107,7 @@ class Ram():
         # initialize the enemy position array
         self.enemy_previous_positions = []
         self.enemy_previous_positions.append(self.enemy_position)
+
 
         # old time
         self.old_time = time.time()
@@ -161,8 +166,6 @@ class Ram():
         # print("enemy_velocity: ", dt* enemy_velocity)
         predicted_position = enemy_position + enemy_velocity
         self.check_wall(predicted_position, 729)
-
-
         return predicted_position
 
     
@@ -190,9 +193,11 @@ class Ram():
             #print("HIGHWAY TO THE DANGER ZONE")
             enemy_future_position = enemy_pos
             if np.array_equal(enemy_pos, our_pos2):
+                self.huey_desired_orientation = 0
                 return 0
             
         if(np.array_equal(our_pos2,enemy_future_position)):
+            self.huey_desired_orientation = 0
             return 0
 
         #  return the angle in degrees
@@ -216,6 +221,7 @@ class Ram():
         angle = np.degrees(np.arccos(ratio))
         sign = np.sign(np.cross(orientation, direction)) 
         #print("angle: ", angle)
+        self.huey_desired_orientation = sign*angle
         return sign*angle
 
     ''' predict the desired turn of the bot given the current position and velocity of the enemy '''
@@ -277,8 +283,14 @@ class Ram():
             our_pos[1] = 0
             flag = True
         return flag
+    
+    '''check if enemy is in our field of view based on our (actual) orientation and desired orientation'''
+    def in_view(self, pdiff: int):
+        currOrienation = self.huey_orientation
+        desOrientation = self.huey_desired_orientation
+        view = (pdiff/100)*desOrientation
         
-
+        print()
         
 
         
