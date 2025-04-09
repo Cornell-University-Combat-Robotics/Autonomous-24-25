@@ -10,7 +10,7 @@ from matplotlib import style
 
 from Algorithm.ram_copy import Ram #ensure 
 from corner_detection.color_picker_copy import ColorPicker
-from corner_detection.corner_detection_copy import RobotCornerDetection
+from corner_detection.corner_detection_ventral import RobotCornerDetection
 from machine.predict import RoboflowModel
 from transmission.motors import Motor
 from transmission.serial_conn import Serial
@@ -29,6 +29,7 @@ IS_ORIGINAL_FPS = True
 IS_SAVING_NAKED = False
 IS_SAVING_ANNOTATED = True
 TEST_MODE = True
+IS_LIVE = False
 
 folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
@@ -48,6 +49,7 @@ ys = []
 
 # TODO: test on real NHRL video
 
+camera_number = 0
 # camera_number =  "/crude_rot_huey.mp4"
 # camera_number =  "/huey_duet_demo.mp4"
 # camera_number =  "/huey_demo2.mp4"
@@ -57,7 +59,7 @@ ys = []
 # camera_number =  "/only_enemy_demo.mp4"
 # camera_number =  "/green_huey_demo.mp4"
 # camera_number =  "/dolphin_huey.mp4"
-camera_number = "/orca_huey.mp4"
+# camera_number = "/orca_huey.mp4"
 # camera_number =  "/yellow_huey_demo.mp4"
 # camera_number =  "/not_huey_test.mp4"
 # camera_number = "/real_gruey_naked.mp4"
@@ -79,7 +81,11 @@ if IS_TRANSMITTING:
 @profile
 def main():
     # 1. Start the video and 2. Capture initial frame
-    cap = cv2.VideoCapture(test_videos_folder + camera_number)
+    if IS_LIVE:
+        cap = cv2.VideoCapture(test_videos_folder + camera_number)
+    else:
+        cap = cv2.VideoCapture(camera_number)
+
     captured_image = None
 
     if cap.isOpened() == False:
