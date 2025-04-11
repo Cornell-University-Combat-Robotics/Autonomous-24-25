@@ -45,10 +45,6 @@ class ColorPicker:
                         print(f"Selected color (HSV): {hsv_color}")
                         print(f"Point added: {x}, {y}")
                         redraw_image()
-
-                        if len(selected_colors) == 4:
-                            print("\n✅ Three colors selected.")
-                            print("➡ Type 'continue' and to confirm or 'z' to undo the last selection.")
                 except Exception as e:
                     print(f"Error processing color at ({x}, {y}): {e}")
 
@@ -56,15 +52,7 @@ class ColorPicker:
             img_copy = test_img.copy()
             for point in points:
                 cv2.circle(img_copy, point, 5, (0, 255, 0), -1)
-                cv2.putText(
-                    img_copy,
-                    f"{point}",
-                    point,
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    (255, 0, 0),
-                    1,
-                )
+                cv2.putText(img_copy, f"{point}", point, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
 
             # Create a display panel for selected colors
             color_panel_height = img_copy.shape[0]
@@ -79,15 +67,7 @@ class ColorPicker:
                 end_y = (i + 1) * (color_panel_height // 3)
                 color_panel[start_y:end_y, :] = bgr_color
 
-                cv2.putText(
-                    color_panel,
-                    labels[i],
-                    (10, start_y + 30),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7,
-                    (255, 255, 255),
-                    2,
-                )
+                cv2.putText(color_panel, labels[i], (10, start_y + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
             combined_image = np.hstack((img_copy, color_panel))
             cv2.imshow("Color Picking: Pick Huey color, front corner, then back corner. Press 'z' to cancel previous selection. Once 3 colors are selected, press anywhere on the screen to continue", combined_image)
@@ -113,16 +93,9 @@ class ColorPicker:
                 return None
             elif len(selected_colors) == 4:
                 selected_colors = selected_colors[:len(selected_colors)-1]
-                user_input = input("\n✅ Type 'continue' to confirm selection: ").strip().lower()
-                if user_input == "continue":
-                    print("\n✅ Colors confirmed! Proceeding...\n")
-                    break
-                else:
-                    print("⚠ Invalid input. Try run main.py again")
-                    return None
-
-        print("🎨 Final Selected Colors (HSV):", selected_colors)
-        print("📌 Final Selected Points:", points)
+                print("🎨 Final Selected Colors (HSV):", selected_colors)
+                print("📌 Final Selected Points:", points)
+                break
 
         cv2.destroyAllWindows()
         return selected_colors

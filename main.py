@@ -35,10 +35,6 @@ DISPLAY_ANGLES = True
 # Set True to process every single frame the camera captures
 IS_ORIGINAL_FPS = False
 
-#Set True to save naked homographized video
-IS_SAVING_NAKED = False
-IS_SAVING_ANNOTATED = True
-
 if COMP_SETTINGS:
     SHOW_FRAME = False
     DISPLAY_ANGLES = False
@@ -104,10 +100,7 @@ def main():
             cv2.imwrite(folder + "/resized_image.png", resized_image)
             homography_matrix = get_homography_mat(resized_image, 700, 700)
             warped_frame = warp(resized_image, homography_matrix, 700, 700)
-            cv2.imshow("Warped Cage. Press '0' to continue", warped_frame)
             cv2.imwrite(folder + "/warped_frame.png", warped_frame)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
 
             # 3.2 Part 2. ColorPicker: Manually picking colors for Huey, front and back corners
             image_path = folder + "/warped_frame.png"
@@ -190,45 +183,11 @@ def main():
 
         # ----------------------------------------------------------------------
 
-        # 7. Wait for match to start. User needs to enter in 'start' in the command line
-        # In a real match, we enter 'start' before the match actually starts
-        # to ensure ML, Corner, and Algo is running smoothly before the 3, 2, 1 ... go!
-        while True:
-            user_input = input("Type 'start' to begin: ").strip().lower()
-            if user_input == "start":
-                break
-            else:
-                print("Invalid input. Please type 'start' to proceed." + "\n")
-        print("Proceeding with the rest of the program ..." + "\n")
-
-        # --------------------------------------------------------------------------
-
         # 8. Match begins
         prev = 0
         cap = cv2.VideoCapture(camera_number)
         if cap.isOpened() == False:
             print("Error opening video file" + "\n")
-            
-        global timestamp
-
-        if(IS_SAVING_NAKED):
-            cap = cv2.VideoCapture(test_videos_folder + camera_number)
-            output_filename = f'naked_homo/{camera_number}{timestamp}output.mp4'
-            frame_width = 700
-            frame_height = 700
-
-            fourcc = cv2.VideoWriter_fourcc(*'H264')   
-            out_naked = cv2.VideoWriter(output_filename, fourcc, frame_rate, (frame_width, frame_height))
-        
-        if(IS_SAVING_ANNOTATED):
-            cap = cv2.VideoCapture(test_videos_folder + camera_number)
-            output_filename = f'annotated_homo/{camera_number}{timestamp}output.mp4'
-            frame_width = 700
-            frame_height = 700
-
-            fourcc = cv2.VideoWriter_fourcc(*'H264')   
-            out_annotated = cv2.VideoWriter(output_filename, fourcc, frame_rate, (frame_width, frame_height))
-
 
         while cap.isOpened():
             # 9. Frames are being capture by the camera/pre-recorded video
@@ -249,9 +208,6 @@ def main():
                 frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
                 warped_frame = warp(frame, homography_matrix, 700, 700)
                 
-                if (IS_SAVING_NAKED):
-                    out_naked.write(warped_frame)
-
                 # 11. Run the Warped Image through Object Detection
                 detected_bots = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
 
@@ -276,8 +232,6 @@ def main():
                             turn_motor_group.move(move_dictionary["turn"])
                     elif DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data, None, warped_frame)
-                        if (IS_SAVING_ANNOTATED):
-                            out_annotated.write(warped_frame)
                 elif DISPLAY_ANGLES:
                     display_angles(None, None, warped_frame)
                 if SHOW_FRAME and not DISPLAY_ANGLES:
