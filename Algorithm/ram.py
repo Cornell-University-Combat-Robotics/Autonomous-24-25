@@ -127,17 +127,18 @@ class Ram():
         #self.right = ((speed + turn) / 2.0)
 
         # DeCamp proposal for managing speed below
-         left = (speed - turn)
-         right = (speed + turn)
-         if (left > 1) :
-           right -= left - 1
-           left = 1
-         if (right > 1) :
-           left -= right - 1
-           right = 1
+        left = (speed - turn)
+        right = (speed + turn)
+        if (left > 1) :
+            right -= left - 1
+            left = 1
+        if (right > 1) :
+            left -= right - 1
+            right = 1
 
         # print (f'Left: {self.left}, Right: {self.right}')
-         return {'left': left, 'right': right, 'speed' : speed, 'turn' : turn}
+        # return {'left': left, 'right': right, 'speed' : speed, 'turn' : turn}
+        return {'left': left, 'right': right, 'speed' : 0, 'turn' : turn}
 
     ''' 
     calculate the velocity of the bot given the current and previous position
@@ -285,20 +286,11 @@ class Ram():
         return flag
     
     '''check if enemy is in our field of view based on our (actual) orientation and desired orientation'''
-    def in_view(self, pdiff: int):
+    def in_view(self, diff: int = 30):
         currOrienation = self.huey_orientation
         desOrientation = self.huey_desired_orientation
-        view = (pdiff/100)*desOrientation
-        
-        print()
-        
-
-        
-
-    
-    
-
-
+        view = min(abs(currOrienation-desOrientation),360-abs(currOrienation-desOrientation))
+        return min(1, view/diff)
 
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
     def ram_ram(self, bots = {'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}}):
@@ -342,6 +334,8 @@ class Ram():
         self.enemy_previous_positions.append(self.enemy_position)
         if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
             self.enemy_previous_positions.pop(0)
+
+        turn = turn * self.in_view()
 
         # print("speed: ", speed)
         # print("turn:", turn)
