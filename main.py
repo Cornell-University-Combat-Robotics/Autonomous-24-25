@@ -169,7 +169,7 @@ def main():
             algorithm = Ram(bots = first_run_corner)
             first_move_dictionary = algorithm.ram_ram(first_run_corner)
             if PRINT:
-                print(f"Initial Object Detection Output: Detected [{len(first_run_ml["housebots"])} housebots], [{len(first_run_ml["bots"])} bots]")
+                print("Initial Object Detection Output: Detected [{} housebots], [{} bots]".format(len(first_run_ml["housebots"]), len(first_run_ml["bots"])))
                 print("Initial Corner Detection Output: " + str(first_run_corner))
                 print("Initial Algorithm Output: " + str(first_move_dictionary))
 

@@ -22,39 +22,43 @@ folder = os.getcwd() + "/main_files"
 
 def get_homography_mat(frame, output_w=1200, output_h=1200):
     corners = []
+    padding = 50
+
+    # Add black border around the frame
+    padded_frame = cv2.copyMakeBorder(
+        frame, padding, padding, padding, padding,
+        cv2.BORDER_CONSTANT, value=(0, 0, 0)
+    )
 
     def click_event(event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
-            # Left button clicked, store the point
-            corners.append([x, y])
-            print(f"Point added: {x}, {y}")
-            draw_corners()  # Redraw the points on the image
+            if x < padding or y < padding or x >= padded_frame.shape[1] - padding or y >= padded_frame.shape[0] - padding:
+                print(f"Clicked outside valid area: ({x}, {y})")
+                return
+
+            corners.append([x - padding, y - padding])  # Save coords relative to original frame
+            print(f"Point added: {x - padding}, {y - padding}")
+            draw_corners()
 
     def draw_corners():
-        # Make a copy of the original image to redraw the points
-        frame_copy = frame.copy()
-
-        # Loop through the clicked points and display them on the image
-        # Select corners in the following order: top left, top right, bottom right, bottom left
+        frame_copy = padded_frame.copy()
         for point in corners:
-            cv2.circle(frame_copy, point, 5, (0, 255, 0), -1)
-            cv2.putText(frame_copy, f"{point}", point,
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+            draw_point = (point[0] + padding, point[1] + padding)
+            cv2.circle(frame_copy, draw_point, 5, (0, 255, 0), -1)
+            cv2.putText(frame_copy, str(point), draw_point, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
 
-        # Display the image with points
         cv2.imshow("Warp: Select arena corners from top left, top right, bottom right to bottom left. Press 'z' to undo click", frame_copy)
 
-    cv2.imshow("Warp: Select arena corners from top left, top right, bottom right to bottom left. Press 'z' to undo click", frame)
+    cv2.imshow("Warp: Select arena corners from top left, top right, bottom right to bottom left. Press 'z' to undo click", padded_frame)
     cv2.setMouseCallback("Warp: Select arena corners from top left, top right, bottom right to bottom left. Press 'z' to undo click", click_event)
 
     key = cv2.waitKey(1) & 0xFF
-    # press 'Esc' to quit
     while len(corners) < 4 and key != 27:
-        if key == ord('z'):  # If 'z' is pressed
-            if len(corners) > 0:
-                removed_point = corners.pop()  # Remove the last point
-                print(f"Point removed: {removed_point}")
-                draw_corners()  # Redraw the image with remaining points
+        if key == ord('z'):
+            if corners:
+                removed = corners.pop()
+                print(f"Point removed: {removed}")
+                draw_corners()
             else:
                 print("No points to remove.")
         key = cv2.waitKey(1) & 0xFF
@@ -64,7 +68,6 @@ def get_homography_mat(frame, output_w=1200, output_h=1200):
     matrix, status = cv2.findHomography(np.array(corners), np.array(dest_pts))
     cv2.destroyAllWindows()
 
-    # Saving the homography matrix in a txt file
     output_file = folder + "/homography_matrix.txt"
     with open(output_file, "w") as file:
         for row in matrix:
@@ -72,6 +75,7 @@ def get_homography_mat(frame, output_w=1200, output_h=1200):
     print(f"Homography matrix has been saved to '{output_file}'.")
 
     return matrix
+
 
 """
 Re-combined from camera_test/warp.py, vid_and_img_processing/warp_image.py
