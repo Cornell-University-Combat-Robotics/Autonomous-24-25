@@ -237,7 +237,7 @@ def main():
                         if DISPLAY_ANGLES:
                             display_angles(detected_bots_with_data, move_dictionary, warped_frame)
                         # 14. Transmitting the motor values to Huey's if we're using a live video
-                        if IS_TRANSMITTING:
+                        if IS_TRANSMITTING: #TODO: Do we need to flip both speed & turn?
                             speed_motor_group.move(IS_FLIPPED * move_dictionary["speed"])
                             turn_motor_group.move(IS_FLIPPED * move_dictionary["turn"])
                     elif DISPLAY_ANGLES:
