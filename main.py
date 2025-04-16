@@ -248,6 +248,8 @@ def main():
                     cv2.imshow("Bounding boxes (no angles)", warped_frame)
         
         cap.release()
+        print("============================")
+        print("Video finished successfully!")
 
         if SHOW_FRAME:
             cv2.destroyAllWindows()

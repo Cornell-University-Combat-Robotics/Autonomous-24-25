@@ -39,7 +39,7 @@ class ColorPicker:
                 try:
                     color = test_img[y, x]  # OpenCV reads as BGR
                     hsv_color = cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_BGR2HSV)[0][0]
-                    if len(selected_colors) < 4:
+                    if len(selected_colors) < 5:
                         selected_colors.append(hsv_color)
                         points.append([x, y])
                         print(f"Selected color (HSV): {hsv_color}")
@@ -59,12 +59,12 @@ class ColorPicker:
             color_panel_width = 150
             color_panel = np.zeros((color_panel_height, color_panel_width, 3), dtype=np.uint8)
 
-            labels = ["Robot", "Front", "Back"]
+            labels = ["Robot", "Front", "Back", "Ventral"]
 
             for i, hsv_color in enumerate(selected_colors):
                 bgr_color = cv2.cvtColor(np.uint8([[hsv_color]]), cv2.COLOR_HSV2BGR)[0][0]
-                start_y = i * (color_panel_height // 3)
-                end_y = (i + 1) * (color_panel_height // 3)
+                start_y = i * (color_panel_height // 4)
+                end_y = (i + 1) * (color_panel_height // 4)
                 color_panel[start_y:end_y, :] = bgr_color
 
                 cv2.putText(color_panel, labels[i], (10, start_y + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
@@ -91,8 +91,8 @@ class ColorPicker:
                 print("❌ Selection canceled. Exiting...")
                 selected_colors = []
                 return None
-            elif len(selected_colors) == 4:
-                #selected_colors = selected_colors[:len(selected_colors)-1]
+            elif len(selected_colors) == 5:
+                selected_colors = selected_colors[:len(selected_colors)-1]
                 print("🎨 Final Selected Colors (HSV):", selected_colors)
                 print("📌 Final Selected Points:", points)
                 break
@@ -111,7 +111,7 @@ def save_colors_to_file(colors, output_file):
     try:
         with open(output_file, "w") as file:
             for color in colors:
-                file.write(f"{color[0]}, {color[1]}, {color[2]}\n") #TODO: 4 color {color[3]}
+                file.write(f"{color[0]}, {color[1]}, {color[2]}, {color[3]}\n")
         print(f"Selected colors have been saved to '{output_file}'.")
     except FileNotFoundError:
         print(f"Error: Output file path '{output_file}' does not exist.")
@@ -135,7 +135,7 @@ def display_colors(selected_colors):
 
         height = 175
         width = 175
-        img = np.zeros((height, width * len(bgr_colors), 3), dtype=np.uint8)
+        img = np.zeros((height, width * len(bgr_colors), 4), dtype=np.uint8)
 
         for idx, color in enumerate(bgr_colors):
             img[:, idx * width:(idx + 1) * width] = color
