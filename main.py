@@ -7,7 +7,7 @@ import numpy as np
 from line_profiler import profile
 
 from Algorithm.ram import Ram
-from corner_detection.color_picker import ColorPicker
+from corner_detection.color_picker import ColorPicker #TODO: display ventral color
 from corner_detection.corner_detection import RobotCornerDetection
 from machine.predict import RoboflowModel, YoloModel
 from transmission.motors import Motor
@@ -58,6 +58,8 @@ camera_number = 0
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
+camera_number = test_videos_folder + "/flippy_huey.mp4"
+
 
 if IS_TRANSMITTING:
     speed_motor_channel = 1
@@ -137,8 +139,8 @@ def main():
                 for line in file:
                     hsv = list(map(int, line.strip().split(", ")))
                     selected_colors.append(hsv)
-            if len(selected_colors) != 3:
-                raise ValueError("The file must contain exactly 3 HSV values.")
+            if len(selected_colors) != 4:
+                raise ValueError("The file must contain exactly 4 HSV values.")
         except Exception as e:
             print(f"Error reading selected_colors.txt: {e}" + "\n")
             exit(1)
@@ -166,7 +168,8 @@ def main():
             # 6. Do an initial run of ML and Corner. Initialize Algo
             first_run_ml = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
             corner_detection.set_bots(first_run_ml["bots"])
-            first_run_corner = corner_detection.corner_detection_main()
+
+            first_run_corner, IS_FLIPPED = corner_detection.corner_detection_main()
 
             if first_run_corner and first_run_corner["huey"] and first_run_corner["enemy"]:
                 first_run_corner["enemy"] = first_run_corner["enemy"][0] # Ensure single enemy
@@ -219,7 +222,8 @@ def main():
 
                 # 12. Run Object Detection's results through Corner Detection
                 corner_detection.set_bots(detected_bots["bots"])
-                detected_bots_with_data = corner_detection.corner_detection_main()
+                detected_bots_with_data, IS_FLIPPED = corner_detection.corner_detection_main()
+                
                 if PRINT:
                     print("CORNER DETECTION: " + str(detected_bots_with_data))
 
@@ -234,8 +238,8 @@ def main():
                             display_angles(detected_bots_with_data, move_dictionary, warped_frame)
                         # 14. Transmitting the motor values to Huey's if we're using a live video
                         if IS_TRANSMITTING:
-                            speed_motor_group.move(move_dictionary["speed"] * -1) # TODO: JANK SETUP
-                            turn_motor_group.move(move_dictionary["turn"])
+                            speed_motor_group.move(IS_FLIPPED * move_dictionary["speed"])
+                            turn_motor_group.move(IS_FLIPPED * move_dictionary["turn"])
                     elif DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data, None, warped_frame)
                 elif DISPLAY_ANGLES:

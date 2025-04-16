@@ -92,7 +92,7 @@ class ColorPicker:
                 selected_colors = []
                 return None
             elif len(selected_colors) == 4:
-                selected_colors = selected_colors[:len(selected_colors)-1]
+                #selected_colors = selected_colors[:len(selected_colors)-1]
                 print("🎨 Final Selected Colors (HSV):", selected_colors)
                 print("📌 Final Selected Points:", points)
                 break
@@ -111,7 +111,7 @@ def save_colors_to_file(colors, output_file):
     try:
         with open(output_file, "w") as file:
             for color in colors:
-                file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
+                file.write(f"{color[0]}, {color[1]}, {color[2]}\n") #TODO: 4 color {color[3]}
         print(f"Selected colors have been saved to '{output_file}'.")
     except FileNotFoundError:
         print(f"Error: Output file path '{output_file}' does not exist.")
@@ -147,6 +147,8 @@ def display_colors(selected_colors):
                 label = "Front Corner"
             elif idx == 2:
                 label = "Back Corner"
+            elif idx == 3:
+                label = "Ventral Corner"
 
             cv2.putText(img, label, (idx * width + 10, height - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)

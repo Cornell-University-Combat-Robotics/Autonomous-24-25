@@ -29,6 +29,7 @@ class RobotCornerDetection:
         self.selected_colors = selected_colors
         self.display_final_image = display_final_image
         self.display_possible_hueys = display_possible_hueys
+        self.IS_FLIPPED = 1
 
     def set_bots(self, bots: list): # list of dictionaries
         self.bots = bots
@@ -81,7 +82,7 @@ class RobotCornerDetection:
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return contours
     
-    def find_our_bot(self, images: list[np.ndarray]):
+    def find_our_bot(self, images: list[np.ndarray], bot_color_hsv):
         """
         Identifies which image contains our robot based on a predefined robot color.
 
@@ -97,7 +98,6 @@ class RobotCornerDetection:
             
             max_color_pixels = -1
             our_bot_image = None
-            bot_color_hsv = self.selected_colors[0]
 
             for image in images:
                 if image is None:
@@ -149,7 +149,21 @@ class RobotCornerDetection:
                 cv2.destroyAllWindows()
 
             if bot_images and all(img is not None for img in bot_images):
-                our_bot = self.find_our_bot(bot_images)
+
+                first_color = self.selected_colors[0]
+                second_color = self.selected_colors[-1]
+                
+                if self.IS_FLIPPED == -1:
+                    first_color = self.selected_colors[-1]
+                    second_color = self.selected_colors[0]
+                our_bot_first = self.find_our_bot(bot_images, first_color)
+
+                if our_bot_first is None:
+                    our_bot = self.find_our_bot(bot_images, second_color)
+                    self.IS_FLIPPED = -1 * self.IS_FLIPPED
+                else:
+                    our_bot = our_bot_first
+
                 return our_bot
             else:
                 print("No valid bot images found.")
@@ -493,14 +507,14 @@ class RobotCornerDetection:
                     cv2.waitKey(0)
                     cv2.destroyAllWindows()
 
-                return result
+                return result, self.IS_FLIPPED
             else:
                 print("Image doesn't exist")
-                return {"huey": {}, "enemy": []}
+                return {"huey": {}, "enemy": []}, self.IS_FLIPPED
 
         except Exception as e:
             print(f"Unexpected error in corner_detection_main: {e}")
-            return None
+            return None, self.IS_FLIPPED
 
 
 if __name__ == "__main__":
@@ -536,8 +550,8 @@ if __name__ == "__main__":
             for line in file:
                 hsv = list(map(int, line.strip().split(", ")))
                 selected_colors.append(hsv)
-        if len(selected_colors) != 3:
-            raise ValueError("The file must contain exactly 3 HSV values.")
+        if len(selected_colors) != 4:
+            raise ValueError("The file must contain exactly 4 HSV values.")
     
     except Exception as e:
         print(f"Error reading selected_colors.txt: {e}")
