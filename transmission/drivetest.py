@@ -1,11 +1,11 @@
 from motors import Motor
-from serial_conn import Serial
+from serial_conn import OurSerial
 import time
 import serial
 import serial.tools.list_ports
 # review if we actually need these ^^^ #
 
-ser = Serial()
+ser = OurSerial()
 
 speed = Motor(ser, speed=0, channel=1)
 turn = Motor(ser, speed=0, channel=3)

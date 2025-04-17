@@ -49,12 +49,12 @@ Note: you may be able to skip the following instructions if you have already set
 
 ### Example code
 ```from motors import Motor
-from serial_conn import Serial
+from serial_conn import OurSerial
 import time
 import serial
 import serial.tools.list_ports
 
-ser = Serial()
+ser = OurSerial()
 
 right_motor = Motor(ser, speed=0, channel=0)
 left_motor = Motor(ser, speed=0, channel=1)

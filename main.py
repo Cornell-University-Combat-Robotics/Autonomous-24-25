@@ -11,7 +11,7 @@ from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
 from machine.predict import RoboflowModel, YoloModel
 from transmission.motors import Motor
-from transmission.serial_conn import Serial
+from transmission.serial_conn import OurSerial
 from warp_main import get_homography_mat, warp
 
 # ------------------------------ GLOBAL VARIABLES ------------------------------
@@ -26,7 +26,7 @@ PRINT = False
 WARP_AND_COLOR_PICKING = True
 
 # Set True when testing with a live Huey and not a pre-filmed video
-IS_TRANSMITTING = False
+IS_TRANSMITTING = True
 
 # True to display current and future orientation angles for each iteration
 SHOW_FRAME = True
@@ -48,7 +48,7 @@ test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
 frame_rate = 60
 
-# camera_number = 0
+camera_number = 0
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -56,7 +56,7 @@ frame_rate = 60
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
-camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
+# camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 
 if IS_TRANSMITTING:
@@ -96,6 +96,9 @@ def main():
 
         # 3. Use the initial frame to get the Homography Matrix
         if WARP_AND_COLOR_PICKING:
+            if captured_image is None:
+                print("No image was captured. Please press '0' to capture an image before continuing.")
+                return
             resized_image = cv2.resize(captured_image, (0, 0), fx=resize_factor, fy=resize_factor)
             cv2.imwrite(folder + "/resized_image.png", resized_image)
             homography_matrix = get_homography_mat(resized_image, 700, 700)
@@ -153,33 +156,36 @@ def main():
 
         if IS_TRANSMITTING:
             # 5.1: Defining Transmission Object if we're using a live video
-            ser = Serial()
+            ser = OurSerial()
             speed_motor_group = Motor(ser=ser, channel=speed_motor_channel)
             turn_motor_group = Motor(ser=ser, channel=turn_motor_channel)
 
         cv2.destroyAllWindows()
 
-        # 6. Do an initial run of ML and Corner. Initialize Algo
-        first_run_ml = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
-        corner_detection.set_bots(first_run_ml["bots"])
-        first_run_corner = corner_detection.corner_detection_main()
+        if WARP_AND_COLOR_PICKING:
+            # 6. Do an initial run of ML and Corner. Initialize Algo
+            first_run_ml = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
+            corner_detection.set_bots(first_run_ml["bots"])
+            first_run_corner = corner_detection.corner_detection_main()
 
-        if first_run_corner and first_run_corner["huey"] and first_run_corner["enemy"]:
-            first_run_corner["enemy"] = first_run_corner["enemy"][0] # Ensure single enemy
-            algorithm = Ram(bots = first_run_corner)
-            first_move_dictionary = algorithm.ram_ram(first_run_corner)
-            if PRINT:
-                print("Initial Object Detection Output: Detected [{} housebots], [{} bots]".format(len(first_run_ml["housebots"]), len(first_run_ml["bots"])))
-                print("Initial Corner Detection Output: " + str(first_run_corner))
-                print("Initial Algorithm Output: " + str(first_move_dictionary))
+            if first_run_corner and first_run_corner["huey"] and first_run_corner["enemy"]:
+                first_run_corner["enemy"] = first_run_corner["enemy"][0] # Ensure single enemy
+                algorithm = Ram(bots = first_run_corner)
+                first_move_dictionary = algorithm.ram_ram(first_run_corner)
+                if PRINT:
+                    print("Initial Object Detection Output: Detected [{} housebots], [{} bots]".format(len(first_run_ml["housebots"]), len(first_run_ml["bots"])))
+                    print("Initial Corner Detection Output: " + str(first_run_corner))
+                    print("Initial Algorithm Output: " + str(first_move_dictionary))
 
-            if DISPLAY_ANGLES:
-                display_angles(first_run_corner, first_move_dictionary, warped_frame, True)
-                cv2.waitKey(0)
-                cv2.destroyAllWindows()
+                if DISPLAY_ANGLES:
+                    display_angles(first_run_corner, first_move_dictionary, warped_frame, True)
+                    cv2.waitKey(0)
+                    cv2.destroyAllWindows()
+            else:
+                algorithm = Ram()
+                print("Warning: Initial detection of Huey and enemy robot failed." + "\n")
         else:
             algorithm = Ram()
-            print("Warning: Initial detection of Huey and enemy robot failed." + "\n")
 
         # ----------------------------------------------------------------------
 
@@ -228,7 +234,7 @@ def main():
                             display_angles(detected_bots_with_data, move_dictionary, warped_frame)
                         # 14. Transmitting the motor values to Huey's if we're using a live video
                         if IS_TRANSMITTING:
-                            speed_motor_group.move(move_dictionary["speed"])
+                            speed_motor_group.move(move_dictionary["speed"] * -1) # TODO: JANK SETUP
                             turn_motor_group.move(move_dictionary["turn"])
                     elif DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data, None, warped_frame)
@@ -250,13 +256,18 @@ def main():
         if IS_TRANSMITTING:
             # Motors need to be cleaned up correctly
             try:
-                speed_motor_group.stop()
-                turn_motor_group.stop()
-                ser.cleanup()
+                # We stop or clean up objects that actually exist in the current scope
+                if 'speed_motor_group' in locals():
+                    speed_motor_group.stop()
+                if 'turn_motor_group' in locals():
+                    turn_motor_group.stop()
+                if 'ser' in locals():
+                    ser.cleanup()
             except Exception as motor_exception:
                 print("Motor cleanup failed:", motor_exception)
 
-        cap.release()
+        if 'cap' in locals():
+            cap.release()
 
         if SHOW_FRAME:
             cv2.destroyAllWindows()

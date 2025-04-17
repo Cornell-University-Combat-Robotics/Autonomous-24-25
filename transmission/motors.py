@@ -1,5 +1,5 @@
 import time
-from transmission.serial_conn import Serial
+from transmission.serial_conn import OurSerial
 
 
 class Motor():
@@ -12,8 +12,8 @@ class Motor():
         numerical value from -1 to 1 representing the throttle 
     channel : int
         the channel the motor is connected to
-    ser : Serial
-        a Serial object that establishes the laptop's connection to the Arduino
+    ser : OurSerial
+        a OurSerial object that establishes the laptop's connection to the Arduino
 
 
     Methods
@@ -32,12 +32,12 @@ class Motor():
     max_speed = 1
     min_speed = -1
 
-    def __init__(self, ser: Serial, channel: int, speed: float = 0):
+    def __init__(self, ser: OurSerial, channel: int, speed: float = 0):
         """
         Parameters
         ----------
-        ser : Serial
-            a Serial object that establishes the laptops connection to the Arduino
+        ser : OurSerial
+            an OurSerial object that establishes the laptops connection to the Arduino
         channel : int
             the flysky channel the motor is connected to
         speed : float, optional
