@@ -24,6 +24,8 @@ class RobotCornerDetection:
                         labeled left and right corners.
             display_possible_hueys (bool): Whether to display all possible
                         images of Huey.
+            IS_FLIPPED (int): This is -1 when the bot is flipped upside down and
+                        1 when the bot is right side up
         """
         self.bots = []
         self.selected_colors = selected_colors
@@ -150,19 +152,24 @@ class RobotCornerDetection:
 
             if bot_images and all(img is not None for img in bot_images):
 
-                first_color = self.selected_colors[0]
-                second_color = self.selected_colors[-1]
-                
-                if self.IS_FLIPPED == -1:
-                    first_color = self.selected_colors[-1]
-                    second_color = self.selected_colors[0]
-                our_bot_first = self.find_our_bot(bot_images, first_color)
+                top_color = self.selected_colors[0] #GREEN
+                bottom_color = self.selected_colors[-1] #PURPLE
 
-                if our_bot_first is None:
-                    our_bot = self.find_our_bot(bot_images, second_color)
-                    self.IS_FLIPPED = -1 * self.IS_FLIPPED
+                our_bot_top = self.find_our_bot(bot_images, top_color) # Green
+                our_bot_bottom = self.find_our_bot(bot_images, bottom_color) # Purple
+
+                # If we see purple
+                if our_bot_bottom is not None:
+                    our_bot = our_bot_bottom
+                    self.IS_FLIPPED = -1                
+                    
+                # If we see green
+                elif our_bot_top is not None:
+                    our_bot = our_bot_top
+                    self.IS_FLIPPED = 1
+
                 else:
-                    our_bot = our_bot_first
+                    our_bot = None
 
                 return our_bot
             else:

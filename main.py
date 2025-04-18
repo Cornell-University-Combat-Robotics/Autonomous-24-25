@@ -5,9 +5,10 @@ import time
 import cv2
 import numpy as np
 from line_profiler import profile
+import math
 
 from Algorithm.ram import Ram
-from corner_detection.color_picker import ColorPicker #TODO: display ventral color
+from corner_detection.color_picker import ColorPicker
 from corner_detection.corner_detection import RobotCornerDetection
 from machine.predict import RoboflowModel, YoloModel
 from transmission.motors import Motor
@@ -20,10 +21,10 @@ from warp_main import get_homography_mat, warp
 COMP_SETTINGS = False
 
 # Set True to print outputs for Corner Detection and Algo
-PRINT = False
+PRINT = True
 
 # Set True to redo warp and picking Huey's main color, front and back corners
-WARP_AND_COLOR_PICKING = True
+WARP_AND_COLOR_PICKING = False
 
 # Set True when testing with a live Huey and not a pre-filmed video
 IS_TRANSMITTING = True
@@ -58,7 +59,7 @@ camera_number = 0
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
-camera_number = test_videos_folder + "/flippy_huey.mp4"
+# camera_number = test_videos_folder + "/flippy_huey.mp4"
 
 
 if IS_TRANSMITTING:
@@ -176,7 +177,7 @@ def main():
                 algorithm = Ram(bots = first_run_corner)
                 first_move_dictionary = algorithm.ram_ram(first_run_corner)
                 if PRINT:
-                    print("Initial Object Detection Output: Detected [{} housebots], [{} bots]".format(len(first_run_ml["housebots"]), len(first_run_ml["bots"])))
+                    # print("Initial Object Detection Output: Detected [{} housebots], [{} bots]".format(len(first_run_ml["housebots"]), len(first_run_ml["bots"])))
                     print("Initial Corner Detection Output: " + str(first_run_corner))
                     print("Initial Algorithm Output: " + str(first_move_dictionary))
 
@@ -226,6 +227,7 @@ def main():
                 
                 if PRINT:
                     print("CORNER DETECTION: " + str(detected_bots_with_data))
+                    print("IS_FLIPPED: " + str(IS_FLIPPED))
 
                 if detected_bots_with_data and detected_bots_with_data["huey"]:
                     if detected_bots_with_data["enemy"]:
@@ -237,9 +239,20 @@ def main():
                         if DISPLAY_ANGLES:
                             display_angles(detected_bots_with_data, move_dictionary, warped_frame)
                         # 14. Transmitting the motor values to Huey's if we're using a live video
-                        if IS_TRANSMITTING: #TODO: Do we need to flip both speed & turn?
-                            speed_motor_group.move(IS_FLIPPED * move_dictionary["speed"])
-                            turn_motor_group.move(IS_FLIPPED * move_dictionary["turn"])
+                        if IS_TRANSMITTING:
+                            speed = move_dictionary["speed"]
+                            turn = move_dictionary["turn"]
+                            speed_motor_group.move(IS_FLIPPED * speed * -1 * 0.7) # TODO
+
+                            # AARON
+                            if turn >= 0:
+                                turn_motor_group.move(turn * 0.45 + 0.15)
+                            else:
+                                turn_motor_group.move(turn * 0.45 - 0.15)
+
+                            # CHRIS
+                            # turn_motor_group.move(math.cbrt(turn))
+                            
                     elif DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data, None, warped_frame)
                 elif DISPLAY_ANGLES:
