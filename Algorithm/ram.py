@@ -2,7 +2,8 @@ import math
 import time
 import os
 import numpy as np
-import Algorithm.test_ram_csv as test_ram_csv
+import test_ram_csv as test_ram_csv
+# import Algorithm.test_ram_csv as test_ram_csv
 
 
 class Ram():
@@ -65,7 +66,7 @@ class Ram():
     MAX_TURN = 1 # between 0 and 1
     MIN_TURN = 0 # between 0 and 1
     ARENA_WIDTH = 1200 # in pixels
-    TEST_MODE = False # saves values to CSV file
+    TEST_MODE = True # saves values to CSV file
 
     '''
     Constructor for the Ram class that initializes the position and orientation of the bot, the motors, the enemy position, 
@@ -250,15 +251,19 @@ class Ram():
         # print("Turn: ",  angle * (Ram.MAX_TURN / 180.0))
         # print("Speed: ", 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0)))
         # print("-------")
+        
+        # ------ PID CONTROLS ----------
         error = angle - our_orientation
         error = (error + 180) % 360 - 180 # might not be necessary?    
+        if (dt == 0.0):
+            dt = .1
         self.int_accum += error*dt
         derivative = (error - self.error)/dt
         turn = self.kp * error + self.ki * self.int_accum + self.kd * derivative    
         self.error = error
         turn = max(-1, min(1, turn))
 
-        return angle * (Ram.MAX_TURN / 180.0), turn
+        return turn, 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0))
 
     """ if enemy robot predicted position is outside of arena, move it inside. """
 
