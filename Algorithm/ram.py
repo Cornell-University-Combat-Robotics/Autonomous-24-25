@@ -2,8 +2,8 @@ import math
 import time
 import os
 import numpy as np
-# import test_ram_csv as test_ram_csv
-import Algorithm.test_ram_csv as test_ram_csv
+import test_ram_csv as test_ram_csv
+# import Algorithm.test_ram_csv as test_ram_csv
 
 
 class Ram():
@@ -106,9 +106,9 @@ class Ram():
         
         # pid variables
         self.old_angle = 0
-        self.kp = 0.0056
+        self.kp = 0.0045
         self.ki = 0.0000
-        self.kd = 0.0010
+        self.kd = 0.0009
         self.error = 0
         self.int_accum = 0
 
