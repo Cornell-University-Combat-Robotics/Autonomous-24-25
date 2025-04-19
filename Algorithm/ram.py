@@ -2,8 +2,8 @@ import math
 import time
 import os
 import numpy as np
-import test_ram_csv as test_ram_csv
-# import Algorithm.test_ram_csv as test_ram_csv
+# import test_ram_csv as test_ram_csv
+import Algorithm.test_ram_csv as test_ram_csv
 
 
 class Ram():
