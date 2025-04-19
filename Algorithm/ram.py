@@ -103,6 +103,14 @@ class Ram():
         self.left = 0
         self.right = 0
         
+        # pid variables
+        self.old_angle = 0
+        self.kp = 0.0056
+        self.ki = 0.0000
+        self.kd = 0.0010
+        self.error = 0
+        self.int_accum = 0
+
         # initialize the enemy position array
         self.enemy_previous_positions = []
         self.enemy_previous_positions.append(self.enemy_position)
@@ -222,6 +230,7 @@ class Ram():
         # print("Predict desired turn: ", angle * (Ram.MAX_TURN / 180.0)) 
         # print("Abs Angle", np.sign(angle) * (angle))
         # print("type: ", angle)
+
         return angle * (Ram.MAX_TURN / 180.0)
 
     ''' predict the desired speed of the bot given the current position and velocity of the enemy '''
@@ -241,7 +250,15 @@ class Ram():
         # print("Turn: ",  angle * (Ram.MAX_TURN / 180.0))
         # print("Speed: ", 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0)))
         # print("-------")
-        return angle * (Ram.MAX_TURN / 180.0), 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0))
+        error = angle - our_orientation
+        error = (error + 180) % 360 - 180 # might not be necessary?    
+        self.int_accum += error*dt
+        derivative = (error - self.error)/dt
+        turn = self.kp * error + self.ki * self.int_accum + self.kd * derivative    
+        self.error = error
+        turn = max(-1, min(1, turn))
+
+        return angle * (Ram.MAX_TURN / 180.0), turn
 
     """ if enemy robot predicted position is outside of arena, move it inside. """
 
