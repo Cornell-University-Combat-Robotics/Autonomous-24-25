@@ -337,7 +337,7 @@ class RobotCornerDetection:
             return [[], []]
 
     @staticmethod
-    def compute_tangent_angle(p1: tuple, p2: tuple):
+    def compute_tangent_angle(p1: tuple, p2: tuple): #NOTE: does not compute tangent angle anymore
         """
         Computes the angle of the tangent line to the front of the robot.
 
@@ -355,6 +355,25 @@ class RobotCornerDetection:
         angle_rad = np.arctan2(dy, dx)
         tangent_angle_rad = angle_rad + np.pi / 2
         return math.degrees(tangent_angle_rad) % 360
+    
+    @staticmethod
+    def compute_angle_between_midpoints(p1: tuple, p2: tuple):
+        """
+        Computes the angle of the line between the front and back corners of robot.
+
+        Args:
+            p1 (tuple): The front midpoint (x1, y1).
+            p2 (tuple): The back midpoint (x2, y2).
+
+        Returns:
+            float: The angle of the line between the points relative to the x-axis in degrees.
+        """
+        x1, y1 = p1
+        x2, y2 = p2
+        dx = x2 - x1
+        dy = -(y2 - y1)
+        angle_rad = np.arctan2(dy, dx)
+        return math.degrees(angle_rad) % 360
 
     def get_left_and_right_front_points(self, points: list):
         """
@@ -370,9 +389,10 @@ class RobotCornerDetection:
             red_points = points[0]
             blue_points = points[1]
 
+            #TODO: check that this runs with any three points, change error
             # Ensure there are exactly two red points and at least one blue point
-            if len(red_points) != 2 or len(blue_points) == 0:
-                raise ValueError("Expected exactly 2 red points and at least 1 blue point.")
+            if (len(red_points) + len(blue_points) < 3):
+                raise ValueError("Expected exactly 2 red points and at least 1 blue point.") #TODO
 
             all_points = red_points + blue_points
             center = np.mean(all_points, axis=0)
@@ -417,7 +437,7 @@ class RobotCornerDetection:
                 # The point with the larger angle is the top right front corner
                 right_front = red_points[1]
                 left_front = red_points[0]
-            return [left_front, right_front] # [[], []]
+            return [left_front, right_front]
 
         except Exception as e:
             print(f"Unexpected error in get_left_and_right_front_points: {e}")
@@ -443,7 +463,13 @@ class RobotCornerDetection:
                 # print("centroid points: " + str(centroid_points))
 
                 left_front, right_front = self.get_left_and_right_front_points(centroid_points)
-                orientation = self.compute_tangent_angle(left_front, right_front)
+                front_sum = tuple(x+y for x,y in zip(centroid_points[0][0], centroid_points[0][1]))
+                front_midpoint = tuple([0.5*x for x in front_sum])
+
+                back_sum = tuple(x+y for x,y in zip(centroid_points[1][0], centroid_points[1][1]))
+                back_midpoint = tuple([0.5*x for x in back_sum])
+                
+                orientation = self.compute_angle_between_midpoints(back_midpoint, front_midpoint)
 
                 # Find the identified bot (our robot)
                 huey_bbox = None
