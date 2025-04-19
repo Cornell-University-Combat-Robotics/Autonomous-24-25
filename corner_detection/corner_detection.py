@@ -1,6 +1,5 @@
 import math
 import os
-import time
 import cv2
 import numpy as np
 
@@ -25,11 +24,14 @@ class RobotCornerDetection:
                         labeled left and right corners.
             display_possible_hueys (bool): Whether to display all possible
                         images of Huey.
+            IS_FLIPPED (int): This is -1 when the bot is flipped upside down and
+                        1 when the bot is right side up
         """
         self.bots = []
         self.selected_colors = selected_colors
         self.display_final_image = display_final_image
         self.display_possible_hueys = display_possible_hueys
+        self.IS_FLIPPED = 1
 
     def set_bots(self, bots: list): # list of dictionaries
         self.bots = bots
@@ -48,8 +50,8 @@ class RobotCornerDetection:
         hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         # Define the HSV range for the robot's color
-        lower_limit = np.array([max(0, bot_color_hsv[0] - 10), 100, 100])
-        upper_limit = np.array([min(179, bot_color_hsv[0] + 10), 255, 255])
+        lower_limit = np.array([max(0, bot_color_hsv[0] - 15), 80, 80])
+        upper_limit = np.array([min(179, bot_color_hsv[0] + 15), 255, 255])
 
         # Create a mask for the robot's color in the image
         mask = cv2.inRange(hsv_image, lower_limit, upper_limit)
@@ -75,14 +77,14 @@ class RobotCornerDetection:
         # Define the HSV range around the selected color
         # We tried using 10 for the range; It was too large and picked up orange instead of red
         # For now, it is +-8
-        lower_limit = np.array([max(0, selected_color[0] - 8), 100, 100])
-        upper_limit = np.array([min(179, selected_color[0] + 8), 255, 255])
+        lower_limit = np.array([max(0, selected_color[0] - 15), 80, 80])
+        upper_limit = np.array([min(179, selected_color[0] + 15), 255, 255])
 
         mask = cv2.inRange(hsv_image, lower_limit, upper_limit)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return contours
     
-    def find_our_bot(self, images: list[np.ndarray]):
+    def find_our_bot(self, images: list[np.ndarray], bot_color_hsv):
         """
         Identifies which image contains our robot based on a predefined robot color.
 
@@ -98,7 +100,6 @@ class RobotCornerDetection:
             
             max_color_pixels = -1
             our_bot_image = None
-            bot_color_hsv = self.selected_colors[0]
 
             for image in images:
                 if image is None:
@@ -106,7 +107,7 @@ class RobotCornerDetection:
                     continue
 
                 color_pixel_count = self.find_bot_color_pixels(image, bot_color_hsv)
-                if color_pixel_count > max_color_pixels and color_pixel_count > 200: # TODO
+                if color_pixel_count > max_color_pixels and color_pixel_count > 100:
                     max_color_pixels = color_pixel_count
                     our_bot_image = image
             
@@ -150,7 +151,26 @@ class RobotCornerDetection:
                 cv2.destroyAllWindows()
 
             if bot_images and all(img is not None for img in bot_images):
-                our_bot = self.find_our_bot(bot_images)
+
+                top_color = self.selected_colors[0] #GREEN
+                bottom_color = self.selected_colors[-1] #PURPLE
+
+                our_bot_top = self.find_our_bot(bot_images, top_color) # Green
+                our_bot_bottom = self.find_our_bot(bot_images, bottom_color) # Purple
+
+                # If we see purple
+                if our_bot_bottom is not None:
+                    our_bot = our_bot_bottom
+                    self.IS_FLIPPED = -1                
+                    
+                # If we see green
+                elif our_bot_top is not None:
+                    our_bot = our_bot_top
+                    self.IS_FLIPPED = 1
+
+                else:
+                    our_bot = None
+
                 return our_bot
             else:
                 print("No valid bot images found.")
@@ -180,7 +200,7 @@ class RobotCornerDetection:
         for contour in contours:
             # Filter out small contours based on area
             area = cv2.contourArea(contour)
-            if area > 20:
+            if area > 10:
                 # TODO: this value is subject to change based on dimensions of our video & resize_factor
                 # Compute moments for each contour
                 M = cv2.moments(contour)
@@ -494,14 +514,14 @@ class RobotCornerDetection:
                     cv2.waitKey(0)
                     cv2.destroyAllWindows()
 
-                return result
+                return result, self.IS_FLIPPED
             else:
                 print("Image doesn't exist")
-                return {"huey": {}, "enemy": []}
+                return {"huey": {}, "enemy": []}, self.IS_FLIPPED
 
         except Exception as e:
             print(f"Unexpected error in corner_detection_main: {e}")
-            return None
+            return None, self.IS_FLIPPED
 
 
 if __name__ == "__main__":
@@ -537,8 +557,8 @@ if __name__ == "__main__":
             for line in file:
                 hsv = list(map(int, line.strip().split(", ")))
                 selected_colors.append(hsv)
-        if len(selected_colors) != 3:
-            raise ValueError("The file must contain exactly 3 HSV values.")
+        if len(selected_colors) != 4:
+            raise ValueError("The file must contain exactly 4 HSV values.")
     
     except Exception as e:
         print(f"Error reading selected_colors.txt: {e}")

@@ -1,6 +1,19 @@
-pillow==10.4.0
-PyYAML==6.0.2
-torch==2.4.1
-torchvision==0.19.1
+inference
+line-profiler
+numpy
+onnxruntime
+opencv_python
+opencv_python_headless
+openvino
+pandas
+pillow
+pyserial
+python-dotenv
+PyYAML
+roboflow
+serial
+torch
+torchvision
+ultralytics
 
 # pip install -r requirements.txt once you make a new venv
