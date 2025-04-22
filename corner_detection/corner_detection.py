@@ -243,7 +243,7 @@ class RobotCornerDetection:
             points = [centroid_front, centroid_back]
             centroid_front, centroid_back = self.get_missing_point(points)
 
-        return [centroid_front, centroid_back]
+        return np.array([centroid_front, centroid_back])
 
     def distance(self, point1: tuple, point2: tuple):
         """
@@ -462,12 +462,12 @@ class RobotCornerDetection:
                 centroid_points = self.find_centroids(image)
                 # print("centroid points: " + str(centroid_points))
 
+                # For displaying centroids
                 left_front, right_front = self.get_left_and_right_front_points(centroid_points)
-                front_sum = tuple(x+y for x,y in zip(centroid_points[0][0], centroid_points[0][1]))
-                front_midpoint = tuple([0.5*x for x in front_sum])
 
-                back_sum = tuple(x+y for x,y in zip(centroid_points[1][0], centroid_points[1][1]))
-                back_midpoint = tuple([0.5*x for x in back_sum])
+                front_midpoint = (centroid_points[0][0] + centroid_points[0][1]) * 0.5
+
+                back_midpoint = (centroid_points[1][0] + centroid_points[1][1]) * 0.5
                 
                 orientation = self.compute_angle_between_midpoints(back_midpoint, front_midpoint)
 
