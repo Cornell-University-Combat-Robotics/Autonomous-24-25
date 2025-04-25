@@ -177,7 +177,7 @@ def main():
             if first_run_corner and first_run_corner["huey"] and first_run_corner["enemy"]:
                 first_run_corner["enemy"] = first_run_corner["enemy"][0] # Ensure single enemy
                 algorithm = Ram(bots = first_run_corner)
-                first_move_dictionary, IS_BACKING = algorithm.ram_ram(first_run_corner)
+                first_move_dictionary = algorithm.ram_ram(first_run_corner)
                 if PRINT:
                     # print("Initial Object Detection Output: Detected [{} housebots], [{} bots]".format(len(first_run_ml["housebots"]), len(first_run_ml["bots"])))
                     print("Initial Corner Detection Output: " + str(first_run_corner))
@@ -236,11 +236,7 @@ def main():
                     if detected_bots_with_data["enemy"]:
                         # 13. Algorithm runs only if we detect Huey and an enemy robot
                         detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
-                        if (time.time() - start_back_up_time > BACK_UP_TIME):
-                            move_dictionary, IS_BACKING = algorithm.ram_ram(detected_bots_with_data)
-
-                            if IS_BACKING:
-                                start_back_up_time = time.time()
+                        move_dictionary = algorithm.ram_ram(detected_bots_with_data)
 
                         # if move_dictionary and (move_dictionary["turn"]+1):
                         #     turn = move_dictionary["turn"] # angle in degrees / 180

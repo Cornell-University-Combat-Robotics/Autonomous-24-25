@@ -69,6 +69,8 @@ class Ram():
     TOLERANCE = 10 # how close Huey's prev pos are permitted to be
     BACK_UP_SPEED = -0.5
     BACK_UP_TURN = 0
+    BACK_UP_TIME = 0.5
+    start_back_up_time = 0
 
     '''
     Constructor for the Ram class that initializes the position and orientation of the bot, the motors, the enemy position, 
@@ -283,9 +285,12 @@ class Ram():
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
 
     def ram_ram(self, bots={'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}}):
-        if(self.check_previous_position()):
+        
+        if(self.check_previous_position() and time.time() - Ram.start_back_up_time > Ram.BACK_UP_TIME):
             print("Back it up rbg 😜")
-            return self.huey_move(Ram.BACK_UP_SPEED, Ram.BACK_UP_TURN), True
+            Ram.start_back_up_time = time.time()
+            return self.huey_move(Ram.BACK_UP_SPEED, Ram.BACK_UP_TURN)
+            
 
         self.delta_t = time.time() - self.old_time  # record delta time
         self.old_time = time.time()
@@ -327,6 +332,8 @@ class Ram():
         self.enemy_previous_positions.append(self.enemy_position)
         if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
             self.enemy_previous_positions.pop(0)
+        
+        if(time.time() - Ram.start_back_up_time <= Ram.BACK_UP_TIME):
+            return self.huey_move(Ram.BACK_UP_SPEED, Ram.BACK_UP_TURN)  
 
-
-        return self.huey_move(speed, turn), False
+        return self.huey_move(speed,turn)
