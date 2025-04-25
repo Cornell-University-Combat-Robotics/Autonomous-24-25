@@ -285,7 +285,7 @@ class Ram():
     def ram_ram(self, bots={'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}}):
         if(self.check_previous_position()):
             print("Back it up rbg 😜")
-            return self.huey_move(Ram.BACK_UP_SPEED, Ram.BACK_UP_TURN)
+            return self.huey_move(Ram.BACK_UP_SPEED, Ram.BACK_UP_TURN), True
 
         self.delta_t = time.time() - self.old_time  # record delta time
         self.old_time = time.time()
@@ -329,4 +329,4 @@ class Ram():
             self.enemy_previous_positions.pop(0)
 
 
-        return self.huey_move(speed, turn)
+        return self.huey_move(speed, turn), False

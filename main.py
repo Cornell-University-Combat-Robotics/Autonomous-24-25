@@ -27,7 +27,7 @@ PRINT = True
 WARP_AND_COLOR_PICKING = True
 
 # Set True when testing with a live Huey and not a pre-filmed video
-IS_TRANSMITTING = True
+IS_TRANSMITTING = False
 
 # True to display current and future orientation angles for each iteration
 SHOW_FRAME = True
@@ -49,15 +49,16 @@ test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
 frame_rate = 60
 BACK_UP_TIME = 0.5
+start_back_up_time = 0
 
-camera_number = 0
+# camera_number = 0
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
 # camera_number = test_videos_folder + "/huey_demo3.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
-# camera_number = test_videos_folder + "/green_huey_demo.mp4"
+camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = test_videos_folder + "/flippy_huey.mp4"
@@ -176,7 +177,7 @@ def main():
             if first_run_corner and first_run_corner["huey"] and first_run_corner["enemy"]:
                 first_run_corner["enemy"] = first_run_corner["enemy"][0] # Ensure single enemy
                 algorithm = Ram(bots = first_run_corner)
-                first_move_dictionary = algorithm.ram_ram(first_run_corner)
+                first_move_dictionary, IS_BACKING = algorithm.ram_ram(first_run_corner)
                 if PRINT:
                     # print("Initial Object Detection Output: Detected [{} housebots], [{} bots]".format(len(first_run_ml["housebots"]), len(first_run_ml["bots"])))
                     print("Initial Corner Detection Output: " + str(first_run_corner))
@@ -215,6 +216,7 @@ def main():
 
             # 10. Warp image using the Homography Matrix
             if IS_ORIGINAL_FPS or time_elapsed > 1.0 / frame_rate:
+                global start_back_up_time
                 prev = time.time()
                 frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
                 warped_frame = warp(frame, homography_matrix, 700, 700)
@@ -234,12 +236,16 @@ def main():
                     if detected_bots_with_data["enemy"]:
                         # 13. Algorithm runs only if we detect Huey and an enemy robot
                         detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
-                        move_dictionary = algorithm.ram_ram(detected_bots_with_data)
+                        if (time.time() - start_back_up_time > BACK_UP_TIME):
+                            move_dictionary, IS_BACKING = algorithm.ram_ram(detected_bots_with_data)
 
-                        if move_dictionary and (move_dictionary["turn"]+1):
-                            turn = move_dictionary["turn"] # angle in degrees / 180
-                            if turn == 0 and move_dictionary["speed"] < 0:
-                                time.sleep(BACK_UP_TIME)
+                            if IS_BACKING:
+                                start_back_up_time = time.time()
+
+                        # if move_dictionary and (move_dictionary["turn"]+1):
+                        #     turn = move_dictionary["turn"] # angle in degrees / 180
+                        #     if turn == 0 and move_dictionary["speed"] < 0:
+                        #         time.sleep(BACK_UP_TIME)
  
                         if PRINT:
                             print("ALGORITHM: " + str(move_dictionary))
