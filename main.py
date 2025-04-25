@@ -249,16 +249,8 @@ def main():
                         if IS_TRANSMITTING:
                             speed = move_dictionary["speed"]
                             turn = move_dictionary["turn"]
-                            speed_motor_group.move(IS_FLIPPED * speed * -1 * 0.7) # TODO
-
-                            # AARON
-                            if turn >= 0:
-                                turn_motor_group.move(turn * 0.45 + 0.15)
-                            else:
-                                turn_motor_group.move(turn * 0.45 - 0.15)
-
-                            # CHRIS
-                            # turn_motor_group.move(math.cbrt(turn))
+                            speed_motor_group.move(IS_FLIPPED * speed * 0.5)
+                            turn_motor_group.move(turn * -1)
                             
                     elif DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data, None, warped_frame)
