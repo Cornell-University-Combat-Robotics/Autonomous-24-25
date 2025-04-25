@@ -6,7 +6,6 @@ import openvino as ov
 import pandas as pd
 import torch
 from dotenv import load_dotenv
-from inference import get_model
 from ultralytics import YOLO
 
 # from template_model import TemplateModel # to run in machine
