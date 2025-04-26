@@ -58,10 +58,10 @@ start_back_up_time = 0
 # camera_number = test_videos_folder + "/huey_demo3.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
-camera_number = test_videos_folder + "/green_huey_demo.mp4"
+# camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
-# camera_number = test_videos_folder + "/flippy_huey.mp4"
+camera_number = test_videos_folder + "/flippy_huey.mp4"
 
 
 if IS_TRANSMITTING:
@@ -325,6 +325,15 @@ def display_angles(detected_bots_with_data, move_dictionary, image, initial_run=
             if turn == 0 and move_dictionary["speed"] < 0:
                 IS_BACKED = 180
                 print("back back abck 👅")
+                cv2.putText(
+                    image,
+                    "👅 back back abck 👅",
+                    (50, 50),  # Slightly above the top-left corner
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (255,255,255),
+                    2,
+                )
             new_orientation_degrees = orientation_degrees + (turn * 180) + IS_BACKED
 
             # Components of predicted turn
