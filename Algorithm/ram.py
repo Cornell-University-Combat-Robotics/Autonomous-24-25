@@ -58,6 +58,7 @@ class Ram():
         main method for the ram ram algorithm that turns to face the enemy and charge towards it
     """
     # ----------------------------- CONSTANTS -----------------------------
+    HUEY_HISTORY_BUFFER = 10  # how many previous Huey position we are recording
     ENEMY_HISTORY_BUFFER = 10  # how many previous enemy position we are recording
     DANGER_ZONE = 55
     MAX_SPEED = 1 # magnitude between 0 and 1
@@ -112,6 +113,11 @@ class Ram():
         self.huey_pos_count = 1
         self.huey_previous_positions = []
         self.huey_previous_positions.append(self.huey_position)
+        
+        # initialize the enemy orientation array
+        self.huey_orient_count = 1
+        self.huey_previous_orientations = []
+        self.huey_previous_orientations.append(self.huey_orientation)
 
         self.enemy_previous_positions = []
         self.enemy_previous_positions.append(self.enemy_position)
@@ -271,14 +277,19 @@ class Ram():
         if (self.TEST_MODE and flag):
             print("moved that jon")
             
-    def check_previous_position(self):
-        counter = 0
+    def check_previous_position_and_orientation(self):
+        counter_pos = 0
+        counter_orientation = 0
         x_curr, y_curr = self.huey_position
         for prev_pos in self.huey_previous_positions:
             if math.sqrt((x_curr - prev_pos[0])**2 + (y_curr - prev_pos[1])**2) < Ram.TOLERANCE:
-                counter += 1
-
-        if counter >= 8: 
+                counter_pos += 1
+                
+        for prev_orientation in self.huey_previous_orientations:
+            if math.abs(prev_orientation - self.huey_orientation) < Ram.TOLERANCE*0.5:
+                counter_orientation += 1
+                
+        if counter_pos >= 8 and counter_orientation >= 8: 
             return True
         return False
 
@@ -286,7 +297,7 @@ class Ram():
 
     def ram_ram(self, bots={'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}}):
         
-        if(self.check_previous_position() and time.time() - Ram.start_back_up_time > Ram.BACK_UP_TIME):
+        if(self.check_previous_position_and_orientation() and time.time() - Ram.start_back_up_time > Ram.BACK_UP_TIME):
             print("Back it up rbg 😜")
             Ram.start_back_up_time = time.time()
             return self.huey_move(Ram.BACK_UP_SPEED, Ram.BACK_UP_TURN)
@@ -321,15 +332,22 @@ class Ram():
         
         if self.huey_pos_count % 5 == 0:
             self.huey_previous_positions.append(self.huey_position)
+            self.huey_previous_orientations.append(self.huey_orientation)
+            
             print(f'🥶🥶🥶 Huey Pos Count: {self.huey_pos_count}')
         self.huey_pos_count += 1
+        self.huey_orient_count += 1
         
         # Save Huey's last 10 positions
-        if len(self.huey_previous_positions) > 10:
-            self.enemy_previous_positions.pop(0)
-
+        if len(self.huey_previous_positions) > Ram.HUEY_HISTORY_BUFFER:
+            self.huey_previous_positions.pop(0)
+            
+        if len(self.huey_previous_orientations) > Ram.HUEY_HISTORY_BUFFER:
+            self.huey_previous_orientations.pop(0)
+            
         # If the array for enemy_previous_positions is full, then pop the first one
         self.enemy_previous_positions.append(self.enemy_position)
+        
         if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
             self.enemy_previous_positions.pop(0)
         
