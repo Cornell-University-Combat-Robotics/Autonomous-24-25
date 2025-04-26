@@ -27,7 +27,7 @@ PRINT = True
 WARP_AND_COLOR_PICKING = True
 
 # Set True when testing with a live Huey and not a pre-filmed video
-IS_TRANSMITTING = True
+IS_TRANSMITTING = False
 
 # True to display current and future orientation angles for each iteration
 SHOW_FRAME = True
@@ -48,9 +48,8 @@ folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
 frame_rate = 60
-BACK_UP_TIME = 0.5
 
-camera_number = 0
+# camera_number = 1
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -60,7 +59,7 @@ camera_number = 0
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
-# camera_number = test_videos_folder + "/flippy_huey.mp4"
+camera_number = test_videos_folder + "/flippy_huey.mp4"
 
 
 if IS_TRANSMITTING:
@@ -236,11 +235,6 @@ def main():
                         detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
                         move_dictionary = algorithm.ram_ram(detected_bots_with_data)
 
-                        if move_dictionary and (move_dictionary["turn"]+1):
-                            turn = move_dictionary["turn"] # angle in degrees / 180
-                            if turn == 0 and move_dictionary["speed"] < 0:
-                                time.sleep(BACK_UP_TIME)
- 
                         if PRINT:
                             print("ALGORITHM: " + str(move_dictionary))
                         if DISPLAY_ANGLES:
@@ -308,24 +302,16 @@ def display_angles(detected_bots_with_data, move_dictionary, image, initial_run=
         cv2.arrowedLine(image, (start_x, start_y), end_point, (255, 0, 0), 2)
 
         # RED line: Huey's Desired Orientation according to Algorithm
-        if move_dictionary and (move_dictionary["turn"]+1):
-            IS_BACKED = 0
+        if move_dictionary and (move_dictionary["turn"]):
             turn = move_dictionary["turn"] # angle in degrees / 180
-            print(f'👅: {str(turn)}')
-            if turn == 0 and move_dictionary["speed"] < 0:
-                IS_BACKED = 180
-                print("back back abck 👅")
-            new_orientation_degrees = orientation_degrees + (turn * 180) + IS_BACKED
+            new_orientation_degrees = orientation_degrees + (turn * 180)
 
             # Components of predicted turn
             dx = np.cos(math.pi * new_orientation_degrees / 180)
             dy = -1 * np.sin(math.pi * new_orientation_degrees / 180)
 
             end_point = (int(start_x + 300 * resize_factor * dx), int(start_y + 300 * resize_factor * dy))
-            cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 10)
-            if turn == 0:
-                print(f'Start x,y: {start_x,start_y}')
-                print(f'Endpoint: {end_point}')
+            cv2.arrowedLine(image, (start_x, start_y), end_point, (0, 0, 255), 2)
 
     if initial_run:
         cv2.imshow("Initial Run: Battle with Predictions. Press '0' to continue", image)
