@@ -277,16 +277,40 @@ class Ram():
         if (self.TEST_MODE and flag):
             print("moved that jon")
             
-    def check_previous_position_and_orientation(self):
+    def check_previous_position_and_orientation(self, bots):
         counter_pos = 0
         counter_orientation = 0
         x_curr, y_curr = self.huey_position
+
+        huey_girth = (math.dist(bots['huey'].get('bbox')[1], bots['huey'].get('bbox')[0]))/2
+
+        # Huey against left wall
+        if(self.huey_position[0] < huey_girth and (0 <= self.huey_orientation < 90 or 270 < self.huey_orientation <= 359)):
+            print("👿 AGAINST A LEFT WALL, NO BACK 👿")
+            return False
+        
+        # Huey against right wall
+        if(self.huey_position[0] > 700 - huey_girth and (90 < self.huey_orientation <= 270)):
+            print("🦋 AGAINST A RIGHT WALL, NO BACK 🦋")
+            return False
+        
+        # Huey against top wall
+        if(self.huey_position[1] < huey_girth and (180 < self.huey_orientation <= 359)):
+            print("🌝 AGAINST A TOP WALL, NO BACK 🌝")
+            return False
+        
+        # Huey against bottom wall
+        if(self.huey_position[1] > 700 - huey_girth and (0 < self.huey_orientation <= 180)):
+            print("🦐 AGAINST A BOTTOM WALL, NO BACK 🦐")
+            return False
+
+
         for prev_pos in self.huey_previous_positions:
             if math.sqrt((x_curr - prev_pos[0])**2 + (y_curr - prev_pos[1])**2) < Ram.TOLERANCE:
                 counter_pos += 1
                 
         for prev_orientation in self.huey_previous_orientations:
-            if math.abs(prev_orientation - self.huey_orientation) < Ram.TOLERANCE*0.5:
+            if abs(prev_orientation - self.huey_orientation) < Ram.TOLERANCE*0.5: #TODO: work out angle range
                 counter_orientation += 1
                 
         if counter_pos >= 8 and counter_orientation >= 8: 
@@ -297,7 +321,11 @@ class Ram():
 
     def ram_ram(self, bots={'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}}):
         
-        if(self.check_previous_position_and_orientation() and time.time() - Ram.start_back_up_time > Ram.BACK_UP_TIME):
+        # Get new position and heading values
+        self.huey_position = np.array(bots['huey'].get('center'))
+        self.huey_orientation = bots['huey'].get('orientation')
+
+        if(self.check_previous_position_and_orientation(bots) and time.time() - Ram.start_back_up_time > Ram.BACK_UP_TIME):
             print("Back it up rbg 😜")
             Ram.start_back_up_time = time.time()
             return self.huey_move(Ram.BACK_UP_SPEED, Ram.BACK_UP_TURN)
@@ -305,10 +333,6 @@ class Ram():
 
         self.delta_t = time.time() - self.old_time  # record delta time
         self.old_time = time.time()
-
-        # Get new position and heading values
-        self.huey_position = np.array(bots['huey'].get('center'))
-        self.huey_orientation = bots['huey'].get('orientation')
 
         self.enemy_position = np.array(bots['enemy'].get('center'))
         enemy_velocity = self.calculate_velocity(self.enemy_previous_positions[-1], self.enemy_position, self.delta_t)
@@ -334,7 +358,7 @@ class Ram():
             self.huey_previous_positions.append(self.huey_position)
             self.huey_previous_orientations.append(self.huey_orientation)
             
-            print(f'🥶🥶🥶 Huey Pos Count: {self.huey_pos_count}')
+            # print(f'🥶🥶🥶 Huey Pos Count: {self.huey_pos_count}')
         self.huey_pos_count += 1
         self.huey_orient_count += 1
         

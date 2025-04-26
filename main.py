@@ -21,7 +21,7 @@ from warp_main import get_homography_mat, warp
 COMP_SETTINGS = False
 
 # Set True to print outputs for Corner Detection and Algo
-PRINT = True
+PRINT = False
 
 # Set True to redo warp and picking Huey's main color, front and back corners
 WARP_AND_COLOR_PICKING = True
@@ -59,9 +59,11 @@ start_back_up_time = 0
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
+# camera_number = test_videos_folder + "/when_i_throw_it_back_huey.mp4"
+camera_number = test_videos_folder + "/kabedon_huey.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
-camera_number = test_videos_folder + "/flippy_huey.mp4"
+# camera_number = test_videos_folder + "/flippy_huey.mp4"
 
 
 if IS_TRANSMITTING:
@@ -321,17 +323,16 @@ def display_angles(detected_bots_with_data, move_dictionary, image, initial_run=
         if move_dictionary and (move_dictionary["turn"]+1):
             IS_BACKED = 0
             turn = move_dictionary["turn"] # angle in degrees / 180
-            print(f'👅: {str(turn)}')
+            # print(f'👅: {str(turn)}')
             if turn == 0 and move_dictionary["speed"] < 0:
                 IS_BACKED = 180
-                print("back back abck 👅")
                 cv2.putText(
                     image,
-                    "👅 back back abck 👅",
+                    "BACKING UP",
                     (50, 50),  # Slightly above the top-left corner
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.5,
-                    (255,255,255),
+                    (255,0,255),
                     2,
                 )
             new_orientation_degrees = orientation_degrees + (turn * 180) + IS_BACKED
