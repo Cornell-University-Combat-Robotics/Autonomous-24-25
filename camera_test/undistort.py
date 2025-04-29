@@ -5,7 +5,7 @@ import time
 def prepare_undistortion_maps(image_width, image_height):
     """Pre-compute the undistortion maps once"""
     # Estimate camera matrix
-    focal_length = image_width / 3
+    focal_length = image_width / 2.5
     camera_matrix = np.array(
         [[focal_length, 0, image_width / 2],
          [0, focal_length, image_height / 2],
@@ -36,8 +36,10 @@ if __name__ == "__main__":
     h, w = img.shape[:2]
     
     # Save maps to file for future use
-    map1 = np.load('undistortion_map1.npy')
-    map2 = np.load('undistortion_map2.npy')
+    map1 = np.load('map1.npy')
+    map2 = np.load('map2.npy')
+
+
     
     # Actual undistortion time
     start_undistort = time.time()

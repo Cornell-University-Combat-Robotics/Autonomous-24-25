@@ -14,6 +14,7 @@ from machine.predict import RoboflowModel, YoloModel
 from transmission.motors import Motor
 from transmission.serial_conn import OurSerial
 from warp_main import get_homography_mat, warp
+from vid_and_img_processing.unfisheye import unwarp
 
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
@@ -48,6 +49,9 @@ folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
 frame_rate = 60
+
+map1 = np.load('vid_and_img_processing/map1.npy')
+map2 = np.load('vid_and_img_processing/map2.npy')
 
 # camera_number = 0
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
@@ -104,8 +108,9 @@ def main():
                 return
             resized_image = cv2.resize(captured_image, (0, 0), fx=resize_factor, fy=resize_factor)
             cv2.imwrite(folder + "/resized_image.png", resized_image)
-            homography_matrix = get_homography_mat(resized_image, 700, 700)
-            warped_frame = warp(resized_image, homography_matrix, 700, 700)
+            warpedResized = unwarp(resized_image,map1,map2)
+            homography_matrix = get_homography_mat(warpedResized, 700, 700)
+            warped_frame = warp(warpedResized, homography_matrix, 700, 700)
             cv2.imwrite(folder + "/warped_frame.png", warped_frame)
 
             # 3.2 Part 2. ColorPicker: Manually picking colors for Huey, front and back corners
@@ -216,7 +221,8 @@ def main():
             if IS_ORIGINAL_FPS or time_elapsed > 1.0 / frame_rate:
                 prev = time.time()
                 frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
-                warped_frame = warp(frame, homography_matrix, 700, 700)
+                unfished = unwarp(frame,map1,map2)
+                warped_frame = warp(unfished, homography_matrix, 700, 700)
                 
                 # 11. Run the Warped Image through Object Detection
                 detected_bots = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
