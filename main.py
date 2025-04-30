@@ -56,13 +56,14 @@ map1 = np.load('vid_and_img_processing/map1.npy')
 map2 = np.load('vid_and_img_processing/map2.npy')
 
 # camera_number = 0
+camera_number = test_videos_folder + "/homemade.mp4"
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
 # camera_number = test_videos_folder + "/huey_demo3.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
-camera_number = test_videos_folder + "/green_huey_demo.mp4"
+#camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = test_videos_folder + "/flippy_huey.mp4"
