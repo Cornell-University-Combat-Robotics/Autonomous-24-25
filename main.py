@@ -37,6 +37,8 @@ DISPLAY_ANGLES = True
 # Set True to process every single frame the camera captures
 IS_ORIGINAL_FPS = False
 
+UNFISHEYE = False
+
 if COMP_SETTINGS:
     SHOW_FRAME = False
     DISPLAY_ANGLES = False
@@ -108,9 +110,10 @@ def main():
                 return
             resized_image = cv2.resize(captured_image, (0, 0), fx=resize_factor, fy=resize_factor)
             cv2.imwrite(folder + "/resized_image.png", resized_image)
-            warpedResized = unwarp(resized_image,map1,map2)
-            homography_matrix = get_homography_mat(warpedResized, 700, 700)
-            warped_frame = warp(warpedResized, homography_matrix, 700, 700)
+            if(UNFISHEYE):
+                resized_image = unwarp(resized_image,map1,map2)
+            homography_matrix = get_homography_mat(resized_image, 700, 700)
+            warped_frame = warp(resized_image, homography_matrix, 700, 700)
             cv2.imwrite(folder + "/warped_frame.png", warped_frame)
 
             # 3.2 Part 2. ColorPicker: Manually picking colors for Huey, front and back corners
@@ -221,8 +224,9 @@ def main():
             if IS_ORIGINAL_FPS or time_elapsed > 1.0 / frame_rate:
                 prev = time.time()
                 frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
-                unfished = unwarp(frame,map1,map2)
-                warped_frame = warp(unfished, homography_matrix, 700, 700)
+                if(UNFISHEYE):
+                    frame = unwarp(frame,map1,map2)
+                warped_frame = warp(frame, homography_matrix, 700, 700)
                 
                 # 11. Run the Warped Image through Object Detection
                 detected_bots = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
