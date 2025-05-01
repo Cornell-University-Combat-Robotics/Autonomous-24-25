@@ -56,7 +56,7 @@ resize_factor = 0.8
 frame_rate = 60
 
 # camera_number = 1
-camera_number = 700
+camera_number = 1401
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
