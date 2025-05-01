@@ -108,10 +108,10 @@ class RobotCornerDetection:
 
                 color_pixel_count = self.find_bot_color_pixels(image, bot_color_hsv)
                 if color_pixel_count > max_color_pixels:
-                    if color == "Top" and color_pixel_count > 150:
+                    if color == "Top" and color_pixel_count > 100:
                         max_color_pixels = color_pixel_count
                         our_bot_image = image
-                    elif color == "Bottom" and color_pixel_count > 300:
+                    elif color == "Bottom" and color_pixel_count > 100:
                         max_color_pixels = color_pixel_count
                         our_bot_image = image
             

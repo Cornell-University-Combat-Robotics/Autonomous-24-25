@@ -18,7 +18,9 @@ from warp_main import get_homography_mat, warp
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True if using Matt's Laptop
-MATT_LAPTOP = False
+MATT_LAPTOP = True
+
+JANK_CONTROLLER = True
 
 # Set True to optimize for competition, removing all visuals
 COMP_SETTINGS = False
@@ -54,13 +56,13 @@ resize_factor = 0.8
 frame_rate = 60
 
 # camera_number = 1
-# camera_number = 700
+camera_number = 700
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
 # camera_number = test_videos_folder + "/huey_demo3.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
-camera_number = test_videos_folder + "/only_enemy_demo.mp4"
+# camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
@@ -171,8 +173,10 @@ def main():
             ser = OurSerial()
             speed_motor_group = Motor(ser=ser, channel=speed_motor_channel)
             turn_motor_group = Motor(ser=ser, channel=turn_motor_channel)
-            weapon_motor_group = Motor(ser=ser, channel=weapon_motor_channel)
-            # weapon_motor_group = Motor(ser=ser, channel=weapon_motor_channel, speed=-1)
+            if JANK_CONTROLLER:
+                weapon_motor_group = Motor(ser=ser, channel=weapon_motor_channel, speed=-1)
+            else:
+                weapon_motor_group = Motor(ser=ser, channel=weapon_motor_channel)
 
         cv2.destroyAllWindows()
 
@@ -259,7 +263,7 @@ def main():
                             speed = move_dictionary["speed"]
                             turn = move_dictionary["turn"]
                             speed_motor_group.move(IS_FLIPPED * speed * 0.5)
-                            turn_motor_group.move(turn * -1)
+                            turn_motor_group.move(turn * -1 * 0.5)
                             
                     elif DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data, None, warped_frame)
