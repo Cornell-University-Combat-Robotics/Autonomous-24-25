@@ -5,7 +5,7 @@ import time
 def prepare_undistortion_maps(image_width, image_height):
     """Pre-compute the undistortion maps once"""
     # Estimate camera matrix
-    focal_length = image_width / 2.5
+    focal_length = image_width / 2
     camera_matrix = np.array(
         [[focal_length, 0, image_width / 2],
          [0, focal_length, image_height / 2],
@@ -30,11 +30,12 @@ def undistort_image(image, map1, map2):
     return cv2.remap(image, map1, map2, interpolation=cv2.INTER_LINEAR)
 
 def unwarp(frame, map1, map2):
-    #start = time.time()
-    return undistort_image(frame, map1, map2)
-    #end = time.time()
-    #elapsed_ms = (end - start) * 1000
-    #print(f"Undistortion time: {elapsed_ms:.2f} ms")
+    start = time.time()
+    und = undistort_image(frame, map1, map2)
+    end = time.time()
+    elapsed_ms = (end - start) * 1000
+    print(f"Undistortion time: {elapsed_ms:.2f} ms")
+    return und
     
 
 

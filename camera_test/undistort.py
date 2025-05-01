@@ -5,7 +5,7 @@ import time
 def prepare_undistortion_maps(image_width, image_height):
     """Pre-compute the undistortion maps once"""
     # Estimate camera matrix
-    focal_length = image_width / 2.5
+    focal_length = image_width / 2.1
     camera_matrix = np.array(
         [[focal_length, 0, image_width / 2],
          [0, focal_length, image_height / 2],
@@ -32,12 +32,19 @@ def undistort_image(image, map1, map2):
 # Demo usage
 if __name__ == "__main__":
     # Load image
-    img = cv2.imread('fisheye_image.jpg')
+    img = cv2.imread('cam.png')
     h, w = img.shape[:2]
     
     # Save maps to file for future use
-    map1 = np.load('map1.npy')
-    map2 = np.load('map2.npy')
+    # map1 = np.load('map1.npy')
+    # map2 = np.load('map2.npy')
+
+    #save new map
+    map1,map2 = prepare_undistortion_maps(w,h)
+    np.save("700xmap1.npy",map1)
+    np.save("700xmap2.npy",map2)
+
+
 
 
     
@@ -52,13 +59,9 @@ if __name__ == "__main__":
     
     # For batch processing many images
     print("\nBatch processing example:")
-    # Let's simulate processing 10 images
-    start_batch = time.time()
     for i in range(10):
         # In real usage, yovu would load different images here
-        img = cv2.imread("test.jpg")
+        img = cv2.imread("cam.png")
         undistorted = undistort_image(img, map1, map2)
     cv2.imshow("warped new", undistorted)
     cv2.waitKey(0)
-    end_batch = time.time()
-    print(f"Average time per image: {(end_batch - start_batch)/10:.4f} seconds")

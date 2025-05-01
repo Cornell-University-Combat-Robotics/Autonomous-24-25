@@ -15,6 +15,7 @@ from transmission.motors import Motor
 from transmission.serial_conn import OurSerial
 from warp_main import get_homography_mat, warp
 from vid_and_img_processing.unfisheye import unwarp
+from vid_and_img_processing.unfisheye import prepare_undistortion_maps
 
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
@@ -37,7 +38,7 @@ DISPLAY_ANGLES = True
 # Set True to process every single frame the camera captures
 IS_ORIGINAL_FPS = False
 
-UNFISHEYE = False
+UNFISHEYE = True
 
 if COMP_SETTINGS:
     SHOW_FRAME = False
@@ -52,8 +53,8 @@ test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
 frame_rate = 60
 
-map1 = np.load('vid_and_img_processing/map1.npy')
-map2 = np.load('vid_and_img_processing/map2.npy')
+map1 = np.load('vid_and_img_processing/700xmap1.npy')
+map2 = np.load('vid_and_img_processing/700xmap2.npy')
 
 # camera_number = 0
 camera_number = test_videos_folder + "/homemade.mp4"
@@ -111,9 +112,12 @@ def main():
                 return
             resized_image = cv2.resize(captured_image, (0, 0), fx=resize_factor, fy=resize_factor)
             cv2.imwrite(folder + "/resized_image.png", resized_image)
+            h, w = resized_image.shape[:2]
+            map1,map2 = prepare_undistortion_maps(w,h)
             if(UNFISHEYE):
                 resized_image = unwarp(resized_image,map1,map2)
             homography_matrix = get_homography_mat(resized_image, 700, 700)
+            
             warped_frame = warp(resized_image, homography_matrix, 700, 700)
             cv2.imwrite(folder + "/warped_frame.png", warped_frame)
 
