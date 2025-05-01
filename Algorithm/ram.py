@@ -251,11 +251,6 @@ class Ram():
     def predict_desired_turn_and_speed(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         angle = self.predict_desired_orientation_angle(
             our_pos, our_orientation, enemy_pos, enemy_velocity, dt)
-        # print("-------")
-        # print("Predicted Angle From Predict Turn and Speed: ", angle)
-        # print("Turn: ",  angle * (Ram.MAX_TURN / 180.0))
-        # print("Speed: ", 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0)))
-        # print("-------")
         return angle * (Ram.MAX_TURN / 180.0), 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0))
 
     """ if enemy robot predicted position is outside of arena, move it inside. """
