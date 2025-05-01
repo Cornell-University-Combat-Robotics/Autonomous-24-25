@@ -63,8 +63,7 @@ map1 = np.load('vid_and_img_processing/700xmap1.npy')
 map2 = np.load('vid_and_img_processing/700xmap2.npy')
 
 # camera_number = 1
-# camera_number = 700
-camera_number = test_videos_folder + "/homemade.mp4"
+camera_number = 1401
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -354,5 +353,5 @@ def display_angles(detected_bots_with_data, move_dictionary, image, initial_run=
     cv2.waitKey(1)
 
 if __name__ == "__main__":
-    # Run using 'kernprof -l -v --unit 1e-3 main.py' for debugging
+    # Run using 'python -m kernprof -lvr --unit 1e-3 main.py' for debugging
     main()

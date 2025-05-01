@@ -1,3 +1,4 @@
+cv2-enumerate-cameras
 inference
 line-profiler
 numpy
