@@ -19,6 +19,11 @@ from vid_and_img_processing.unfisheye import prepare_undistortion_maps
 
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
+# Set True if using Matt's Laptop
+MATT_LAPTOP = True
+
+JANK_CONTROLLER = True
+
 # Set True to optimize for competition, removing all visuals
 COMP_SETTINGS = False
 
@@ -44,6 +49,7 @@ if COMP_SETTINGS:
     SHOW_FRAME = False
     DISPLAY_ANGLES = False
     PRINT = False
+    MATT_LAPTOP = True
 
 if not SHOW_FRAME:
     DISPLAY_ANGLES = False
@@ -56,7 +62,8 @@ frame_rate = 60
 map1 = np.load('vid_and_img_processing/700xmap1.npy')
 map2 = np.load('vid_and_img_processing/700xmap2.npy')
 
-# camera_number = 0
+# camera_number = 1
+# camera_number = 700
 camera_number = test_videos_folder + "/homemade.mp4"
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
@@ -64,7 +71,7 @@ camera_number = test_videos_folder + "/homemade.mp4"
 # camera_number = test_videos_folder + "/huey_demo3.mp4"
 # camera_number = test_videos_folder + "/only_huey_demo.mp4"
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
-#camera_number = test_videos_folder + "/green_huey_demo.mp4"
+# camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = test_videos_folder + "/flippy_huey.mp4"
@@ -73,6 +80,7 @@ camera_number = test_videos_folder + "/homemade.mp4"
 if IS_TRANSMITTING:
     speed_motor_channel = 1
     turn_motor_channel = 3
+    weapon_motor_channel = 4
 
 # ------------------------------ BEFORE THE MATCH ------------------------------
 
@@ -162,7 +170,10 @@ def main():
         # 5. Defining all subsystem objects: ML, Corner, Algorithm
         # Defining Roboflow Machine Learning Model Object
         # predictor = RoboflowModel()
-        predictor = YoloModel("250v12best", "PT", device="mps")
+        if MATT_LAPTOP:
+            predictor = YoloModel("250v12best", "TensorRT", device="cuda")
+        else:
+            predictor = YoloModel("250v12best", "PT", device="mps")
 
         # Defining Corner Detection Object
         corner_detection = RobotCornerDetection(selected_colors, False, False)
@@ -175,6 +186,10 @@ def main():
             ser = OurSerial()
             speed_motor_group = Motor(ser=ser, channel=speed_motor_channel)
             turn_motor_group = Motor(ser=ser, channel=turn_motor_channel)
+            if JANK_CONTROLLER:
+                weapon_motor_group = Motor(ser=ser, channel=weapon_motor_channel, speed=-1)
+            else:
+                weapon_motor_group = Motor(ser=ser, channel=weapon_motor_channel)
 
         cv2.destroyAllWindows()
 
@@ -190,7 +205,9 @@ def main():
                 algorithm = Ram(bots = first_run_corner)
                 first_move_dictionary = algorithm.ram_ram(first_run_corner)
                 if PRINT:
-                    # print("Initial Object Detection Output: Detected [{} housebots], [{} bots]".format(len(first_run_ml["housebots"]), len(first_run_ml["bots"])))
+                    num_housebots = len(first_run_ml["housebot"])
+                    num_bots = len(first_run_ml["bots"])
+                    print("Initial Object Detection: " + str(num_housebots) + " housebots, " + str(num_bots) + " bots detected")
                     print("Initial Corner Detection Output: " + str(first_run_corner))
                     print("Initial Algorithm Output: " + str(first_move_dictionary))
 
@@ -200,6 +217,9 @@ def main():
                     cv2.destroyAllWindows()
             else:
                 algorithm = Ram()
+                cv2.imshow("", warped_frame)
+                cv2.waitKey(0)
+                cv2.destroyAllWindows()
                 print("Warning: Initial detection of Huey and enemy robot failed." + "\n")
         else:
             algorithm = Ram()
@@ -208,7 +228,6 @@ def main():
 
         # 8. Match begins
         prev = 0
-        cap = cv2.VideoCapture(camera_number)
         if cap.isOpened() == False:
             print("Error opening video file" + "\n")
 
@@ -249,6 +268,7 @@ def main():
                         # 13. Algorithm runs only if we detect Huey and an enemy robot
                         detected_bots_with_data["enemy"] = detected_bots_with_data["enemy"][0]
                         move_dictionary = algorithm.ram_ram(detected_bots_with_data)
+
                         if PRINT:
                             print("ALGORITHM: " + str(move_dictionary))
                         if DISPLAY_ANGLES:
@@ -257,16 +277,8 @@ def main():
                         if IS_TRANSMITTING:
                             speed = move_dictionary["speed"]
                             turn = move_dictionary["turn"]
-                            speed_motor_group.move(IS_FLIPPED * speed * -1 * 0.7) # TODO
-
-                            # AARON
-                            if turn >= 0:
-                                turn_motor_group.move(turn * 0.45 + 0.15)
-                            else:
-                                turn_motor_group.move(turn * 0.45 - 0.15)
-
-                            # CHRIS
-                            # turn_motor_group.move(math.cbrt(turn))
+                            speed_motor_group.move(IS_FLIPPED * speed * 0.5)
+                            turn_motor_group.move(turn * -1 * 0.5)
                             
                     elif DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data, None, warped_frame)
@@ -308,6 +320,7 @@ def main():
 
 def display_angles(detected_bots_with_data, move_dictionary, image, initial_run=False):
     # BLUE line: Huey's Current Orientation according to Corner Detection
+
     if detected_bots_with_data and detected_bots_with_data["huey"]["orientation"]:
         orientation_degrees = detected_bots_with_data["huey"]["orientation"]
 
@@ -323,7 +336,7 @@ def display_angles(detected_bots_with_data, move_dictionary, image, initial_run=
         cv2.arrowedLine(image, (start_x, start_y), end_point, (255, 0, 0), 2)
 
         # RED line: Huey's Desired Orientation according to Algorithm
-        if move_dictionary and move_dictionary["turn"]:
+        if move_dictionary and (move_dictionary["turn"]):
             turn = move_dictionary["turn"] # angle in degrees / 180
             new_orientation_degrees = orientation_degrees + (turn * 180)
 

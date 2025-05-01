@@ -84,7 +84,7 @@ class RobotCornerDetection:
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return contours
     
-    def find_our_bot(self, images: list[np.ndarray], bot_color_hsv):
+    def find_our_bot(self, images: list[np.ndarray], bot_color_hsv, color: str):
         """
         Identifies which image contains our robot based on a predefined robot color.
 
@@ -107,12 +107,16 @@ class RobotCornerDetection:
                     continue
 
                 color_pixel_count = self.find_bot_color_pixels(image, bot_color_hsv)
-                if color_pixel_count > max_color_pixels and color_pixel_count > 100:
-                    max_color_pixels = color_pixel_count
-                    our_bot_image = image
+                if color_pixel_count > max_color_pixels:
+                    if color == "Top" and color_pixel_count > 100:
+                        max_color_pixels = color_pixel_count
+                        our_bot_image = image
+                    elif color == "Bottom" and color_pixel_count > 100:
+                        max_color_pixels = color_pixel_count
+                        our_bot_image = image
             
             if our_bot_image is None:
-                print("Huey is not found")
+                print(color + " color Huey is not found")
                 
             return our_bot_image
         
@@ -152,11 +156,11 @@ class RobotCornerDetection:
 
             if bot_images and all(img is not None for img in bot_images):
 
-                top_color = self.selected_colors[0] #GREEN
-                bottom_color = self.selected_colors[-1] #PURPLE
+                top_color = self.selected_colors[0] # GREEN
+                bottom_color = self.selected_colors[-1] # PURPLE
 
-                our_bot_top = self.find_our_bot(bot_images, top_color) # Green
-                our_bot_bottom = self.find_our_bot(bot_images, bottom_color) # Purple
+                our_bot_top = self.find_our_bot(bot_images, top_color, "Top") # Green
+                our_bot_bottom = self.find_our_bot(bot_images, bottom_color, "Bottom") # Purple
 
                 # If we see purple
                 if our_bot_bottom is not None:
@@ -243,7 +247,15 @@ class RobotCornerDetection:
             points = [centroid_front, centroid_back]
             centroid_front, centroid_back = self.get_missing_point(points)
 
-        return np.array([centroid_front, centroid_back])
+        # Ensure we have exactly 2 points for front and back
+        if len(centroid_front) < 2 or len(centroid_back) < 2:
+            return np.array([[], []])  # Return empty arrays if not enough points
+
+        # Convert to numpy arrays with consistent shape
+        front_array = np.array(centroid_front[:2])  # Take first 2 points if more exist
+        back_array = np.array(centroid_back[:2])    # Take first 2 points if more exist
+        
+        return np.array([front_array, back_array])
 
     def distance(self, point1: tuple, point2: tuple):
         """
@@ -299,14 +311,14 @@ class RobotCornerDetection:
                         red_point[0] + (blue_points[0][0] - blue_points[1][0]),
                         red_point[1] + (blue_points[0][1] - blue_points[1][1]),
                     )
-                    red_points.append(new_red_point)
+                    red_points.append((int(new_red_point[0]), int(new_red_point[1])))
                 else:
                     # Copy the blue point associated with length_b near the red point
                     new_red_point = (
                         red_point[0] + (blue_points[1][0] - blue_points[0][0]),
                         red_point[1] + (blue_points[1][1] - blue_points[0][1]),
                     )
-                    red_points.append(new_red_point)
+                    red_points.append((int(new_red_point[0]), int(new_red_point[1])))
 
             elif len(blue_points) == 1 and len(red_points) == 2:
                 # Case #2: 2 red points and 1 blue point
@@ -321,14 +333,14 @@ class RobotCornerDetection:
                         blue_point[0] + (red_points[0][0] - red_points[1][0]),
                         blue_point[1] + (red_points[0][1] - red_points[1][1]),
                     )
-                    blue_points.append(new_blue_point)
+                    blue_points.append((int(new_blue_point[0]), int(new_blue_point[1])))
                 else:
                     # Copy the red point associated with length_b near the blue point
                     new_blue_point = (
                         blue_point[0] + (red_points[1][0] - red_points[0][0]),
                         blue_point[1] + (red_points[1][1] - red_points[0][1]),
                     )
-                    blue_points.append(new_blue_point)
+                    blue_points.append((int(new_blue_point[0]), int(new_blue_point[1])))
 
             return [red_points, blue_points]
         
@@ -455,15 +467,14 @@ class RobotCornerDetection:
             image = self.detect_our_robot_main(bot_images)
             
             if image is not None:
-                # cv2.imshow("Huey", image)
-                # cv2.waitKey(1)
-                # cv2.destroyAllWindows()
-
                 centroid_points = self.find_centroids(image)
-                # print("centroid points: " + str(centroid_points))
 
                 # For displaying centroids
                 left_front, right_front = self.get_left_and_right_front_points(centroid_points)
+
+                if left_front is None or right_front is None:
+                    print("Could not determine left/right front points")
+                    return {"huey": {}, "enemy": []}, self.IS_FLIPPED
 
                 front_midpoint = (centroid_points[0][0] + centroid_points[0][1]) * 0.5
 

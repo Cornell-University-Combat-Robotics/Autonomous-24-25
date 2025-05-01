@@ -60,8 +60,8 @@ class Ram():
     # ----------------------------- CONSTANTS -----------------------------
     ENEMY_HISTORY_BUFFER = 10  # how many previous enemy position we are recording
     DANGER_ZONE = 55
-    MAX_SPEED = 1 # between 0 and 1
-    MIN_SPEED = 0 # between 0 and 1
+    MAX_SPEED = 1 # magnitude between 0 and 1
+    MIN_SPEED = 0 # magnitude between 0 and 1
     MAX_TURN = 1 # between 0 and 1
     MIN_TURN = 0 # between 0 and 1
     ARENA_WIDTH = 1200 # in pixels
@@ -236,11 +236,6 @@ class Ram():
     def predict_desired_turn_and_speed(self, our_pos: np.array, our_orientation: float, enemy_pos: np.array, enemy_velocity: np.array, dt: float):
         angle = self.predict_desired_orientation_angle(
             our_pos, our_orientation, enemy_pos, enemy_velocity, dt)
-        # print("-------")
-        # print("Predicted Angle From Predict Turn and Speed: ", angle)
-        # print("Turn: ",  angle * (Ram.MAX_TURN / 180.0))
-        # print("Speed: ", 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0)))
-        # print("-------")
         return angle * (Ram.MAX_TURN / 180.0), 1-(np.sign(angle) * (angle) * (Ram.MAX_SPEED / 180.0))
 
     """ if enemy robot predicted position is outside of arena, move it inside. """
@@ -268,13 +263,13 @@ class Ram():
         self.delta_t = time.time() - self.old_time  # record delta time
         self.old_time = time.time()
 
-        # get new position and heading values
+        # Get new position and heading values
         self.huey_position = np.array(bots['huey'].get('center'))
         self.huey_orientation = bots['huey'].get('orientation')
 
         self.enemy_position = np.array(bots['enemy'].get('center'))
         enemy_velocity = self.calculate_velocity(self.enemy_previous_positions[-1], self.enemy_position, self.delta_t)
-        turn, speed = self.predict_desired_turn_and_speed(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos=self.enemy_position, 
+        turn, speed = self.predict_desired_turn_and_speed(our_pos= self.huey_position, our_orientation= self.huey_orientation, enemy_pos= self.enemy_position, 
                                                             enemy_velocity= enemy_velocity, dt = self.delta_t)
 
         if (Ram.TEST_MODE):
@@ -291,10 +286,10 @@ class Ram():
                                           left_speed=self.left, right_speed=self.right, angle=angle, direction=direction)
 
         self.huey_old_position = self.huey_position
-        # if the array for enemy_previous_positions is full, then pop the first one
+
+        # If the array for enemy_previous_positions is full, then pop the first one
         self.enemy_previous_positions.append(self.enemy_position)
         if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
             self.enemy_previous_positions.pop(0)
-
 
         return self.huey_move(speed, turn)
