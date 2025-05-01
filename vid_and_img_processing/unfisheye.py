@@ -30,12 +30,8 @@ def undistort_image(image, map1, map2):
     return cv2.remap(image, map1, map2, interpolation=cv2.INTER_LINEAR)
 
 def unwarp(frame, map1, map2):
-    start = time.time()
-    und = undistort_image(frame, map1, map2)
-    end = time.time()
-    elapsed_ms = (end - start) * 1000
-    print(f"Undistortion time: {elapsed_ms:.2f} ms")
-    return und
+    return undistort_image(frame, map1, map2)
+  
     
 
 
