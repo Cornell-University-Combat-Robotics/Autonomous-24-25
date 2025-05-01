@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from line_profiler import profile
 import math
+import matplotlib.pyplot as plt
 
 from Algorithm.ram import Ram
 from corner_detection.color_picker import ColorPicker
@@ -28,7 +29,10 @@ JANK_CONTROLLER = True
 COMP_SETTINGS = False
 
 # Set True to print outputs for Corner Detection and Algo
-PRINT = True
+PRINT = False
+
+# Save times to an array for plotting
+TIMING = True
 
 # Set True to redo warp and picking Huey's main color, front and back corners
 WARP_AND_COLOR_PICKING = True
@@ -43,7 +47,7 @@ DISPLAY_ANGLES = True
 # Set True to process every single frame the camera captures
 IS_ORIGINAL_FPS = False
 
-UNFISHEYE = True
+UNFISHEYE = False
 
 if COMP_SETTINGS:
     SHOW_FRAME = False
@@ -57,13 +61,13 @@ if not SHOW_FRAME:
 folder = os.getcwd() + "/main_files"
 test_videos_folder = folder + "/test_videos"
 resize_factor = 0.8
-frame_rate = 60
+frame_rate = 50
 
 map1 = np.load('vid_and_img_processing/700xmap1.npy')
 map2 = np.load('vid_and_img_processing/700xmap2.npy')
 
 # camera_number = 1
-camera_number = 1401
+camera_number = 700
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -85,6 +89,14 @@ if IS_TRANSMITTING:
 
 @profile
 def main():
+
+    if TIMING:
+        t_cap = []
+        t_fish = []
+        t_warp = []
+        t_predict = []
+        t_whole = []
+
     try:
         # 1. Start the capturing frame from the camera or pre-recorded video
         # 2. Capture initial frame by pressing '0'
@@ -226,33 +238,45 @@ def main():
         # ----------------------------------------------------------------------
 
         # 8. Match begins
-        prev = 0
         if cap.isOpened() == False:
             print("Error opening video file" + "\n")
 
-        while cap.isOpened():
-            # 9. Frames are being capture by the camera/pre-recorded video
-            time_elapsed = time.time() - prev
-            ret, frame = cap.read()
-            if not ret:
-                print("Failed to capture image" + "\n") # If frame capture fails, break the loop
-                break
+        prev = 0
+        t0 = time.time()
 
-            if SHOW_FRAME:
-                if cv2.waitKey(1) & 0xFF == ord("q"): # Press Q on keyboard to exit
-                    print("exit" + "\n")
-                    break
+        while cap.isOpened():
+            time_elapsed = time.time() - prev
 
             # 10. Warp image using the Homography Matrix
             if IS_ORIGINAL_FPS or time_elapsed > 1.0 / frame_rate:
+
+                # 9. Frames are being capture by the camera/pre-recorded video
+                if TIMING:
+                    t1 = time.time()
+                ret, frame = cap.read()
+                if TIMING:
+                    t_cap.append(time.time()-t1)
+                if not ret:
+                    print("Failed to capture image" + "\n") # If frame capture fails, break the loop
+                    break
+
+                if SHOW_FRAME:
+                    if cv2.waitKey(1) & 0xFF == ord("q"): # Press Q on keyboard to exit
+                        print("exit" + "\n")
+                        break
+
                 prev = time.time()
                 frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
                 if(UNFISHEYE):
                     frame = unwarp(frame,map1,map2)
                 warped_frame = warp(frame, homography_matrix, 700, 700)
-                
+
+                if TIMING:
+                    t2 = time.time()
                 # 11. Run the Warped Image through Object Detection
                 detected_bots = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
+                if TIMING:
+                    t_predict.append(time.time()-t2)
 
                 # 12. Run Object Detection's results through Corner Detection
                 corner_detection.set_bots(detected_bots["bots"])
@@ -283,8 +307,14 @@ def main():
                         display_angles(detected_bots_with_data, None, warped_frame)
                 elif DISPLAY_ANGLES:
                     display_angles(None, None, warped_frame)
+                
                 if SHOW_FRAME and not DISPLAY_ANGLES:
+                    print("RAHHHH")
                     cv2.imshow("Bounding boxes (no angles)", warped_frame)
+                
+                if TIMING:
+                    t_whole.append(time.time()-t0)
+                    t0 = time.time()
         
         cap.release()
         print("============================")
@@ -316,6 +346,14 @@ def main():
 
         if SHOW_FRAME:
             cv2.destroyAllWindows()
+
+        if TIMING:
+            plt.plot(t_cap, label="Capture")
+            plt.plot(t_predict, label="Predict")
+            plt.plot(t_whole, label="Total")
+            plt.ylim(0,0.03)
+            plt.legend()
+            plt.savefig("timing.png")
 
 def display_angles(detected_bots_with_data, move_dictionary, image, initial_run=False):
     # BLUE line: Huey's Current Orientation according to Corner Detection
