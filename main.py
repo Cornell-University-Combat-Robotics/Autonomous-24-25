@@ -15,13 +15,13 @@ from machine.predict import RoboflowModel, YoloModel
 from transmission.motors import Motor
 from transmission.serial_conn import OurSerial
 from warp_main import get_homography_mat, warp
-from vid_and_img_processing.unfisheye import unwarp
+from vid_and_img_processing.unfisheye import unfish
 from vid_and_img_processing.unfisheye import prepare_undistortion_maps
 
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True if using Matt's Laptop
-MATT_LAPTOP = True
+MATT_LAPTOP = False
 
 JANK_CONTROLLER = True
 
@@ -67,7 +67,7 @@ map1 = np.load('vid_and_img_processing/700xmap1.npy')
 map2 = np.load('vid_and_img_processing/700xmap2.npy')
 
 # camera_number = 1
-camera_number = 700
+#camera_number = 700
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -78,6 +78,7 @@ camera_number = 700
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = test_videos_folder + "/flippy_huey.mp4"
+camera_number = test_videos_folder + "/warped_no_huey.mp4"
 
 
 if IS_TRANSMITTING:
@@ -134,7 +135,7 @@ def main():
             h, w = resized_image.shape[:2]
             map1,map2 = prepare_undistortion_maps(w,h)
             if(UNFISHEYE):
-                resized_image = unwarp(resized_image,map1,map2)
+                resized_image = unfish(resized_image,map1,map2)
             homography_matrix = get_homography_mat(resized_image, 700, 700)
             
             warped_frame = warp(resized_image, homography_matrix, 700, 700)
@@ -268,7 +269,7 @@ def main():
                 prev = time.time()
                 frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
                 if(UNFISHEYE):
-                    frame = unwarp(frame,map1,map2)
+                    frame = unfish(frame,map1,map2)
                 warped_frame = warp(frame, homography_matrix, 700, 700)
 
                 if TIMING:

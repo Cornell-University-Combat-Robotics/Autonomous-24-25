@@ -29,7 +29,7 @@ def undistort_image(image, map1, map2):
     """Apply pre-computed maps to undistort an image"""
     return cv2.remap(image, map1, map2, interpolation=cv2.INTER_LINEAR)
 
-def unwarp(frame, map1, map2):
+def unfish(frame, map1, map2):
     return undistort_image(frame, map1, map2)
   
     
