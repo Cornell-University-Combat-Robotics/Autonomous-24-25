@@ -395,7 +395,7 @@ class Ram():
             # Don't use the integral term for now
             integral = 0
             # Calculate the PID output
-            pid_output = (error * 1) + (derivative * 0.1 * -1) + (integral * 0.0)
+            pid_output = (error * 1) + (derivative * 0.03 * -1) + (integral * 0.0)
             # Calculate the new speed and turn values
             speed = speed
             turn = pid_output

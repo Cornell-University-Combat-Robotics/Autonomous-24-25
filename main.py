@@ -28,7 +28,7 @@ MATT_LAPTOP = True
 JANK_CONTROLLER = False
 
 # Set True to optimize for competition, removing all visuals
-COMP_SETTINGS = True
+COMP_SETTINGS = False
 
 # Set True to print outputs for Corner Detection and Algo
 PRINT = True
@@ -40,7 +40,7 @@ TIMING = True
 WARP_AND_COLOR_PICKING = False
 
 # Set True when testing with a live Huey and not a pre-filmed video
-IS_TRANSMITTING = False
+IS_TRANSMITTING = True
 
 # True to display current and future orientation angles for each iteration
 SHOW_FRAME = True
@@ -72,7 +72,7 @@ BACK_UP_TIME = 0.5
 start_back_up_time = 0
 
 # camera_number = 1
-# camera_number = 701
+camera_number = 701
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -105,7 +105,6 @@ def main():
         t_turn = []
         t_predict = []
         t_whole = []
-        t_speed = []
 
     try:
         # 1. Start the capturing frame from the camera or pre-recorded video
@@ -208,8 +207,9 @@ def main():
         if IS_TRANSMITTING:
             # 5.1: Defining Transmission Object if we're using a live video
             ser = OurSerial()
-            speed_motor_group = Motor(ser=ser, channel=speed_motor_channel)
-            turn_motor_group = Motor(ser=ser, channel=turn_motor_channel)
+            # speed_motor_group = Motor(ser=ser, channel=speed_motor_channel)
+            # turn_motor_group = Motor(ser=ser, channel=turn_motor_channel)
+            motor_group = Motor(ser=ser, channel=speed_motor_channel, channel2=turn_motor_channel)
             if JANK_CONTROLLER:
                 weapon_motor_group = Motor(ser=ser, channel=weapon_motor_channel, speed=-1)
             else:
@@ -325,14 +325,10 @@ def main():
 
                             tt = time.perf_counter()
                             if turn * -1 > 0:
-                                turn_motor_group.move(turn * -1 * 0.5 + 0.1)
+                                motor_group.move(IS_FLIPPED * speed * 0.8, turn * -1 * 0.55 + 0.2)
                             else:
-                                turn_motor_group.move(turn * -1 * 0.5 - 0.1)
+                                motor_group.move(IS_FLIPPED * speed * 0.8, turn * -1 * 0.55 - 0.2)
                             t_turn.append(time.perf_counter() - tt)
-        
-                            ts = time.perf_counter()
-                            speed_motor_group.move(IS_FLIPPED * speed * 0.7)
-                            t_speed.append(time.perf_counter()-ts)
 
 
                             
@@ -366,10 +362,8 @@ def main():
             # Motors need to be cleaned up correctly
             try:
                 # We stop or clean up objects that actually exist in the current scope
-                if 'speed_motor_group' in locals():
-                    speed_motor_group.stop()
-                if 'turn_motor_group' in locals():
-                    turn_motor_group.stop()
+                if 'motor_group' in locals():
+                    motor_group.stop()
                 if 'ser' in locals():
                     ser.cleanup()
             except Exception as motor_exception:
@@ -386,7 +380,6 @@ def main():
             plt.plot(t_predict, label="Predict")
             plt.plot(t_whole, label="Total")
             plt.plot(t_turn, label="Turn")
-            plt.plot(t_speed, label="Speed")
             plt.ylim(0,0.08)
             plt.legend()
             plt.savefig("timing.png")

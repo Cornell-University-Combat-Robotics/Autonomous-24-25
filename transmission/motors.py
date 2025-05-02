@@ -48,7 +48,10 @@ class Motor():
         self.channel = channel
         self.ser = ser
         self.channel2 = channel2
+        if speed2 is None:
+            speed2 = 0
         self.speed2 = speed2
+
         if channel2 is not None:
             self.ser.send_data(channel, speed)
         else:
