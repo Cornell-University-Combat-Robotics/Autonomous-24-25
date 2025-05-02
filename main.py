@@ -123,6 +123,9 @@ def main():
                     break
                 elif key == ord("0"): # Press '0' to capture the image and exit
                     captured_image = frame.copy()
+                    resized_image = cv2.resize(captured_image, (0, 0), fx=resize_factor, fy=resize_factor)
+                    h, w = resized_image.shape[:2]
+                    map1,map2 = prepare_undistortion_maps(w,h)
                     cv2.imwrite(folder + "/captured_image.png", captured_image)
                     break
             else:
