@@ -1,6 +1,8 @@
 import math
 import os
 import time
+import traceback
+import sys
 
 import cv2
 import numpy as np
@@ -29,7 +31,7 @@ JANK_CONTROLLER = False
 COMP_SETTINGS = False
 
 # Set True to print outputs for Corner Detection and Algo
-PRINT = False
+PRINT = True
 
 # Save times to an array for plotting
 TIMING = True
@@ -38,7 +40,7 @@ TIMING = True
 WARP_AND_COLOR_PICKING = True
 
 # Set True when testing with a live Huey and not a pre-filmed video
-IS_TRANSMITTING = True
+IS_TRANSMITTING = False
 
 # True to display current and future orientation angles for each iteration
 SHOW_FRAME = True
@@ -70,7 +72,7 @@ BACK_UP_TIME = 0.5
 start_back_up_time = 0
 
 # camera_number = 1
-camera_number = 701
+# camera_number = 701
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -349,6 +351,7 @@ def main():
         print("KEYBOARD INTERRUPT CLEAN UP")
     except Exception as e:
         print("UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP:", e)
+        # traceback.print_exc(file=sys.stdout) #uncomment to see stack trace
     finally:
         if IS_TRANSMITTING:
             # Motors need to be cleaned up correctly

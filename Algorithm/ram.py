@@ -383,7 +383,7 @@ class Ram():
         # PID Shenanigans
         use_pid = True
         
-        if use_pid:
+        if use_pid and self.delta_t != 0:
             # Only use PID for the turn values
             # Calculate the error
             error = turn
