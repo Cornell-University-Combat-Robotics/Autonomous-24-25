@@ -88,21 +88,26 @@ class OurSerial():
 
         return port_dic[selection]
 
-    def send_data(self, channel, speed):
-        """
-        Sets [channel] to [speed]
+def send_data(self, channel1, speed1, channel2=None, speed2=None):
+    """
+    Sets one or two channels to specified speeds.
 
-        Parameters
-        ----------
-        channel: int
-            the channel to change
-        speed: float
-            the value to set the channel  
-
-        """
-
-        data = f"{channel} {speed}\n"
-        self.ser.write(data.encode())
+    Parameters
+    ----------
+    channel1 : int
+        First channel to set
+    speed1 : float
+        Value for first channel (-1.0 to 1.0)
+    channel2 : int, optional
+        Second channel to set
+    speed2 : float, optional
+        Value for second channel (-1.0 to 1.0)
+    """
+    data = f"{channel1} {speed1}"
+    if channel2 is not None and speed2 is not None:
+        data += f" {channel2} {speed2}"
+    data += "\n"
+    self.ser.write(data.encode())
 
     def cleanup(self):
         """Closes serial connection"""
