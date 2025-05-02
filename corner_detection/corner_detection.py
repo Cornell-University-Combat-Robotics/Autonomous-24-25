@@ -2,6 +2,7 @@ import math
 import os
 import cv2
 import numpy as np
+from PIL import Image
 
 
 class RobotCornerDetection:
@@ -50,7 +51,7 @@ class RobotCornerDetection:
         hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         # Define the HSV range for the robot's color
-        lower_limit = np.array([max(0, bot_color_hsv[0] - 10), 100, 100])
+        lower_limit = np.array([max(0, bot_color_hsv[0] - 10), 80, 80])
         upper_limit = np.array([min(179, bot_color_hsv[0] + 10), 255, 255])
 
         # Create a mask for the robot's color in the image
@@ -77,7 +78,7 @@ class RobotCornerDetection:
         # Define the HSV range around the selected color
         # We tried using 10 for the range; It was too large and picked up orange instead of red
         # For now, it is +-8
-        lower_limit = np.array([max(0, selected_color[0] - 10), 100, 100])
+        lower_limit = np.array([max(0, selected_color[0] - 10), 5, 5])
         upper_limit = np.array([min(179, selected_color[0] + 10), 255, 255])
 
         mask = cv2.inRange(hsv_image, lower_limit, upper_limit)
@@ -102,16 +103,22 @@ class RobotCornerDetection:
             our_bot_image = None
 
             for image in images:
+                
+                total_pixels = np.shape(image)[0]*np.shape(image)[1]
+                print(total_pixels)
+
                 if image is None:
                     print("Warning: One of the images is None, skipping...")
                     continue
 
                 color_pixel_count = self.find_bot_color_pixels(image, bot_color_hsv)
+                print(color, color_pixel_count)
+
                 if color_pixel_count > max_color_pixels:
-                    if color == "Top" and color_pixel_count > 200:
+                    if color == "Top" and color_pixel_count > total_pixels*0.04:
                         max_color_pixels = color_pixel_count
                         our_bot_image = image
-                    elif color == "Bottom" and color_pixel_count > 200:
+                    elif color == "Bottom" and color_pixel_count > total_pixels*0.05:
                         max_color_pixels = color_pixel_count
                         our_bot_image = image
             
@@ -204,7 +211,8 @@ class RobotCornerDetection:
         for contour in contours:
             # Filter out small contours based on area
             area = cv2.contourArea(contour)
-            if area > 10:
+            print("Area", area)
+            if area > 5:
                 # TODO: this value is subject to change based on dimensions of our video & resize_factor
                 # Compute moments for each contour
                 M = cv2.moments(contour)
