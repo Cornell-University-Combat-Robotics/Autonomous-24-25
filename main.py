@@ -66,8 +66,11 @@ frame_rate = 50
 map1 = np.load('vid_and_img_processing/700xmap1.npy')
 map2 = np.load('vid_and_img_processing/700xmap2.npy')
 
+BACK_UP_TIME = 0.5
+start_back_up_time = 0
+
 # camera_number = 1
-#camera_number = 700
+# camera_number = 1401
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -78,7 +81,7 @@ map2 = np.load('vid_and_img_processing/700xmap2.npy')
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = test_videos_folder + "/flippy_huey.mp4"
-camera_number = test_videos_folder + "/warped_no_huey.mp4"
+camera_number = test_videos_folder + "/when_i_throw_it_back_huey.mp4"
 
 
 if IS_TRANSMITTING:
@@ -376,7 +379,20 @@ def display_angles(detected_bots_with_data, move_dictionary, image, initial_run=
         # RED line: Huey's Desired Orientation according to Algorithm
         if move_dictionary and (move_dictionary["turn"]):
             turn = move_dictionary["turn"] # angle in degrees / 180
-            new_orientation_degrees = orientation_degrees + (turn * 180)
+            # print(f'👅: {str(turn)}')
+            IS_BACKED = 0
+            if turn == 0 and move_dictionary["speed"] < 0:
+                IS_BACKED = 180
+                cv2.putText(
+                    image,
+                    "BACKING UP",
+                    (50, 50),  # Slightly above the top-left corner
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (255,0,255),
+                    2,
+                )
+            new_orientation_degrees = orientation_degrees + (turn * 180) + IS_BACKED
 
             # Components of predicted turn
             dx = np.cos(math.pi * new_orientation_degrees / 180)

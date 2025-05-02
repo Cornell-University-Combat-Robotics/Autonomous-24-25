@@ -58,6 +58,7 @@ class Ram():
         main method for the ram ram algorithm that turns to face the enemy and charge towards it
     """
     # ----------------------------- CONSTANTS -----------------------------
+    HUEY_HISTORY_BUFFER = 10  # how many previous Huey position we are recording
     ENEMY_HISTORY_BUFFER = 10  # how many previous enemy position we are recording
     DANGER_ZONE = 55
     MAX_SPEED = 1 # magnitude between 0 and 1
@@ -66,6 +67,11 @@ class Ram():
     MIN_TURN = 0 # between 0 and 1
     ARENA_WIDTH = 1200 # in pixels
     TEST_MODE = False # saves values to CSV file
+    TOLERANCE = 10 # how close Huey's prev pos are permitted to be
+    BACK_UP_SPEED = -0.5
+    BACK_UP_TURN = 0
+    BACK_UP_TIME = 0.5
+    start_back_up_time = 0
 
     '''
     Constructor for the Ram class that initializes the position and orientation of the bot, the motors, the enemy position, 
@@ -104,6 +110,15 @@ class Ram():
         self.right = 0
         
         # initialize the enemy position array
+        self.huey_pos_count = 1
+        self.huey_previous_positions = []
+        self.huey_previous_positions.append(self.huey_position)
+        
+        # initialize the enemy orientation array
+        self.huey_orient_count = 1
+        self.huey_previous_orientations = []
+        self.huey_previous_orientations.append(self.huey_orientation)
+
         self.enemy_previous_positions = []
         self.enemy_previous_positions.append(self.enemy_position)
 
@@ -256,16 +271,63 @@ class Ram():
             flag = True
         if (self.TEST_MODE and flag):
             print("moved that jon")
+            
+    def check_previous_position_and_orientation(self, bots):
+        counter_pos = 0
+        counter_orientation = 0
+        x_curr, y_curr = self.huey_position
+
+        huey_girth = (math.dist(bots['huey'].get('bbox')[1], bots['huey'].get('bbox')[0]))/2
+
+        # Huey against left wall
+        if(self.huey_position[0] < huey_girth and (0 <= self.huey_orientation < 90 or 270 < self.huey_orientation <= 359)):
+            print("👿 AGAINST A LEFT WALL, NO BACK 👿")
+            return False
+        
+        # Huey against right wall
+        if(self.huey_position[0] > 700 - huey_girth and (90 < self.huey_orientation <= 270)):
+            print("🦋 AGAINST A RIGHT WALL, NO BACK 🦋")
+            return False
+        
+        # Huey against top wall
+        if(self.huey_position[1] < huey_girth and (180 < self.huey_orientation <= 359)):
+            print("🌝 AGAINST A TOP WALL, NO BACK 🌝")
+            return False
+        
+        # Huey against bottom wall
+        if(self.huey_position[1] > 700 - huey_girth and (0 < self.huey_orientation <= 180)):
+            print("🦐 AGAINST A BOTTOM WALL, NO BACK 🦐")
+            return False
+
+
+        for prev_pos in self.huey_previous_positions:
+            if math.sqrt((x_curr - prev_pos[0])**2 + (y_curr - prev_pos[1])**2) < Ram.TOLERANCE:
+                counter_pos += 1
+                
+        for prev_orientation in self.huey_previous_orientations:
+            if abs(prev_orientation - self.huey_orientation) < Ram.TOLERANCE*0.5: #TODO: work out angle range
+                counter_orientation += 1
+                
+        if counter_pos >= 8 and counter_orientation >= 8: 
+            return True
+        return False
 
     ''' main method for the ram ram algorithm that turns to face the enemy and charge towards it '''
 
     def ram_ram(self, bots={'huey': {'bbox': list, 'center': list, 'orientation': float}, 'enemy': {'bbox': list, 'center': list}}):
-        self.delta_t = time.time() - self.old_time  # record delta time
-        self.old_time = time.time()
-
+        
         # Get new position and heading values
         self.huey_position = np.array(bots['huey'].get('center'))
         self.huey_orientation = bots['huey'].get('orientation')
+
+        if(self.check_previous_position_and_orientation(bots) and time.time() - Ram.start_back_up_time > Ram.BACK_UP_TIME):
+            print("Back it up rbg 😜")
+            Ram.start_back_up_time = time.time()
+            return self.huey_move(Ram.BACK_UP_SPEED, Ram.BACK_UP_TURN)
+            
+
+        self.delta_t = time.time() - self.old_time  # record delta time
+        self.old_time = time.time()
 
         self.enemy_position = np.array(bots['enemy'].get('center'))
         enemy_velocity = self.calculate_velocity(self.enemy_previous_positions[-1], self.enemy_position, self.delta_t)
@@ -286,10 +348,29 @@ class Ram():
                                           left_speed=self.left, right_speed=self.right, angle=angle, direction=direction)
 
         self.huey_old_position = self.huey_position
-
+        
+        if self.huey_pos_count % 5 == 0:
+            self.huey_previous_positions.append(self.huey_position)
+            self.huey_previous_orientations.append(self.huey_orientation)
+            
+            # print(f'🥶🥶🥶 Huey Pos Count: {self.huey_pos_count}')
+        self.huey_pos_count += 1
+        self.huey_orient_count += 1
+        
+        # Save Huey's last 10 positions
+        if len(self.huey_previous_positions) > Ram.HUEY_HISTORY_BUFFER:
+            self.huey_previous_positions.pop(0)
+            
+        if len(self.huey_previous_orientations) > Ram.HUEY_HISTORY_BUFFER:
+            self.huey_previous_orientations.pop(0)
+            
         # If the array for enemy_previous_positions is full, then pop the first one
         self.enemy_previous_positions.append(self.enemy_position)
+        
         if len(self.enemy_previous_positions) > Ram.ENEMY_HISTORY_BUFFER:
             self.enemy_previous_positions.pop(0)
+        
+        if(time.time() - Ram.start_back_up_time <= Ram.BACK_UP_TIME):
+            return self.huey_move(Ram.BACK_UP_SPEED, Ram.BACK_UP_TURN)  
 
-        return self.huey_move(speed, turn)
+        return self.huey_move(speed,turn)
