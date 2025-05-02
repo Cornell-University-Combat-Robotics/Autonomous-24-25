@@ -71,6 +71,7 @@ class Ram():
     BACK_UP_SPEED = -1
     BACK_UP_TURN = 0
     BACK_UP_TIME = 0.5
+    BACK_UP_THRESHOLD = 8 # number of stagnant frames to trigger Huey back up
     start_back_up_time = 0
 
     '''
@@ -308,7 +309,7 @@ class Ram():
             if abs(prev_orientation - self.huey_orientation) < Ram.TOLERANCE*0.5: #TODO: work out angle range
                 counter_orientation += 1
                 
-        if counter_pos >= 8 and counter_orientation >= 8: 
+        if counter_pos >= Ram.BACK_UP_THRESHOLD and counter_orientation >= Ram.BACK_UP_THRESHOLD: 
             return True
         return False
 
