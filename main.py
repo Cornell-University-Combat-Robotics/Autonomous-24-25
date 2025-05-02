@@ -20,7 +20,7 @@ from warp_main import get_homography_mat, warp
 # Set True if using Matt's Laptop
 MATT_LAPTOP = True
 
-JANK_CONTROLLER = True
+JANK_CONTROLLER = False
 
 # Set True to optimize for competition, removing all visuals
 COMP_SETTINGS = False
@@ -32,8 +32,7 @@ PRINT = False
 WARP_AND_COLOR_PICKING = True
 
 # Set True when testing with a live Huey and not a pre-filmed video
-IS_TRANSMITTING = False
-IS_TRANSMITTING = False
+IS_TRANSMITTING = True
 
 # True to display current and future orientation angles for each iteration
 SHOW_FRAME = True
@@ -59,7 +58,7 @@ BACK_UP_TIME = 0.5
 start_back_up_time = 0
 
 # camera_number = 1
-# camera_number = 700
+camera_number = 701
 # camera_number = test_videos_folder + "/crude_rot_huey.mp4"
 # camera_number = test_videos_folder + "/huey_duet_demo.mp4"
 # camera_number = test_videos_folder + "/huey_demo2.mp4"
@@ -68,7 +67,7 @@ start_back_up_time = 0
 # camera_number = test_videos_folder + "/only_enemy_demo.mp4"
 # camera_number = test_videos_folder + "/green_huey_demo.mp4"
 # camera_number = test_videos_folder + "/when_i_throw_it_back_huey.mp4"
-camera_number = test_videos_folder + "/kabedon_huey.mp4"
+# camera_number = test_videos_folder + "/kabedon_huey.mp4"
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = test_videos_folder + "/flippy_huey.mp4"
@@ -274,8 +273,12 @@ def main():
                         if IS_TRANSMITTING:
                             speed = move_dictionary["speed"]
                             turn = move_dictionary["turn"]
-                            speed_motor_group.move(IS_FLIPPED * speed * 0.5)
-                            turn_motor_group.move(turn * -1 * 0.5)
+                            speed_motor_group.move(IS_FLIPPED * speed * 0.7)
+
+                            if turn * -1 > 0:
+                                turn_motor_group.move(turn * -1 * 0.5 + 0.1)
+                            else:
+                                turn_motor_group.move(turn * -1 * 0.5 - 0.1)
                             
                     elif DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data, None, warped_frame)
@@ -336,6 +339,7 @@ def display_angles(detected_bots_with_data, move_dictionary, image, initial_run=
         if move_dictionary and (move_dictionary["turn"]):
             turn = move_dictionary["turn"] # angle in degrees / 180
             # print(f'👅: {str(turn)}')
+            IS_BACKED = 0
             if turn == 0 and move_dictionary["speed"] < 0:
                 IS_BACKED = 180
                 cv2.putText(
