@@ -50,8 +50,8 @@ class RobotCornerDetection:
         hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
         # Define the HSV range for the robot's color
-        lower_limit = np.array([max(0, bot_color_hsv[0] - 15), 80, 80])
-        upper_limit = np.array([min(179, bot_color_hsv[0] + 15), 255, 255])
+        lower_limit = np.array([max(0, bot_color_hsv[0] - 10), 100, 100])
+        upper_limit = np.array([min(179, bot_color_hsv[0] + 10), 255, 255])
 
         # Create a mask for the robot's color in the image
         mask = cv2.inRange(hsv_image, lower_limit, upper_limit)
@@ -77,8 +77,8 @@ class RobotCornerDetection:
         # Define the HSV range around the selected color
         # We tried using 10 for the range; It was too large and picked up orange instead of red
         # For now, it is +-8
-        lower_limit = np.array([max(0, selected_color[0] - 15), 80, 80])
-        upper_limit = np.array([min(179, selected_color[0] + 15), 255, 255])
+        lower_limit = np.array([max(0, selected_color[0] - 10), 100, 100])
+        upper_limit = np.array([min(179, selected_color[0] + 10), 255, 255])
 
         mask = cv2.inRange(hsv_image, lower_limit, upper_limit)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -108,10 +108,10 @@ class RobotCornerDetection:
 
                 color_pixel_count = self.find_bot_color_pixels(image, bot_color_hsv)
                 if color_pixel_count > max_color_pixels:
-                    if color == "Top" and color_pixel_count > 100:
+                    if color == "Top" and color_pixel_count > 200:
                         max_color_pixels = color_pixel_count
                         our_bot_image = image
-                    elif color == "Bottom" and color_pixel_count > 100:
+                    elif color == "Bottom" and color_pixel_count > 200:
                         max_color_pixels = color_pixel_count
                         our_bot_image = image
             

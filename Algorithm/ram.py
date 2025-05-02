@@ -58,7 +58,7 @@ class Ram():
         main method for the ram ram algorithm that turns to face the enemy and charge towards it
     """
     # ----------------------------- CONSTANTS -----------------------------
-    HUEY_HISTORY_BUFFER = 10  # how many previous Huey position we are recording
+    HUEY_HISTORY_BUFFER = 20  # how many previous Huey position we are recording
     ENEMY_HISTORY_BUFFER = 10  # how many previous enemy position we are recording
     DANGER_ZONE = 55
     MAX_SPEED = 1 # magnitude between 0 and 1
@@ -68,7 +68,7 @@ class Ram():
     ARENA_WIDTH = 1200 # in pixels
     TEST_MODE = False # saves values to CSV file
     TOLERANCE = 10 # how close Huey's prev pos are permitted to be
-    BACK_UP_SPEED = -0.5
+    BACK_UP_SPEED = -1
     BACK_UP_TURN = 0
     BACK_UP_TIME = 0.5
     start_back_up_time = 0
