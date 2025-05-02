@@ -58,7 +58,7 @@ class Ram():
         main method for the ram ram algorithm that turns to face the enemy and charge towards it
     """
     # ----------------------------- CONSTANTS -----------------------------
-    HUEY_HISTORY_BUFFER = 20  # how many previous Huey position we are recording
+    HUEY_HISTORY_BUFFER = 10  # how many previous Huey position we are recording
     ENEMY_HISTORY_BUFFER = 10  # how many previous enemy position we are recording
     DANGER_ZONE = 55
     MAX_SPEED = 1  # magnitude between 0 and 1
@@ -287,22 +287,22 @@ class Ram():
                       1], bots['huey'].get('bbox')[0]))/2
 
         # Huey against left wall
-        if (self.huey_position[0] < huey_girth and (0 <= self.huey_orientation < 90 or 270 < self.huey_orientation <= 359)):
+        if (self.huey_position[0] < huey_girth and (0 <= self.huey_orientation < 45 or 315 < self.huey_orientation <= 359)):
             print("👿 AGAINST A LEFT WALL, NO BACK 👿")
             return False
 
         # Huey against right wall
-        if (self.huey_position[0] > 700 - huey_girth and (90 < self.huey_orientation <= 270)):
+        if (self.huey_position[0] > 700 - huey_girth and (135 < self.huey_orientation <= 225)):
             print("🦋 AGAINST A RIGHT WALL, NO BACK 🦋")
             return False
 
         # Huey against top wall
-        if (self.huey_position[1] < huey_girth and (180 < self.huey_orientation <= 359)):
+        if (self.huey_position[1] < huey_girth and (225 < self.huey_orientation <= 315)):
             print("🌝 AGAINST A TOP WALL, NO BACK 🌝")
             return False
 
         # Huey against bottom wall
-        if (self.huey_position[1] > 700 - huey_girth and (0 < self.huey_orientation <= 180)):
+        if (self.huey_position[1] > 700 - huey_girth and (45 < self.huey_orientation <= 135)):
             print("🦐 AGAINST A BOTTOM WALL, NO BACK 🦐")
             return False
 
@@ -388,7 +388,10 @@ class Ram():
             # Calculate the error
             error = turn
             # Calculate the derivative
-            derivative = (self.huey_orientation - self.huey_previous_orientations[-1]) / self.delta_t
+            if self.delta_t > 0:
+                derivative = (self.huey_orientation - self.huey_previous_orientations[-1]) / (self.delta_t * 180.0)
+            else:
+                derivative = 0
             # Don't use the integral term for now
             integral = 0
             # Calculate the PID output
@@ -396,6 +399,10 @@ class Ram():
             # Calculate the new speed and turn values
             speed = speed
             turn = pid_output
+            if turn > 1:
+                turn = 1
+            elif turn < -1:
+                turn = -1
         
 
         return self.huey_move(speed, turn)

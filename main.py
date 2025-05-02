@@ -21,12 +21,12 @@ from vid_and_img_processing.unfisheye import prepare_undistortion_maps
 # ------------------------------ GLOBAL VARIABLES ------------------------------
 
 # Set True if using Matt's Laptop
-MATT_LAPTOP = False
+MATT_LAPTOP = True
 
 JANK_CONTROLLER = False
 
 # Set True to optimize for competition, removing all visuals
-COMP_SETTINGS = False
+COMP_SETTINGS = True
 
 # Set True to print outputs for Corner Detection and Algo
 PRINT = False
@@ -35,7 +35,7 @@ PRINT = False
 TIMING = True
 
 # Set True to redo warp and picking Huey's main color, front and back corners
-WARP_AND_COLOR_PICKING = True
+WARP_AND_COLOR_PICKING = False
 
 # Set True when testing with a live Huey and not a pre-filmed video
 IS_TRANSMITTING = True
@@ -47,7 +47,7 @@ DISPLAY_ANGLES = True
 # Set True to process every single frame the camera captures
 IS_ORIGINAL_FPS = False
 
-UNFISHEYE = False
+UNFISHEYE = True
 
 if COMP_SETTINGS:
     SHOW_FRAME = False
@@ -83,7 +83,7 @@ camera_number = 701
 # camera_number = test_videos_folder + "/yellow_huey_demo.mp4"
 # camera_number = test_videos_folder + "/warped_no_huey.mp4"
 # camera_number = test_videos_folder + "/flippy_huey.mp4"
-camera_number = test_videos_folder + "/when_i_throw_it_back_huey.mp4"
+# camera_number = test_videos_folder + "/when_i_throw_it_back_huey.mp4"
 
 
 if IS_TRANSMITTING:
@@ -100,8 +100,10 @@ def main():
         t_cap = []
         t_fish = []
         t_warp = []
+        t_turn = []
         t_predict = []
         t_whole = []
+        t_speed = []
 
     try:
         # 1. Start the capturing frame from the camera or pre-recorded video
@@ -251,20 +253,20 @@ def main():
             print("Error opening video file" + "\n")
 
         prev = 0
-        t0 = time.time()
+        t0 = time.perf_counter()
 
         while cap.isOpened():
-            time_elapsed = time.time() - prev
+            time_elapsed = time.perf_counter() - prev
 
             # 10. Warp image using the Homography Matrix
             if IS_ORIGINAL_FPS or time_elapsed > 1.0 / frame_rate:
 
                 # 9. Frames are being capture by the camera/pre-recorded video
                 if TIMING:
-                    t1 = time.time()
+                    t1 = time.perf_counter()
                 ret, frame = cap.read()
                 if TIMING:
-                    t_cap.append(time.time()-t1)
+                    t_cap.append(time.perf_counter()-t1)
                 if not ret:
                     print("Failed to capture image" + "\n") # If frame capture fails, break the loop
                     break
@@ -277,18 +279,18 @@ def main():
             # 10. Warp image using the Homography Matrix
             if IS_ORIGINAL_FPS or time_elapsed > 1.0 / frame_rate:
                 global start_back_up_time
-                prev = time.time()
+                prev = time.perf_counter()
                 frame = cv2.resize(frame, (0, 0), fx=resize_factor, fy=resize_factor)
                 if(UNFISHEYE):
                     frame = unfish(frame,map1,map2)
                 warped_frame = warp(frame, homography_matrix, 700, 700)
 
                 if TIMING:
-                    t2 = time.time()
+                    t2 = time.perf_counter()
                 # 11. Run the Warped Image through Object Detection
                 detected_bots = predictor.predict(warped_frame, show=SHOW_FRAME, track=True)
                 if TIMING:
-                    t_predict.append(time.time()-t2)
+                    t_predict.append(time.perf_counter()-t2)
 
                 # 12. Run Object Detection's results through Corner Detection
                 corner_detection.set_bots(detected_bots["bots"])
@@ -318,12 +320,19 @@ def main():
                         if IS_TRANSMITTING:
                             speed = move_dictionary["speed"]
                             turn = move_dictionary["turn"]
-                            speed_motor_group.move(IS_FLIPPED * speed * 0.7)
 
+                            tt = time.perf_counter()
                             if turn * -1 > 0:
                                 turn_motor_group.move(turn * -1 * 0.5 + 0.1)
                             else:
                                 turn_motor_group.move(turn * -1 * 0.5 - 0.1)
+                            t_turn.append(time.perf_counter() - tt)
+        
+                            ts = time.perf_counter()
+                            speed_motor_group.move(IS_FLIPPED * speed * 0.7)
+                            t_speed.append(time.perf_counter()-ts)
+
+
                             
                     elif DISPLAY_ANGLES:
                         display_angles(detected_bots_with_data, None, warped_frame)
@@ -335,8 +344,8 @@ def main():
                     cv2.imshow("Bounding boxes (no angles)", warped_frame)
                 
                 if TIMING:
-                    t_whole.append(time.time()-t0)
-                    t0 = time.time()
+                    t_whole.append(time.perf_counter()-t0)
+                    t0 = time.perf_counter()
         
         cap.release()
         print("============================")
@@ -373,7 +382,9 @@ def main():
             plt.plot(t_cap, label="Capture")
             plt.plot(t_predict, label="Predict")
             plt.plot(t_whole, label="Total")
-            plt.ylim(0,0.03)
+            plt.plot(t_turn, label="Turn")
+            plt.plot(t_speed, label="Speed")
+            plt.ylim(0,0.08)
             plt.legend()
             plt.savefig("timing.png")
 
