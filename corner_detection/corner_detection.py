@@ -125,7 +125,7 @@ class RobotCornerDetection:
             if our_bot_image is None:
                 print(color + " color Huey is not found")
                 
-            return our_bot_image
+            return our_bot_image, max_color_pixels
         
         except Exception as e:
             print(f"Unexpected error occurred in find_our_bot: {e}")
@@ -166,21 +166,25 @@ class RobotCornerDetection:
                 top_color = self.selected_colors[0] # GREEN
                 bottom_color = self.selected_colors[-1] # PURPLE
 
-                our_bot_top = self.find_our_bot(bot_images, top_color, "Top") # Green
-                our_bot_bottom = self.find_our_bot(bot_images, bottom_color, "Bottom") # Purple
+                our_bot_top, top_pixels = self.find_our_bot(bot_images, top_color, "Top") # Green
+                our_bot_bottom, bottom_pixels = self.find_our_bot(bot_images, bottom_color, "Bottom") # Purple
 
-                # If we see purple
-                if our_bot_bottom is not None:
-                    our_bot = our_bot_bottom
-                    self.IS_FLIPPED = -1                
-                    
-                # If we see green
-                elif our_bot_top is not None:
-                    our_bot = our_bot_top
-                    self.IS_FLIPPED = 1
-
+                if our_bot_top is not None and our_bot_bottom is not None:
+                    if top_pixels > bottom_pixels:
+                        our_bot = our_bot_top
+                        self.IS_FLIPPED = 1
+                    else:
+                        our_bot = our_bot_bottom
+                        self.IS_FLIPPED = -1
                 else:
-                    our_bot = None
+                    if our_bot_bottom is not None:
+                        our_bot = our_bot_bottom
+                        self.IS_FLIPPED = -1
+                    elif our_bot_top is not None:
+                        our_bot = our_bot_top
+                        self.IS_FLIPPED = 1
+                    else:
+                        our_bot = None
 
                 return our_bot
             else:
