@@ -1,7 +1,70 @@
 # Autonomous-24-25
-## 'main' Folder:
+This code was used to control Huey, our 3 pound fully autonomous battle bot, at NHRL's May 2025 competition. Huey was a modified version of the popular Jolt kit from Repeat Robotics, with titanium cleats added and colorful tape used to identify and orient Huey in our autonomous system. This system can be used for ANY battle bot in NHRL, so long as it follows the coloring scheme on Huey's lid of a solid colored robot with 2 front corners and 2 back corners of different color.
 
-general code can be used in all platform 
+![Huey Image](triple_huey.jpg)
+
+
+# main.py
+
+The `main.py` file is the main code that calls every other function from the subsystems.
+
+## Table of Contents
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Usage](#usage)
+- [Configuration](#configuration)
+
+## Features
+- Captures video from a camera or pre-recorded file
+- Warps the captured image using homography transformation
+- Detects objects using YOLO or Roboflow models
+- Identifies robot corners and orientation
+- Computes movement decisions based on detected positions
+- Sends movement commands to motors via serial communication
+- Displays visual debugging information
+
+## Prerequisites
+Ensure you have the following installed:
+- Make sure to run `pip install -r requirements.txt` for ease
+- Python 3.10+
+- OpenCV
+- NumPy
+- Tkinter
+- Pandas
+- `line_profiler` (for profiling)
+- `torch` (for machine learning models)
+- `cv2`, `os`, `time`
+- `onnxruntime`
+- `openvino`
+- Additional dependencies for `RoboflowModel` and `YoloModel`
+
+## Usage
+Run the main script using:
+```bash
+python main.py
+```
+or 
+```bash
+python3 main.py
+```
+For debugging and profiling:
+```bash
+kernprof -l -v --unit 1e-3 main.py
+```
+
+## Configuration
+Modify the following global variables in `main.py` to change behavior:
+
+- `COMP_SETTINGS`: Optimize for competition (disable visuals)
+- `WARP_AND_COLOR_PICKING`: Enable redoing warp and color picking
+- `IS_TRANSMITTING`: Set to True when using a live robot
+- `SHOW_FRAME`: Toggle displaying frames
+- `DISPLAY_ANGLES`: Show current and future orientation angles
+- `IS_ORIGINAL_FPS`: Process every frame
+- `camera_number`: Path to video file or camera input
+
+
+# Development Folders
 
 ## 'corner_detection' Folder:
 
@@ -10,16 +73,6 @@ code for corner detection and calculating orientation of the robot
 How to test corner detection:
 1. Change the hardcoded image file paths in Lines 8 and 9 in `detect_our_robot.py`
 2. In the command line, run `python corner_detection` or `python3 corner_detection`
-
-## 'raspberry_pi' Folder:
-
-specific code can be used in only raspberry_pi
-
-
-## 'camera_test' Folder:
-
-test code can be used 
-
 
 ## 'scripts' Folder: 
 
